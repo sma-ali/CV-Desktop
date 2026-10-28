@@ -1,0 +1,561 @@
+import { ARRIVAL, KEYBOARD, LAMP, WALL_Z, WIN, type Vec3 } from '../core/constants';
+import { clamp, deckLedOn, seg } from '../core/arrival';
+import { rng } from '../core/rng';
+
+// Le décor en données pures, sans three : positions, couleurs et petites
+// animations, fonctions du temps T de l'horloge du store. Tout ce qui est
+// ici se teste hors du navigateur (layout.test.ts). Les composants ne font
+// que poser ces valeurs sur des maillages.
+
+// ------------------------------------------------------------------
+// La fenêtre : emplacement du ciel (fourni par la mise en scène)
+// ------------------------------------------------------------------
+
+/**
+ * Où poser le ciel derrière la vitre. Le décor ne le dessine pas : la mise en
+ * scène y place un plan (une texture par ambiance), centré en position, de
+ * taille size. Derrière, le décor met un fond sombre (WINDOW_BACKSTOP) pour
+ * que l'ouverture ne montre jamais le vide si le ciel manque.
+ */
+export const WINDOW_SKY = {
+  position: [(WIN.x0 + WIN.x1) / 2, (WIN.y0 + WIN.y1) / 2, WALL_Z - 0.55] as Vec3,
+  size: [WIN.x1 - WIN.x0 + 0.4, WIN.y1 - WIN.y0 + 0.4] as const,
+} as const;
+
+/** Le fond de secours, derrière l'emplacement du ciel. */
+export const WINDOW_BACKSTOP = {
+  position: [(WIN.x0 + WIN.x1) / 2, (WIN.y0 + WIN.y1) / 2, WALL_Z - 1.4] as Vec3,
+  size: [WIN.x1 - WIN.x0 + 3, WIN.y1 - WIN.y0 + 3] as const,
+} as const;
+
+// ------------------------------------------------------------------
+// Le clavier
+// ------------------------------------------------------------------
+
+export const KEY_ROWS = 5;
+export const KEY_COLS = 15;
+export const KEY_COUNT = KEY_ROWS * KEY_COLS;
+/** Hauteur d'une touche au repos (son centre), dans le repère du clavier. */
+export const KEY_Y = 0.18;
+/** Profondeur d'enfoncement d'une touche. */
+export const KEY_TRAVEL = 0.05;
+
+/** Couleurs des touches : crème, beige foncé sur les bords, quelques accents. */
+export const KEY_COLORS = {
+  base: 0xd6c6a6,
+  side: 0x9c8b6c,
+  red: 0xc0574a,
+  green: 0x86a07d,
+} as const;
+
+export interface KeySpec {
+  x: number;
+  z: number;
+  color: number;
+}
+
+/** Position (repère du clavier) et couleur d'une touche, rangée par rangée. */
+export function keyLayout(): KeySpec[] {
+  const keys: KeySpec[] = [];
+  for (let row = 0; row < KEY_ROWS; row++) {
+    for (let col = 0; col < KEY_COLS; col++) {
+      keys.push({ x: -1.92 + col * 0.275, z: -0.55 + row * 0.275, color: keyColor(row, col) });
+    }
+  }
+  return keys;
+}
+
+export function keyColor(row: number, col: number): number {
+  if (row === 4 && col > 4 && col < 10) return KEY_COLORS.base; // barre d'espace
+  if ((col === 0 && row === 2) || (col === 14 && row === 1) || (row === 0 && col === 0)) {
+    return KEY_COLORS.red;
+  }
+  if (row === 4 && col === 13) return KEY_COLORS.green;
+  if (col > 12 || col < 1) return KEY_COLORS.side;
+  return KEY_COLORS.base;
+}
+
+/** Durée de l'enfoncement d'une touche (secondes). */
+export const KEY_DIP_TIME = 0.11;
+
+/**
+ * Fin estimée de la frappe du code à l'écran. La longueur du code appartient
+ * aux objets ; le décor l'estime (environ 470 caractères à 150 par seconde).
+ * Voir « needs » : un champ du store donnerait la fin exacte.
+ */
+export const TYPING_END_ESTIMATE = ARRIVAL.typingStart + 3.2;
+
+/** Caractères par seconde de la ligne finale (tapée en 3 s, effacée en 1.2 s). */
+const EXTRA_RATE = 12;
+
+/** Touche (indice) frappée pour le caractère n : pseudo-aléatoire mais stable. */
+export function keyForChar(n: number): number {
+  const h = Math.imul(n + 17, 0x9e3779b1) >>> 0;
+  return (h >>> 7) % KEY_COUNT;
+}
+
+/**
+ * Ce qui se tape à l'instant t : le compteur de caractères « virtuel » et sa
+ * vitesse, ou null quand personne ne tape. Pendant le code, 150 caractères
+ * par seconde ; pendant la ligne finale (tapée puis effacée en boucle), 12.
+ */
+function typingAt(t: number): { start: number; rate: number } | null {
+  if (t >= ARRIVAL.typingStart && t < TYPING_END_ESTIMATE) {
+    return { start: ARRIVAL.typingStart, rate: ARRIVAL.typingRate };
+  }
+  if (t >= ARRIVAL.extraLineStart) {
+    const lt = (t - ARRIVAL.extraLineStart) % ARRIVAL.extraLineLoop;
+    if (lt < 3 || (lt >= 7 && lt < 8.2)) return { start: t - lt, rate: EXTRA_RATE };
+  }
+  return null;
+}
+
+/**
+ * Enfoncement de chaque touche (0 à 1) à l'instant t, écrit dans out (une
+ * case par touche, aucune allocation). Fonction pure de t : figée par ?fige.
+ * Renvoie true si une touche au moins est enfoncée.
+ */
+export function keyDips(t: number, out: Float32Array): boolean {
+  out.fill(0);
+  // Ce qui se tape maintenant, ou se tapait il y a un instant (la touche remonte).
+  const typing = typingAt(t) ?? typingAt(t - KEY_DIP_TIME);
+  if (!typing) return false;
+  const { start, rate } = typing;
+  let any = false;
+  const first = Math.max(0, Math.ceil((t - KEY_DIP_TIME - start) * rate));
+  const last = Math.floor((t - start) * rate);
+  for (let n = first; n <= last; n++) {
+    const at = start + n / rate;
+    const age = t - at;
+    // Seulement les caractères frappés pendant une période de frappe.
+    if (age < 0 || age > KEY_DIP_TIME || !typingAt(at)) continue;
+    const k = keyForChar(n + Math.round(start * 1000));
+    const dip = 1 - age / KEY_DIP_TIME;
+    if (dip > (out[k] ?? 0)) out[k] = dip;
+    any = true;
+  }
+  return any;
+}
+
+/** Position du clavier sur le plateau. */
+export const KEYBOARD_POSITION = KEYBOARD;
+
+// ------------------------------------------------------------------
+// Le pavé de boutons de stream
+// ------------------------------------------------------------------
+
+export const DECK = { position: [-2.7, 0, -0.5] as Vec3, ry: 0.06, tilt: -0.12 } as const;
+export const DECK_ROWS = 3;
+export const DECK_COLS = 5;
+export const DECK_PALETTE = [0xffb45e, 0xf3e9d4, 0x7fc4bb, 0xe3735a, 0x86a07d] as const;
+
+export interface DeckButton {
+  x: number;
+  y: number;
+  z: number;
+  color: number;
+}
+
+export function deckLayout(): DeckButton[] {
+  const buttons: DeckButton[] = [];
+  for (let row = 0; row < DECK_ROWS; row++) {
+    for (let col = 0; col < DECK_COLS; col++) {
+      buttons.push({
+        x: -0.5 + col * 0.25,
+        y: 0.21 + row * 0.034,
+        z: 0.26 - row * 0.26,
+        color: DECK_PALETTE[(row * 2 + col) % DECK_PALETTE.length] ?? DECK_PALETTE[0],
+      });
+    }
+  }
+  return buttons;
+}
+
+/** Instant du coup d'œil lumineux du bouton i après un clic à rippleAt. */
+export function deckRippleAt(rippleAt: number, index: number): number {
+  return rippleAt + (index % DECK_COLS) * 0.06 + Math.floor(index / DECK_COLS) * 0.03;
+}
+
+/**
+ * Luminosité du bouton i (multiplie sa couleur) : éteint, puis allumé à son
+ * tour pendant l'arrivée, avec une respiration lente (fixe en mouvement
+ * réduit) et une vague après un clic.
+ */
+export function deckButtonLevel(
+  t: number,
+  index: number,
+  rippleAt: number | null,
+  reduced: boolean,
+): number {
+  const on = deckLedOn(t, index);
+  const pulse = on ? (reduced ? 0.6 : 0.55 + 0.12 * Math.sin(t * 1.3 + index)) : 0;
+  let ripple = 0;
+  if (rippleAt !== null) {
+    const at = deckRippleAt(rippleAt, index);
+    if (t >= at && t < at + 0.35) ripple = 0.8;
+  }
+  return pulse + ripple;
+}
+
+// ------------------------------------------------------------------
+// Le micro sur bras articulé (entre par la gauche)
+// ------------------------------------------------------------------
+
+/**
+ * Le bras : pince sur le bord gauche du plateau, colonne, bras haut, bras
+ * avant, puis le micro suspendu. Le prototype pendait un micro noir presque
+ * vertical, illisible vu de dessus ; ici le bras est clair, les rotules en
+ * laiton, et le micro s'allonge presque à l'horizontale vers la chaise : de
+ * haut, on lit une gélule à grille claire au bout d'un bras crème.
+ */
+export const MIC = {
+  clamp: [-6.42, 0, -2.0] as Vec3,
+  /** Haut de la colonne, premier coude, bout du bras. */
+  joints: [
+    [-6.38, 0.95, -1.95],
+    [-6.25, 2.85, -1.05],
+    [-5.62, 2.7, 0.15],
+  ] as [Vec3, Vec3, Vec3],
+  /** Direction du micro (vers la bouche de qui est assis), normalisée au calcul. */
+  aim: [0.7, -0.36, 0.62] as Vec3,
+  /** Longueurs : corps, grille. Rayons : corps, grille. */
+  body: { length: 0.78, radius: 0.15 },
+  grille: { length: 0.42, radius: 0.2 },
+} as const;
+
+export function normalize([x, y, z]: Vec3): Vec3 {
+  const length = Math.hypot(x, y, z) || 1;
+  return [x / length, y / length, z / length];
+}
+
+export function addScaled([ax, ay, az]: Vec3, [bx, by, bz]: Vec3, s: number): Vec3 {
+  return [ax + bx * s, ay + by * s, az + bz * s];
+}
+
+/**
+ * Hélice d'un ressort le long du segment [from, to] : spires de rayon radius,
+ * pointsPerTurn points par tour. Points prêts pour un câble (Cable).
+ */
+export function springPoints(
+  from: Vec3,
+  to: Vec3,
+  radius: number,
+  turns: number,
+  pointsPerTurn = 8,
+): Vec3[] {
+  const axis: Vec3 = [to[0] - from[0], to[1] - from[1], to[2] - from[2]];
+  const dir = normalize(axis);
+  // Deux vecteurs perpendiculaires à l'axe.
+  const ref: Vec3 = Math.abs(dir[1]) < 0.9 ? [0, 1, 0] : [1, 0, 0];
+  const u = normalize(cross(dir, ref));
+  const w = cross(dir, u);
+  const n = Math.max(2, Math.round(turns * pointsPerTurn));
+  const points: Vec3[] = [];
+  for (let i = 0; i <= n; i++) {
+    const k = i / n;
+    const a = k * turns * Math.PI * 2;
+    const c = Math.cos(a) * radius;
+    const s = Math.sin(a) * radius;
+    points.push([
+      from[0] + axis[0] * k + u[0] * c + w[0] * s,
+      from[1] + axis[1] * k + u[1] * c + w[1] * s,
+      from[2] + axis[2] * k + u[2] * c + w[2] * s,
+    ]);
+  }
+  return points;
+}
+
+/** Point à la fraction k du segment [a, b]. */
+export function lerp3(a: Vec3, b: Vec3, k: number): Vec3 {
+  return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
+}
+
+export function cross([ax, ay, az]: Vec3, [bx, by, bz]: Vec3): Vec3 {
+  return [ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx];
+}
+
+/** Direction du micro, normalisée. */
+export const MIC_AIM = normalize(MIC.aim);
+
+/**
+ * Le micro dans son repère (axe +y vers la bouche, origine au centre de la
+ * suspension) : centre du corps, centre de la grille, arrière, pointe.
+ */
+export const MIC_LOCAL = (() => {
+  const { body, grille } = MIC;
+  const bodyY = -body.length / 2 + 0.05;
+  const grilleY = bodyY + body.length / 2 + grille.length / 2 - 0.02;
+  return {
+    bodyY,
+    grilleY,
+    backY: bodyY - body.length / 2,
+    tipY: grilleY + grille.length / 2 + grille.radius * 0.55,
+  };
+})();
+
+/** Le micro prolonge le bras : sa suspension pend juste devant la dernière rotule. */
+export const MIC_CENTER: Vec3 = addScaled(
+  addScaled(MIC.joints[2], MIC_AIM, 0.42),
+  [0, -0.12, 0],
+  1,
+);
+
+/** Un point de l'axe du micro (repère du monde), à la hauteur y de son repère. */
+export function micPoint(y: number): Vec3 {
+  return addScaled(MIC_CENTER, MIC_AIM, y);
+}
+
+// ------------------------------------------------------------------
+// La corde à sauter enroulée (coin avant gauche)
+// ------------------------------------------------------------------
+
+export const ROPE = { center: [-5.6, 0, 2.35] as Vec3, turns: 2.6, radius: 0.42 } as const;
+
+/** La corde en spirale, posée à plat, qui monte un peu à chaque tour. */
+export function ropeCoil(points = 80): Vec3[] {
+  const [cx, , cz] = ROPE.center;
+  const coil: Vec3[] = [];
+  for (let i = 0; i <= points; i++) {
+    const a = (i / points) * Math.PI * 2 * ROPE.turns;
+    const r = ROPE.radius + 0.06 * Math.sin(i * 0.7);
+    coil.push([cx + Math.cos(a) * r, 0.04 + i * 0.0011, cz + Math.sin(a) * r * 0.82]);
+  }
+  return coil;
+}
+
+// ------------------------------------------------------------------
+// La plante
+// ------------------------------------------------------------------
+
+export const PLANT = { position: [3.45, 0, -3.0] as Vec3, leaves: 11 } as const;
+
+export interface LeafSpec {
+  /** Rotation autour de la tige (y), inclinaison de base (x), échelle, phase du balancement. */
+  ry: number;
+  rx: number;
+  scale: number;
+  phase: number;
+  /** Teinte : 0 clair, 1 foncé. */
+  shade: 0 | 1;
+}
+
+export function leafLayout(count: number = PLANT.leaves): LeafSpec[] {
+  return Array.from({ length: count }, (_, i) => ({
+    ry: i * 2.4,
+    rx: -0.25 - (i % 3) * 0.32,
+    scale: 0.8 + (i % 4) * 0.18,
+    phase: i,
+    shade: (i % 2) as 0 | 1,
+  }));
+}
+
+// ------------------------------------------------------------------
+// Mangas et figurines (inventés : ni titre, ni marque, ni personnage réel)
+// ------------------------------------------------------------------
+
+export const MANGA = { position: [4.55, 0, -2.2] as Vec3, ry: -0.12, count: 7 } as const;
+export const MANGA_SIZE = { w: 1.2, h: 0.13, d: 0.82, step: 0.132 } as const;
+export const MANGA_COVERS = [
+  0xc2492f, 0x2f6f8f, 0xe7b84a, 0x3f7b5a, 0x20262f, 0xd7d0c0, 0x7a3e6e,
+] as const;
+export const SPINE_PALETTE = [
+  '#c2492f',
+  '#2f6f8f',
+  '#e7b84a',
+  '#3f7b5a',
+  '#d7d0c0',
+  '#7a3e6e',
+  '#20262f',
+  '#e0703a',
+] as const;
+
+export interface MangaSpec {
+  x: number;
+  y: number;
+  ry: number;
+  cover: number;
+}
+
+export function mangaStack(count: number = MANGA.count): MangaSpec[] {
+  return Array.from({ length: count }, (_, i) => ({
+    x: (i % 2 ? 0.04 : -0.03) + (i === 3 ? 0.08 : 0),
+    y: MANGA_SIZE.h / 2 + i * MANGA_SIZE.step,
+    ry: ((i % 3) - 1) * 0.05,
+    cover: MANGA_COVERS[i % MANGA_COVERS.length] ?? MANGA_COVERS[0],
+  }));
+}
+
+/** Hauteur du dessus de la pile de mangas. */
+export const MANGA_TOP = MANGA.count * MANGA_SIZE.step - (MANGA_SIZE.step - MANGA_SIZE.h);
+
+/** Le dos d'un tome : deux couleurs, trois pavés clairs (titre abstrait), un numéro. */
+export interface SpineSpec {
+  band: string;
+  back: string;
+  blocks: { x: number; w: number }[];
+  volume: number;
+}
+
+export function spineSpec(seed: number): SpineSpec {
+  const random = rng(seed);
+  const pick = () => SPINE_PALETTE[Math.floor(random() * SPINE_PALETTE.length)] ?? SPINE_PALETTE[0];
+  const back = pick();
+  const band = pick();
+  const blocks = [0, 1, 2].map((i) => ({ x: 70 + i * 44 + random() * 10, w: 24 + random() * 16 }));
+  return { back, band, blocks, volume: 1 + Math.floor(random() * 12) };
+}
+
+export type FigureKind = 'robot' | 'fox' | 'wanderer';
+
+export interface FigureSpec {
+  kind: FigureKind;
+  position: Vec3;
+  ry: number;
+}
+
+/** Trois figurines inventées : un petit robot sur la pile, un renard, un voyageur au chapeau. */
+export const FIGURES: readonly FigureSpec[] = [
+  { kind: 'robot', position: [4.6, MANGA_TOP, -2.2], ry: -0.3 },
+  { kind: 'fox', position: [5.55, 0, -1.55], ry: -0.5 },
+  { kind: 'wanderer', position: [5.68, 0, -2.55], ry: -0.4 },
+];
+
+// ------------------------------------------------------------------
+// Les petites choses posées : tasse, manette, bandes, gants
+// ------------------------------------------------------------------
+
+export const MUG = { position: [4.55, 0, -0.62] as Vec3 } as const;
+export const PAD = { position: [5.1, 0, 1.95] as Vec3, ry: 0.45 } as const;
+export const STEAM_COUNT = 6;
+
+/** Le panneau de lumière : centre sur le pied (repère du monde) et point qu'il regarde. */
+export const PANEL = { offset: [-0.15, 3.75, 0.1] as Vec3, lookAt: [0, 0.5, 0.8] as Vec3 } as const;
+
+/** Les gants pendus au pied : longueur du lacet, décalage, phase, couleur. */
+export const GLOVES = [
+  { lace: 0.8, ox: -0.12, oz: 0.1, phase: 0, color: 0x8f2a22, kick: 1 },
+  { lace: 1.15, ox: 0.14, oz: -0.1, phase: 1.7, color: 0x7c231d, kick: -1 },
+] as const;
+
+// ------------------------------------------------------------------
+// Petites animations, fonctions pures du temps
+// ------------------------------------------------------------------
+
+/**
+ * Balancement amorti après un choc (gants frappés) : angle en radians,
+ * 0 avant le choc, sans choc ou en mouvement réduit.
+ */
+export function damped(t: number, at: number | null, amplitude: number, reduced: boolean): number {
+  if (at === null || reduced) return 0;
+  const s = t - at;
+  if (s < 0 || s > 8) return 0;
+  return amplitude * Math.exp(-s * 0.55) * Math.sin(s * 3);
+}
+
+/** Léger balancement continu (feuilles, gants, micro), coupé en mouvement réduit. */
+export function sway(
+  t: number,
+  frequency: number,
+  phase: number,
+  amplitude: number,
+  reduced: boolean,
+): number {
+  return reduced ? 0 : Math.sin(t * frequency + phase) * amplitude;
+}
+
+/** Saut d'une figurine : hauteur et tour sur elle-même, pendant 0.6 s. */
+export function hop(t: number, at: number | null, reduced: boolean): { y: number; spin: number } {
+  if (at === null || reduced) return { y: 0, spin: 0 };
+  const s = t - at;
+  if (s < 0 || s >= 0.6) return { y: 0, spin: 0 };
+  return { y: Math.sin((s / 0.6) * Math.PI) * 0.35, spin: (s / 0.6) * Math.PI * 2 };
+}
+
+/** Secousse de la plante après un clic (radians), pendant 1.4 s. */
+export function shake(t: number, at: number | null, reduced: boolean): number {
+  if (at === null || reduced) return 0;
+  const s = t - at;
+  if (s < 0 || s >= 1.4) return 0;
+  return Math.sin(s * 22) * 0.25 * (1 - s / 1.4);
+}
+
+/** Amplitude de la vibration de la manette après un clic, pendant 0.6 s. */
+export function rumble(t: number, at: number | null, reduced: boolean): number {
+  if (at === null || reduced) return 0;
+  const s = t - at;
+  if (s < 0 || s >= 0.6) return 0;
+  return (1 - s / 0.6) * 0.035;
+}
+
+/** Niveau du panneau de lumière (0 à 1), avec un battement à l'allumage. */
+export function panelLevel(t: number): number {
+  const flicker = t > 5.4 && t < 5.48 ? 0.3 : 1;
+  return seg(t, ARRIVAL.panelOn, ARRIVAL.panelFull) * flicker;
+}
+
+export interface SteamPuff {
+  x: number;
+  y: number;
+  z: number;
+  scale: number;
+  opacity: number;
+}
+
+/**
+ * Une bouffée de vapeur au-dessus de la tasse (repère de la tasse). light :
+ * lumière de la scène (lampe + fenêtre) ; puffAt : clic sur la tasse. En
+ * mouvement réduit, les bouffées restent immobiles.
+ */
+export function steamPuff(
+  t: number,
+  index: number,
+  light: number,
+  puffAt: number | null,
+  reduced: boolean,
+  out: SteamPuff,
+): SteamPuff {
+  const tt = reduced ? 0 : t;
+  const phase = (((tt * 0.32 + index / STEAM_COUNT) % 1) + 1) % 1;
+  const puff = !reduced && puffAt !== null && t - puffAt >= 0 && t - puffAt < 2 ? 1.8 : 1;
+  out.x = Math.sin(tt * 1.2 + index * 2) * 0.12 * phase;
+  out.y = 0.6 + phase * 1.5;
+  out.z = Math.cos(tt * 0.9 + index) * 0.08 * phase;
+  out.scale = 0.22 + phase * 0.55;
+  out.opacity = Math.sin(phase * Math.PI) * 0.16 * puff * clamp(light, 0, 1);
+  return out;
+}
+
+/** Couleur de l'anneau du micro (composantes sRGB, peuvent dépasser 1 pour le halo). */
+export function micRingColor(t: number, open: boolean): [number, number, number] {
+  const k = t >= ARRIVAL.micRing ? 1 : 0;
+  return open ? [k * 1.6, k * 0.2, k * 0.15] : [k * 0.9, k * 0.55, k * 0.25];
+}
+
+// ------------------------------------------------------------------
+// Encombrement au sol
+// ------------------------------------------------------------------
+
+/**
+ * Ce que le décor occupe sur le plateau, en cercles (x, z, rayon). Sert aux
+ * tests (aucun objet du CV n'est posé sur le décor) et servira aux
+ * collisions de l'étape 4.
+ */
+export const DECOR_FOOTPRINTS: readonly { id: string; x: number; z: number; r: number }[] = [
+  { id: 'lamp', x: LAMP.base[0], z: LAMP.base[2], r: 0.48 },
+  { id: 'mic-clamp', x: MIC.clamp[0], z: MIC.clamp[2], r: 0.3 },
+  // Le pavé (1.38 x 0.95) : son cercle inscrit en profondeur, il touche presque le livre.
+  { id: 'deck', x: DECK.position[0], z: DECK.position[2], r: 0.48 },
+  { id: 'mouse', x: 3.35, z: -0.48, r: 0.32 },
+  { id: 'rope', x: ROPE.center[0], z: ROPE.center[2], r: 0.6 },
+  { id: 'wraps', x: 5.7, z: 0.75, r: 0.4 },
+  { id: 'plant', x: PLANT.position[0], z: PLANT.position[2], r: 0.36 },
+  { id: 'manga', x: MANGA.position[0], z: MANGA.position[2], r: 0.72 },
+  { id: 'mug', x: MUG.position[0], z: MUG.position[2], r: 0.38 },
+  { id: 'pad', x: PAD.position[0], z: PAD.position[2], r: 0.66 },
+  ...FIGURES.filter((figure) => figure.position[1] === 0).map((figure) => ({
+    id: `figure-${figure.kind}`,
+    x: figure.position[0],
+    z: figure.position[2],
+    r: 0.22,
+  })),
+];

@@ -1,87 +1,65 @@
 'use client';
 
 import { useFrame } from '@react-three/fiber';
-import { useRef } from 'react';
-import type { Group } from 'three';
-import { Box } from '../core/geometry';
-import { ITEM_IDS, type ItemId } from '../core/ids';
-import { ITEM_POSES } from '../core/constants';
-import { standardMaterial } from '../core/materials';
+import { useState } from 'react';
 import { useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
+import { Badge } from './Badge';
+import { Book } from './Book';
+import { Card } from './Card';
+import { Chest } from './Chest';
+import { Headset } from './Headset';
+import { Laptop } from './Laptop';
+import { Monitor } from './Monitor';
+import { PostIt } from './PostIt';
+import { ITEMS_PRIORITY } from './presentation';
+import { TagAnchorsContext, TagLayer, type TagAnchors } from './TagLayer';
+import { PresentProgress, ProgressContext } from './usePresentation';
 
-// PROVISOIRE : un bloc par objet du CV, à sa place, cliquable. Il montre le
-// contrat du store (survol, présentation) ; la partie « objets » remplace ce
-// fichier (écran et code, livre, badge, post-it, casque, portable, carte,
-// coffret, étiquettes, présentation devant la caméra).
-
-const SIZES: Record<ItemId, readonly [number, number, number]> = {
-  book: [1.9, 0.5, 2.5],
-  badge: [0.86, 0.04, 1.24],
-  postit: [0.78, 0.02, 0.78],
-  headset: [1.2, 0.5, 0.4],
-  laptop: [2.7, 0.16, 1.85],
-  card: [1.7, 0.03, 1.0],
-  chest: [1.25, 0.78, 0.85],
-  monitor: [5.0, 2.92, 0.13],
-};
-
-const COLORS: Record<ItemId, number> = {
-  book: 0x3a4466,
-  badge: 0xe6ddca,
-  postit: 0xf3d46a,
-  headset: 0x2a2826,
-  laptop: 0x8f8a82,
-  card: 0xe8dcc4,
-  chest: 0x5b3720,
-  monitor: 0x1c1a18,
-};
-
-function Placeholder({ id }: { id: ItemId }) {
-  const store = useSceneStoreApi();
-  const group = useRef<Group>(null);
-  const pose = ITEM_POSES[id];
-  const [w, h, d] = SIZES[id];
-  const lift = id === 'monitor' ? 0 : 1;
-
-  useFrame(() => {
-    const { presented, hovered, frame } = store.getState();
-    if (!group.current) return;
-    const target = presented === id ? lift : hovered === id ? 0.08 : 0;
-    group.current.position.y +=
-      (pose.y + target - group.current.position.y) * Math.min(1, frame.dt * 6);
-  });
-
-  return (
-    <group ref={group} position={[pose.x, pose.y, pose.z]} rotation={[0, pose.ry, 0]}>
-      <Box
-        size={[w, h, d]}
-        position={[0, id === 'monitor' ? 2.32 : h / 2, 0]}
-        material={standardMaterial(COLORS[id], { roughness: 0.7 })}
-        onClick={(event) => {
-          event.stopPropagation();
-          const state = store.getState();
-          if (state.presented === id) state.putBack();
-          else state.present(id, 'click');
-        }}
-        onPointerOver={(event) => {
-          event.stopPropagation();
-          store.getState().setHovered(id);
-        }}
-        onPointerOut={() => {
-          if (store.getState().hovered === id) store.getState().setHovered(null);
-        }}
-      />
-    </group>
-  );
-}
+// Les objets du CV posés sur le bureau : l'écran et son code, le livre et le
+// badge (DEFI-METIERS), le post-it et le casque (DARES), le portable
+// (projets 2026), la carte de visite (contact) et le coffret scellé (projets
+// perso). Chacun se survole, se présente au clic et porte son étiquette.
+// Un clic hors des objets repose celui qui est présenté.
 
 export function CvItems({ texts }: { texts: SceneTexts }) {
+  const store = useSceneStoreApi();
+  const [progress] = useState(() => new PresentProgress());
+  const [anchors] = useState<TagAnchors>(() => new Map());
+
+  // Avant les objets : la caméra que la mise en scène vient de placer sert à
+  // calculer la pose de l'objet tenu ; ses matrices doivent être à jour.
+  useFrame(({ camera }) => {
+    camera.updateMatrixWorld();
+  }, ITEMS_PRIORITY - 1);
+
+  // Après les objets : l'avancement de la présentation, lu par la mise en scène.
+  useFrame(() => {
+    store.getState().frame.presentLevel = progress.max();
+  }, ITEMS_PRIORITY + 1);
+
   return (
-    <group name={`cv-items-${texts.locale}`}>
-      {ITEM_IDS.map((id) => (
-        <Placeholder key={id} id={id} />
-      ))}
-    </group>
+    <ProgressContext value={progress}>
+      <TagAnchorsContext value={anchors}>
+        <group
+          name={`cv-items-${texts.locale}`}
+          onPointerMissed={() => {
+            const scene = store.getState();
+            scene.markUser();
+            scene.putBack();
+          }}
+        >
+          <Monitor texts={texts} />
+          <Book texts={texts} />
+          <Badge texts={texts} />
+          <PostIt texts={texts} />
+          <Headset />
+          <Laptop texts={texts} />
+          <Card texts={texts} />
+          <Chest texts={texts} />
+        </group>
+        <TagLayer texts={texts} progress={progress} />
+      </TagAnchorsContext>
+    </ProgressContext>
   );
 }

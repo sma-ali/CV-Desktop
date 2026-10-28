@@ -121,7 +121,7 @@
   font-size: 1.125rem;
   line-height: 1.55;
   color: var(--ink-soft);
-  hyphens: auto;
+  text-wrap: pretty;
 }
 
 /* Blocs */
@@ -155,12 +155,19 @@
   border-top: 1.5px solid var(--rule-strong);
 }
 
+/* La date garde toujours la même place : sous le titre sur téléphone, en haut
+   à droite dès qu'il y a la largeur, même quand le titre passe à la ligne. */
 .entryHead {
-  display: flex;
-  flex-wrap: wrap;
-  align-items: baseline;
-  justify-content: space-between;
-  gap: 0.15rem 1rem;
+  display: grid;
+  gap: 0.15rem;
+}
+
+@media (min-width: 30rem) {
+  .entryHead {
+    grid-template-columns: minmax(0, 1fr) auto;
+    align-items: baseline;
+    column-gap: 1rem;
+  }
 }
 
 .entryTitle {
@@ -199,11 +206,14 @@
   font-style: italic;
 }
 
+/* Pas de césure automatique : elle coupait des noms techniques (« GitHub
+   Ac-tions », « Wire-Guard »). Lignes bornées quand la page est sur une colonne. */
 .highlights {
+  max-width: 34em;
   margin: 0.65rem 0 0;
   padding-left: 1.1rem;
   color: var(--ink-soft);
-  hyphens: auto;
+  text-wrap: pretty;
 }
 
 .highlights li + li {

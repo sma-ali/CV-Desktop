@@ -1,6 +1,6 @@
 # Le bureau en 3D (étape 3)
 
-Ce document fixe le contrat entre les parties de la scène. Le socle (ce qui est décrit ici) est posé sur la branche `feat/bureau-3d` ; trois parties se construisent ensuite en parallèle, chacune dans son worktree et dans ses propres fichiers, puis une quatrième passe les assemble et calibre le rendu.
+Ce document fixe le contrat entre les parties de la scène. Le socle a été posé sur la branche `feat/bureau-3d` ; trois parties (décor, objets, mise en scène) se sont construites en parallèle, chacune dans son worktree et dans ses propres fichiers, puis une passe d'assemblage les a fusionnées et a calé le rendu sur le prototype (voir « État à la fin de l'étape 3 »). Le contrat reste valable pour l'étape 4.
 
 Référence visuelle et de comportement : `prototype/bureau-plateau.html` (Three.js r128). On le reproduit et on l'améliore, on ne le recopie pas : ses textes ne sont pas des faits (voir « Textes »).
 
@@ -43,7 +43,7 @@ Règles :
 
 - Chaque partie remplace le composant provisoire de son dossier (`<Decor />`, `<CvItems texts />`, `<Stage />`) en gardant son nom et ses props. `Scene.tsx` ne change pas.
 - Une partie ne modifie aucun fichier hors de ses dossiers. Un besoin dans le socle (une constante, un champ du store) se note pour l'assemblage ; en attendant, la partie le garde chez elle.
-- Les tests unitaires d'une partie vont dans son dossier (`*.test.ts`, lancés par `npm test`). Ses tests E2E vont dans `tests/e2e/<partie>.spec.ts` (`decor.spec.ts`, `objets.spec.ts`, `mise-en-scene.spec.ts`) : un fichier chacun, pas de modification des autres.
+- Les tests unitaires d'une partie vont dans son dossier (`*.test.ts`, lancés par `npm test`). Ses tests E2E vont dans `tests/e2e/scene-<partie>.spec.ts` (`scene-decor.spec.ts`, `scene-objets.spec.ts`, `scene-scene.spec.ts`) : un fichier chacun, pas de modification des autres. Les parcours complets du visiteur (assemblage) sont dans `tests/e2e/parcours.spec.ts`, ceux du socle dans `tests/e2e/bureau.spec.ts`.
 
 ## Repère et unités
 
@@ -77,20 +77,33 @@ Actions : `present(item, source)` (toute source autre que `auto` compte comme un
 Valeurs par image, mutables, jamais réactives :
 
 - `clock` : `t` (secondes depuis le début de l'arrivée), `dt` (borné à 0.1), `frozen`. Suspendue quand l'onglet est caché.
-- `frame` : recalculé par le socle avant tous les autres `useFrame` (priorité `CLOCK_PRIORITY = -100`) : `t`, `dt`, `lamp` (scintillement compris, interrupteur compris), `lampFlash`, `screen`, `keyboardLed`, `typed` (caractères tapés, sans borne : chaque objet borne à sa longueur), `window`, `ambient`, `camera` (montée, 0 à 1), `mood` (ambiance interpolée en 1.4 s, couleurs en composantes sRGB : `applyRgb(color, rgb)`), `portrait` (largeur / hauteur < 0.9). Seul `presentLevel` (avancement de la présentation, 0 à 1) est écrit par la partie objets ; la mise en scène le lit (assombrissement, focus).
+- `frame` : recalculé par le socle avant tous les autres `useFrame` (priorité `CLOCK_PRIORITY = -100`) : `t`, `dt`, `lamp` (scintillement compris, interrupteur compris), `lampFlash`, `screen`, `keyboardLed`, `typed` (caractères tapés, sans borne : chaque objet borne à sa longueur), `window`, `ambient`, `camera` (montée, 0 à 1), `mood` (ambiance interpolée en 1.4 s, couleurs en composantes sRGB : `applyRgb(color, rgb)`), `portrait` (largeur / hauteur < 0.9). Deux champs sont écrits par la partie objets : `presentLevel` (avancement de la présentation, 0 à 1), que la mise en scène lit (assombrissement, lumière de l'objet tenu) ; `typingEnd` (T où le code de l'écran est entièrement tapé, `TYPING_END_DEFAULT` avant la première image), que le clavier du décor suit.
 
-Priorités de `useFrame` : le socle à `-100`. Les parties restent à `0` (défaut) ou entre `-99` et `-1` ; une priorité positive coupe le rendu automatique et revient au seul post-traitement (mise en scène).
+Priorités de `useFrame` : le socle à `-100`. Les parties restent à `0` (défaut) ou entre `-99` et `-1` ; une priorité positive coupe le rendu automatique et revient au seul post-traitement (mise en scène). Ordre retenu à l'assemblage :
+
+| Priorité | Qui                                                    |
+| -------- | ------------------------------------------------------ |
+| -100     | socle : horloge et `frame`                             |
+| -95      | mise en scène : visite automatique                     |
+| -90      | mise en scène : caméra                                 |
+| -80      | mise en scène : lumières, ciel, lumière de la fenêtre  |
+| -11      | objets : matrices de la caméra à jour                  |
+| -10      | objets : présentation, écran (`typingEnd`), étiquettes |
+| -10      | mise en scène : effets (lisent `presentLevel` à -9)    |
+| -9       | objets : `presentLevel`                                |
+| 0        | décor (clavier, LED, petites animations)               |
+| 1        | mise en scène : rendu du post-traitement               |
 
 ## Constantes (`src/scene/core/constants.ts`)
 
 Portées du prototype, sans dépendance à three :
 
-- Bureau et pièce : `DESK`, `DESK_THICKNESS`, `WIN`, `WALL_Z`, `FLOOR_Y`, `BACKGROUND`.
+- Bureau et pièce : `DESK`, `DESK_THICKNESS`, `WIN`, `WALL_Z`, `WINDOW_SKY` (le plan du ciel, peint par la mise en scène, avec le fond sombre du décor derrière), `FLOOR_Y`, `BACKGROUND`.
 - Matériel partagé : `LAMP` (pied, coude, tête, point visé), `STAND`, `MONITOR` (position, hauteur et inclinaison de la dalle, tailles), `KEYBOARD`, `HEADSET_STAND`.
 - Objets : `ITEM_POSES` (position, rotation, encombrement présenté `hold`, mode de présentation, accroche de l'étiquette), `POSTIT_ON_MONITOR`, `CHEST_PORTRAIT`, `BOUNDS`.
 - Caméra : `PORTRAIT_MAX_ASPECT`, `REST` et `REST_FIT` (vue de repos et points à cadrer), `START_L`, `START_P`, `HELD`, `HELD_MAX_DISTANCE`, `SCREEN_FOCUS`.
-- Temps : `SETTLE` (10.4 s), `AUTO_START` (12.6 s), `IDLE_DELAY` (12 s), `AUTO_SEQ`, `AUTO_TIMING`, `ARRIVAL` (tous les temps de l'arrivée), `MOOD_TRANSITION`.
-- Ambiances : `MOODS` (valeurs du prototype), `MOOD_SWATCHES`, `LAMP_COLOR`, `legacyIntensity()`.
+- Temps : `SETTLE` (10.4 s), `AUTO_START` (12.6 s), `IDLE_DELAY` (12 s), `AUTO_SEQ`, `AUTO_TIMING`, `ARRIVAL` (tous les temps de l'arrivée), `TYPING_END_DEFAULT`, `MOOD_TRANSITION`.
+- Ambiances et lumières : `MOODS` (valeurs du prototype), `MOOD_SWATCHES`, `LAMP_COLOR`, `legacyIntensity()`, `POINT_DECAY` et `legacyPointIntensity()`.
 
 Les niveaux de l'arrivée sont des fonctions pures de T dans `arrival.ts` (`lampLevel`, `screenLevel`, `typedChars`, `extraLineChars`, `windowLevel`, `cameraProgress`, `deckLedOn`...), testées.
 
@@ -112,7 +125,7 @@ Visite automatique (`AUTO_SEQ`) : `book`, `postit`, `laptop`, `card`, `chest`. C
 
 - Gestion des couleurs active (défaut de three) : textures de canvas en `SRGBColorSpace` (fait par `useCanvasTexture`), sortie sRGB. r128 n'en avait pas : les couleurs en hexadécimal restent les mêmes, mais les intensités des lumières se recalibrent.
 - Pas de tone mapping (`flat`) : l'étalonnage chaud du prototype (vignette, courbe, assombrissement autour de l'objet tenu) revient au post-traitement de la mise en scène. La page pose déjà un grain et une légère vignette en CSS : le post-traitement ne double pas la vignette sans le décider.
-- Intensités : `legacyIntensity(i)` (facteur π des lumières physiques) est le point de départ ; lumières ponctuelles et spot avec `decay: 0` pour garder la portée du prototype. Le réglage final se fait à l'œil, sur les captures de référence (assemblage).
+- Intensités : `legacyIntensity(i)` (facteur π des lumières physiques) est le point de départ. Le spot de la lampe garde `decay: 0` (sans atténuation, comme dans le prototype). Les lumières ponctuelles (écran, objet tenu, panneau, lueur du coffret) prennent `decay: POINT_DECAY` (1) et `legacyPointIntensity(i, D)` : la courbe 1 / d coupée à D suit à quelques pour cent près le (1 - d / D)² du prototype, alors qu'avec `decay: 0` la lueur de l'écran éclairait tout le bureau. Les facteurs de calage sont dans `src/scene/stage/lighting.ts` (`CALIBRATION`, `MOOD_REFERENCE`, `SPOT_BOOST`).
 - Ombres PCF, densité de pixels bornée à 2, rendu suspendu quand l'onglet est caché.
 - Outils : `rng` (graine), `grainy`, `roundRect`, `fitFont` (canvas 2D), `useCanvasTexture` (redessinée quand les polices arrivent, avec les vrais noms de famille de next/font : `fonts.serif`, `fonts.mono`, `fonts.hand`), `paintCanvasTexture` (pour l'écran qui se tape), `standardMaterial` (cache, ne jamais modifier un matériau du cache), `brass()`, `iron()`, `texturedMaterial` (texture qui luit au survol), `applyRgb`, et les briques `Box`, `Cyl`, `Sph`, `Rod`, `Cable`, `flatPlaneGeometry`.
 - Règle `react-hooks/immutability` : ne pas modifier un objet renvoyé par un hook (`useThree((s) => s.camera)`). Le lire avec `get()` dans un effet, ou le recevoir dans `useFrame((state) => ...)`, ou passer par une ref.
@@ -168,9 +181,25 @@ node scripts/capture.mjs prototype/bureau-plateau.html --params "t=11000&fige&au
 
 Options : `--size LxH`, `--dpr`, `--mobile`, `--theme light|dark`, `--reduced`, `--delay ms`, `--port` (ou `CAPTURE_PORT`). Sur le site, la capture attend `#hud[data-ready="true"]`.
 
-Captures de référence du prototype (hors dépôt) : `scratchpad/reference/`, liste et paramètres dans son `index.md` : ordinateur 1440x900 et téléphone 390x844 à `?t=11000&fige&auto=0` pour `heure=8`, `14`, `19` et `23`, la séquence d'arrivée (`t=500` à `10400`, `heure=14`) et le livre présenté (`prendre=livre`). Pour comparer, capturer le site avec les mêmes paramètres (`prendre=book` pour le livre) et regarder les deux images côte à côte. Si le dossier a disparu, les recréer avec les commandes de l'`index.md` (le prototype charge three r128 et les polices depuis des CDN).
+Captures de référence du prototype : elles restent hors du dépôt. Pour les recréer (le prototype charge three r128 et les polices depuis des CDN) :
+
+```bash
+REF=/chemin/hors/du/depot/reference
+for h in 8 14 19 23; do
+  node scripts/capture.mjs prototype/bureau-plateau.html --params "t=11000&fige&auto=0&heure=$h" --out $REF/ordinateur-heure-$h.png
+  node scripts/capture.mjs prototype/bureau-plateau.html --params "t=11000&fige&auto=0&heure=$h" --size 390x844 --dpr 2 --mobile --out $REF/telephone-heure-$h.png
+done
+for t in 500 2000 4000 6000 8000 10400; do
+  node scripts/capture.mjs prototype/bureau-plateau.html --params "t=$t&fige&auto=0&heure=14" --out $REF/arrivee-$t.png
+done
+node scripts/capture.mjs prototype/bureau-plateau.html --params "t=11000&fige&auto=0&heure=14&prendre=livre" --delay 2500 --out $REF/objet-livre.png
+```
+
+Pour comparer, capturer le site avec les mêmes paramètres (`prendre=book` pour le livre) et regarder les deux images côte à côte. Avec `&fige`, la présentation d'un objet se pose tout de suite dans son état final (livre ouvert, portable ouvert) : la capture ne dépend plus de la cadence de SwiftShader.
 
 ## Worktrees et ports
+
+Les trois worktrees de l'étape 3 ont été fusionnés puis supprimés. Pour reprendre ce mode de travail à l'étape 4 :
 
 ```bash
 git worktree add .claude/worktrees/decor -b feat/bureau-3d-decor feat/bureau-3d
@@ -179,7 +208,7 @@ npm run dev -- --port 3401              # développement
 E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
 ```
 
-`.claude/worktrees/` est ignoré par git, ESLint, Prettier et TypeScript du dépôt principal. `next.config.ts` fixe la racine de Turbopack et du traçage des fichiers sur le dossier du worktree. Chaque worktree a ses `node_modules` et son `.next`.
+`.claude/worktrees/` est ignoré par git, ESLint, Prettier et TypeScript du dépôt principal. `next.config.ts` fixe la racine de Turbopack et du traçage des fichiers sur le dossier du worktree. Chaque worktree a ses `node_modules` et son `.next`. Un seul `next dev` peut tourner par dossier : pour un second serveur dans le même dossier, servir le build (`npm run build && npm run start -- --port 3420`).
 
 | Partie        | `next dev` | E2E (`E2E_PORT`) |
 | ------------- | ---------- | ---------------- |
@@ -190,8 +219,34 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
 
 ## Vérifier
 
-- `npm run check` : ESLint, Prettier, types, tests unitaires (socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu).
-- `npm run test:e2e` : build de production puis Playwright sur ordinateur et téléphone. Socle : HUD visible sans la 3D, pixels du canvas, repli sans WebGL et sans JavaScript, mouvement réduit, nuit à 23 h, sélecteur d'ambiance, langues, liens bureau et version express, axe sur le HUD, console propre, en-têtes et CSP, scène hors du JavaScript initial, puce qui présente un objet, Rejouer.
+- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre.
+- `npm run test:e2e` : build de production puis Playwright sur ordinateur et téléphone.
+  - `bureau.spec.ts` (socle) : HUD visible sans la 3D, pixels du canvas, repli sans WebGL et sans JavaScript, mouvement réduit, nuit à 23 h, sélecteur d'ambiance, langues, liens bureau et version express, axe sur le HUD, console propre, en-têtes et CSP, scène hors du JavaScript initial, puce qui présente un objet, Rejouer.
+  - `scene-decor.spec.ts` : décor immobile sous `&fige`, vivant sinon, nuit sans erreur.
+  - `scene-objets.spec.ts` : étiquettes FR et EN, cachées pendant l'arrivée et la présentation, puce, étiquette, survol et clic, clic hors des objets, mouvement réduit.
+  - `scene-scene.spec.ts` : arrivée du noir à `settled`, Rejouer trois fois sans fuite WebGL, visite dans l'ordre, arrêt et reprise, `?auto=0`, puce qui reprend la main, mouvement réduit, changement d'ambiance.
+  - `parcours.spec.ts` (assemblage) : puce au clavier puis Échap, gros plan sur l'écran au clic et par `?prendre=monitor`, visite arrêtée par une touche, Rejouer qui repose l'objet et garde l'ambiance, passage en anglais scène comprise, aller-retour avec la version express.
+
+## État à la fin de l'étape 3
+
+Tout le périmètre est en place : plateau, mur et fenêtre avec ciel par ambiance, lampe d'architecte (cliquable), écran au code TypeScript généré depuis le CV, les huit objets du CV, le décor perso, quatre ambiances et leur sélecteur, l'arrivée complète, les étiquettes, le survol, la présentation (visite automatique, clic, puce, étiquette, clavier), Rejouer, le mouvement réduit, le chargement progressif et le repli.
+
+Défauts du prototype corrigés :
+
+- code de l'écran : texture de 2048 px, police 1.7 fois plus grande en proportion, lisible en vue large (et en gros plan) ;
+- micro : bras crème à double tige, micro presque horizontal à grille claire, lisible vu de dessus ;
+- coffret : plus grand, bois clair, plaque, sceau, LED et liseré qui pulse.
+
+Calage sur le prototype (captures côte à côte, mêmes paramètres, luminance moyenne par zones) :
+
+- après-midi, matin, soir et livre présenté : à quelques pour cent du prototype ;
+- nuit : un peu plus claire que le prototype (environ +25 % de luminance moyenne), surtout sur le clavier et la carte ;
+- arrivée : de +10 à +25 % pendant les premières secondes, à cause du cône de la lampe et du flou lumineux, identique dès 8 s ;
+- ajouts par rapport au prototype : ombres douces du soleil, ciel en fondu entre ambiances, poussière dans la lumière.
+
+Réglages : `CALIBRATION` (hémisphère 0.62, soleil 0.7, spot 2.0, cône 0.3, tache 0.45, rais 0.35, poussière 0.7, écran et objet tenu 1), `MOOD_REFERENCE` (les intensités des ambiances relatives à l'après-midi, élevées à la puissance 2.2), `SPOT_BOOST` (0.3), `POINT_DECAY` (1) et `skyLevel` à la puissance 2.2.
+
+Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (`DECOR_FOOTPRINTS` dans `src/scene/decor/layout.ts` donne déjà l'encombrement du décor), fiches, son, objets dédiés à Netherbrain et Homelab, signes de vie du coffret, bords coupés sur téléphone (le coffret et le micro y sont en partie hors champ, comme dans le prototype).
 
 ## Décisions du socle
 
@@ -200,3 +255,17 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
 - Le carton dit « Bienvenue chez Ali » (prénom tiré du nom) et le titre du CV.
 - La puce « Projets perso » mène à la section des projets de la version express, qui n'a pas de section dédiée.
 - `?prendre=` prend les identifiants anglais (`book`, pas `livre`).
+
+## Décisions de l'assemblage
+
+- Les lumières ponctuelles passent à `decay: 1` avec `legacyPointIntensity` (voir « Rendu ») ; le spot de la lampe reste à `decay: 0`.
+- Les intensités des ambiances sont relatives à l'après-midi et élevées à la puissance 2.2 : sans cela, le soir et la nuit restaient presque aussi clairs que l'après-midi.
+- Le ciel est noir avant l'arrivée de la fenêtre (`skyLevel` à la puissance 2.2) : il se voyait dès la première seconde.
+- `WINDOW_SKY` vit dans les constantes du socle : le ciel (mise en scène) et le fond de secours (décor) partagent le même emplacement.
+- L'écran écrit `frame.typingEnd` : le clavier s'arrête de taper à la dernière lettre du code, quelle que soit sa longueur.
+- Sous `&fige`, la présentation se pose aussitôt dans son état final (comme en mouvement réduit) : captures et tests ne dépendent plus de la cadence.
+- L'étiquette du post-it passe sous le post-it : au-dessus, elle cachait la fin des lignes de code de l'écran.
+- `CHEST_PORTRAIT.z` avance de 0.3 (le coffret agrandi touchait le pied du casque en portrait).
+- Un clic n'importe où hors de l'objet tenu le repose, décor compris (le décor garde ses propres réactions : lampe, figurines, tasse...).
+- Les deux vignettes restent : celle du CSS et celle de `GradeEffect` (0.75), qui ensemble retrouvent celle du prototype.
+- Le test du coffret attrape « chaîne » comme mot entier (`\bcha[iî]nes?\b`) : « prochaine étape » revient à l'écran.

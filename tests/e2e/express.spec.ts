@@ -8,8 +8,8 @@ const expected = {
     title: 'Ali Smaani | Développeur Full-Stack',
     other: { name: 'English', path: '/en/express' },
     experiences: [
-      { role: 'Ingénieur applicatif & gestion de données', period: 'janv. 2024 - juin 2026' },
-      { role: 'Développeur Web', period: 'sept. 2020 - août 2023' },
+      { role: 'Ingénieur applicatif & gestion de données', period: 'Janv. 2024 - Juin 2026' },
+      { role: 'Développeur Web', period: 'Sept. 2020 - Août 2023' },
     ],
     print: 'Imprimer',
     skip: 'Aller au contenu',
@@ -27,6 +27,11 @@ const expected = {
 } satisfies Record<Locale, unknown>;
 
 const DASHES = /[\u2013\u2014]/;
+
+// Nombre de pages d'un PDF produit par Chromium (objets /Type /Page).
+function countPdfPages(pdf: Buffer): number {
+  return (pdf.toString('latin1').match(/\/Type\s*\/Page(?!s)/g) ?? []).length;
+}
 
 function collectErrors(page: Page): string[] {
   const errors: string[] = [];
@@ -118,8 +123,16 @@ for (const locale of locales) {
       await expect(bac.locator('time')).toHaveText(['2017']);
     });
 
-    test('ne lie aucun dépôt privé et ne donne aucun téléphone', async ({ page }) => {
+    test('ne lie que les dépôts publics et ne donne aucun téléphone', async ({ page }) => {
       await page.goto(path);
+      // Chaque projet : un lien vers son dépôt s'il est public, aucun sinon.
+      for (const { repository } of content.projects) {
+        await expect(page.locator(`a[href="${repository.url}"]`)).toHaveCount(
+          repository.public ? 1 : 0,
+        );
+      }
+      // État au 28/10/2026 : Netherbrain et Homelab sont privés. À mettre à jour
+      // le jour où l'un d'eux devient public (repository.public dans le contenu).
       await expect(page.locator('a[href*="Netherbrain"], a[href*="Homelab"]')).toHaveCount(0);
       await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
       const text = await page.locator('body').innerText();
@@ -221,15 +234,35 @@ for (const locale of locales) {
   });
 }
 
-test('le lien d’évitement mène au contenu', async ({ page, browserName }) => {
-  test.skip(browserName !== 'chromium');
-  await page.goto('/fr/express');
-  await page.keyboard.press('Tab');
-  const skip = page.getByRole('link', { name: expected.fr.skip });
-  await expect(skip).toBeFocused();
-  await expect(skip).toBeInViewport();
-  await page.keyboard.press('Enter');
-  await expect(page.getByRole('main')).toBeFocused();
+test.describe('au clavier', () => {
+  test.beforeEach(({}, testInfo) => {
+    test.skip(
+      testInfo.project.name !== 'ordinateur',
+      'navigation au clavier testée sur ordinateur',
+    );
+  });
+
+  test('le lien d’évitement mène au contenu', async ({ page }) => {
+    await page.goto('/fr/express');
+    await page.keyboard.press('Tab');
+    const skip = page.getByRole('link', { name: expected.fr.skip });
+    await expect(skip).toBeFocused();
+    await expect(skip).toBeInViewport();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('main')).toBeFocused();
+  });
+
+  test('« Haut de page » ramène en haut, avant les outils', async ({ page }) => {
+    await page.goto('/fr/express');
+    const backToTop = page.getByRole('link', { name: 'Haut de page' });
+    await backToTop.focus();
+    await page.keyboard.press('Enter');
+    await expect(page.getByRole('banner')).toBeFocused();
+    await expect(page.getByRole('banner')).toBeInViewport();
+    // Le Tab suivant tombe sur le premier outil de la barre.
+    await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'English' })).toBeFocused();
+  });
 });
 
 test.describe('sans JavaScript', () => {
@@ -255,7 +288,23 @@ test.describe('sans JavaScript', () => {
 });
 
 test.describe('impression', () => {
-  test('masque l’interface et tient sur deux pages A4', async ({ page }, testInfo) => {
+  for (const locale of locales) {
+    test(`${locale} : tient sur une seule page A4, en clair comme en sombre`, async ({
+      page,
+    }, testInfo) => {
+      test.skip(testInfo.project.name !== 'ordinateur', 'impression testée sur ordinateur');
+      await page.goto(`/${locale}/express`, { waitUntil: 'networkidle' });
+      for (const colorScheme of ['light', 'dark'] as const) {
+        await page.emulateMedia({ media: 'print', colorScheme });
+        for (const preferCSSPageSize of [false, true]) {
+          const pdf = await page.pdf({ format: 'A4', preferCSSPageSize });
+          expect(countPdfPages(pdf)).toBe(1);
+        }
+      }
+    });
+  }
+
+  test('masque l’interface et imprime en noir sur blanc', async ({ page }, testInfo) => {
     test.skip(testInfo.project.name !== 'ordinateur', 'impression testée sur ordinateur');
     await page.goto('/fr/express', { waitUntil: 'networkidle' });
     await page.emulateMedia({ media: 'print' });
@@ -273,11 +322,6 @@ test.describe('impression', () => {
       background: getComputedStyle(document.body).backgroundColor,
     }));
     expect(colors).toEqual({ text: 'rgb(0, 0, 0)', background: 'rgb(255, 255, 255)' });
-
-    const pdf = await page.pdf({ format: 'A4' });
-    const pages = pdf.toString('latin1').match(/\/Type\s*\/Page(?!s)/g) ?? [];
-    expect(pages.length).toBeGreaterThan(0);
-    expect(pages.length).toBeLessThanOrEqual(2);
   });
 });
 

@@ -9,6 +9,7 @@ import {
   type Vec3,
 } from '../core/constants';
 import { clamp, deckLedOn, seg } from '../core/arrival';
+import { DECOR_BODY_HOMES, type DeskObstacle } from '../core/bodies';
 import { rng } from '../core/rng';
 
 // Le décor en données pures, sans three : positions, couleurs et petites
@@ -429,8 +430,14 @@ export const FIGURES: readonly FigureSpec[] = [
 // Les petites choses posées : tasse, manette, bandes, gants
 // ------------------------------------------------------------------
 
-export const MUG = { position: [4.55, 0, -0.62] as Vec3 } as const;
-export const PAD = { position: [5.1, 0, 1.95] as Vec3, ry: 0.45 } as const;
+/** La tasse et la manette glissent (étape 4) : leur place de repos vient du socle. */
+export const MUG = {
+  position: [DECOR_BODY_HOMES.mug.x, 0, DECOR_BODY_HOMES.mug.z] as Vec3,
+} as const;
+export const PAD = {
+  position: [DECOR_BODY_HOMES.pad.x, 0, DECOR_BODY_HOMES.pad.z] as Vec3,
+  ry: DECOR_BODY_HOMES.pad.ry,
+} as const;
 export const STEAM_COUNT = 6;
 
 /** Le panneau de lumière : centre sur le pied (repère du monde) et point qu'il regarde. */
@@ -541,26 +548,40 @@ export function micRingColor(t: number, open: boolean): [number, number, number]
 // ------------------------------------------------------------------
 
 /**
- * Ce que le décor occupe sur le plateau, en cercles (x, z, rayon). Sert aux
- * tests (aucun objet du CV n'est posé sur le décor) et servira aux
- * collisions de l'étape 4.
+ * Ce que le décor fixe occupe sur le plateau, en rectangles orientés (étape
+ * 4) : les obstacles des glissers (solveur de la partie « gestes ») et des
+ * tests de disposition. La tasse et la manette n'y sont plus : elles
+ * glissent (BODY_FOOTPRINTS dans core/bodies.ts). Les objets plats (tapis,
+ * câbles) ne comptent pas.
  */
-export const DECOR_FOOTPRINTS: readonly { id: string; x: number; z: number; r: number }[] = [
-  { id: 'lamp', x: LAMP.base[0], z: LAMP.base[2], r: 0.48 },
-  { id: 'mic-clamp', x: MIC.clamp[0], z: MIC.clamp[2], r: 0.3 },
-  // Le pavé (1.38 x 0.95) : son cercle inscrit en profondeur, il touche presque le livre.
-  { id: 'deck', x: DECK.position[0], z: DECK.position[2], r: 0.48 },
-  { id: 'mouse', x: 3.35, z: -0.48, r: 0.32 },
-  { id: 'rope', x: ROPE.center[0], z: ROPE.center[2], r: 0.6 },
-  { id: 'wraps', x: 5.7, z: 0.75, r: 0.4 },
-  { id: 'plant', x: PLANT.position[0], z: PLANT.position[2], r: 0.36 },
-  { id: 'manga', x: MANGA.position[0], z: MANGA.position[2], r: 0.72 },
-  { id: 'mug', x: MUG.position[0], z: MUG.position[2], r: 0.38 },
-  { id: 'pad', x: PAD.position[0], z: PAD.position[2], r: 0.66 },
-  ...FIGURES.filter((figure) => figure.position[1] === 0).map((figure) => ({
-    id: `figure-${figure.kind}`,
-    x: figure.position[0],
-    z: figure.position[2],
-    r: 0.22,
-  })),
+const square = (id: string, [x, , z]: Vec3, half: number): DeskObstacle => ({
+  id,
+  x,
+  z,
+  ry: 0,
+  hw: half,
+  hd: half,
+});
+
+export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
+  // Le clavier (boîtier de la rangée de touches), comme le prototype.
+  { id: 'keyboard', x: KEYBOARD[0], z: KEYBOARD[2], ry: 0, hw: 2.15, hd: 0.72 },
+  { id: 'deck', x: DECK.position[0], z: DECK.position[2], ry: DECK.ry, hw: 0.69, hd: 0.48 },
+  { id: 'mouse', x: 3.35, z: -0.48, ry: 0, hw: 0.24, hd: 0.34 },
+  square('lamp', LAMP.base, 0.48),
+  square('mic-clamp', MIC.clamp, 0.3),
+  { id: 'rope', x: ROPE.center[0], z: ROPE.center[2], ry: 0, hw: 0.55, hd: 0.48 },
+  { id: 'wraps', x: 5.7, z: 0.75, ry: 0, hw: 0.4, hd: 0.4 },
+  square('plant', PLANT.position, 0.36),
+  {
+    id: 'manga',
+    x: MANGA.position[0],
+    z: MANGA.position[2],
+    ry: MANGA.ry,
+    hw: MANGA_SIZE.w / 2,
+    hd: MANGA_SIZE.d / 2,
+  },
+  ...FIGURES.filter((figure) => figure.position[1] === 0).map((figure) =>
+    square(`figure-${figure.kind}`, figure.position, 0.22),
+  ),
 ];

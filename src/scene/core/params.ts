@@ -1,4 +1,4 @@
-import { isItemId, isMoodId, type ItemId, type MoodId } from './ids';
+import { isBodyId, isItemId, isMoodId, type BodyId, type ItemId, type MoodId } from './ids';
 
 // Paramètres de test lus dans l'adresse, comme ceux du prototype. Ils servent
 // aux captures et aux tests de bout en bout ; un visiteur ne les voit jamais.
@@ -17,10 +17,37 @@ export interface TestParams {
   present: ItemId | null;
   /** ?ambiance=night : force une ambiance. */
   mood: MoodId | null;
+  /** ?recto (avec ?prendre=) : l'objet présenté reste à l'endroit, sans faire son geste. */
+  recto: boolean;
+  /**
+   * ?glisse=laptop:-0.3,2.15 : glisse un objet vers une place du plateau dès
+   * le départ, comme un visiteur (collisions comprises), puis le lâche.
+   * ?glisse seul : le portable vers la carte, comme le prototype.
+   */
+  drag: TestDrag | null;
   /** ?noshadow : sans ombres portées. */
   noShadow: boolean;
   /** ?nopost : sans post-traitement. */
   noPost: boolean;
+}
+
+/** Un glisser demandé par l'adresse : quel corps, et vers quelle place (x, z). */
+export interface TestDrag {
+  item: BodyId;
+  x: number;
+  z: number;
+}
+
+/** Le glisser du prototype (?glisse) : le portable poussé sur la carte. */
+export const DEFAULT_TEST_DRAG: TestDrag = { item: 'laptop', x: -0.3, z: 2.15 };
+
+function parseDrag(value: string | null): TestDrag | null {
+  if (value === null) return null;
+  if (value.trim() === '') return DEFAULT_TEST_DRAG;
+  const match = /^([a-z]+):(-?\d+(?:\.\d+)?),(-?\d+(?:\.\d+)?)$/.exec(value.trim());
+  if (!match) return null;
+  const [, item = '', x = '', z = ''] = match;
+  return isBodyId(item) ? { item, x: Number(x), z: Number(z) } : null;
 }
 
 function finite(value: string | null): number | null {
@@ -43,6 +70,8 @@ export function parseTestParams(search: string | URLSearchParams): TestParams {
     reduced: query.has('reduit'),
     present: present !== null && isItemId(present) ? present : null,
     mood: mood !== null && isMoodId(mood) ? mood : null,
+    recto: query.has('recto'),
+    drag: parseDrag(query.get('glisse')),
     noShadow: query.has('noshadow'),
     noPost: query.has('nopost'),
   };

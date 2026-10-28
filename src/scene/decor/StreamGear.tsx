@@ -313,8 +313,9 @@ function Microphone() {
   useEffect(() => {
     open.current = false;
   }, [replays]);
-  const handlers = usePressable(() => {
+  const handlers = usePressable((_, state) => {
     open.current = !open.current;
+    state.sound.play('blip');
   });
   const aim = useMemo(() => alignY(MIC_AIM), []);
   const ringGeometry = useMemo(() => new TorusGeometry(MIC.body.radius * 0.82, 0.028, 5, 14), []);

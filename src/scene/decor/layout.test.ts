@@ -2,7 +2,7 @@ import { describe, expect, it } from 'vitest';
 import { ARRIVAL, DESK, ITEM_POSES, STAND, WALL_Z, WIN } from '../core/constants';
 import {
   DECK_PALETTE,
-  DECOR_FOOTPRINTS,
+  DECOR_OBSTACLES,
   FIGURES,
   KEY_COLORS,
   KEY_COUNT,
@@ -200,37 +200,15 @@ describe('la place du décor', () => {
   });
 
   it('pose tout sur le plateau, sauf le pied des gants', () => {
-    for (const footprint of DECOR_FOOTPRINTS) {
-      expect(onDesk(footprint.x, footprint.z), footprint.id).toBe(true);
+    for (const obstacle of DECOR_OBSTACLES) {
+      expect(onDesk(obstacle.x, obstacle.z), obstacle.id).toBe(true);
     }
     for (const [x, , z] of ropeCoil()) expect(onDesk(x, z, 0.05)).toBe(true);
     expect(STAND[0]).toBeGreaterThan(DESK.x1);
   });
 
-  it('ne pose rien sur les objets du CV', () => {
-    // Encombrement au repos des objets posés à plat : demi-largeur et demi-profondeur.
-    const items = [
-      { id: 'book', hw: 0.95, hd: 1.25 },
-      { id: 'badge', hw: 0.43, hd: 0.62 },
-      { id: 'laptop', hw: 1.35, hd: 0.93 },
-      { id: 'card', hw: 0.85, hd: 0.5 },
-      { id: 'chest', hw: 0.63, hd: 0.43 },
-      { id: 'monitor', hw: 0.75, hd: 0.48 },
-    ] as const;
-    for (const { id, hw, hd } of items) {
-      const { x, z, ry } = ITEM_POSES[id];
-      for (const footprint of DECOR_FOOTPRINTS) {
-        // Le centre du cercle dans le repère de l'objet (rotation inverse autour de y).
-        const dx = footprint.x - x;
-        const dz = footprint.z - z;
-        const lx = dx * Math.cos(ry) - dz * Math.sin(ry);
-        const lz = dx * Math.sin(ry) + dz * Math.cos(ry);
-        const ox = Math.max(0, Math.abs(lx) - hw);
-        const oz = Math.max(0, Math.abs(lz) - hd);
-        expect(Math.hypot(ox, oz), `${id} / ${footprint.id}`).toBeGreaterThan(footprint.r);
-      }
-    }
-  });
+  // Que rien ne se chevauche (décor, objets du CV, tasse, manette), en
+  // paysage comme en portrait : core/bodies.test.ts.
 
   it('suspend le micro à gauche du coffret, au-dessus du plateau', () => {
     const tip = micPoint(MIC_LOCAL.tipY);

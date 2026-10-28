@@ -20,14 +20,13 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ARRIVAL } from '../core/constants';
+import { DeskBody } from '../gestures/DeskBody';
 import { useSceneStoreApi } from '../core/store-context';
 import { useCanvasTexture } from '../core/textures';
 import {
   FIGURES,
   MANGA,
   MANGA_SIZE,
-  MUG,
-  PAD,
   PLANT,
   ROPE,
   STEAM_COUNT,
@@ -56,8 +55,9 @@ import { box, cyl, MergedParts, rodPart, sph, torus, tube, usePressTime } from '
 
 // Les petites choses de la vie : corde à sauter, bandes de boxe, plante,
 // pile de mangas et figurines (inventés : ni titre, ni marque, ni
-// personnage réel), tasse fumante, manette. Tasse et manette se
-// déplaceront à l'étape 4 ; ici, un clic les fait réagir.
+// personnage réel), tasse fumante, manette. Tasse et manette glissent sur
+// le plateau (étape 4, DeskBody de la partie « gestes ») ; un clic les fait
+// réagir.
 
 // ------------------------------------------------------------------
 // Corde à sauter et bandes de boxe
@@ -423,7 +423,7 @@ function Mug() {
   });
 
   return (
-    <group name="decor-mug" position={MUG.position} {...handlers}>
+    <group name="decor-mug" {...handlers}>
       <MergedParts build={mugParts} />
       {STEAM_INDICES.map((i) => (
         <sprite
@@ -501,7 +501,7 @@ function Gamepad() {
   });
 
   return (
-    <group name="decor-pad" position={PAD.position} rotation={[0, PAD.ry, 0]} {...handlers}>
+    <group name="decor-pad" {...handlers}>
       <group ref={group}>
         <MergedParts build={padBuild} />
         <mesh material={led} position={[0, 0.205, -0.17]}>
@@ -521,8 +521,12 @@ export function Props() {
       {FIGURES.map((spec) => (
         <Figure key={spec.kind} spec={spec} />
       ))}
-      <Mug />
-      <Gamepad />
+      <DeskBody id="mug">
+        <Mug />
+      </DeskBody>
+      <DeskBody id="pad">
+        <Gamepad />
+      </DeskBody>
     </>
   );
 }

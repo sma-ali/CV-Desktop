@@ -1,5 +1,7 @@
 import type { ItemId, MoodId } from './ids';
 
+export * from './framing';
+
 // Constantes du prototype (prototype/bureau-plateau.html), portées telles
 // quelles. Repère : le plateau du bureau est en y = 0, x va de -6.6 (gauche)
 // à 6.6 (droite), z de -3.55 (mur du fond) à 3.4 (bord avant, côté visiteur).
@@ -76,11 +78,13 @@ export const KEYBOARD: Vec3 = [0.3, 0, -0.58];
 // ------------------------------------------------------------------
 
 /**
- * Comment un objet se présente une fois soulevé devant la caméra :
- * open (le livre s'ouvre), flip (se retourne), laptop (s'ouvre), turn (tourne
- * sur lui-même), shake (le coffret tremble), screen (la caméra s'approche).
+ * Comment un objet se présente une fois soulevé devant la caméra, et ce que
+ * fait son geste (retourner) : open (le livre s'ouvre), flip (un objet plat se
+ * retourne), laptop (s'ouvre), turn (le casque tourne sur lui-même), shake
+ * (le coffret tremble), spin (un objet debout fait un demi-tour pour montrer
+ * son dos : le bocal, la baie), screen (la caméra s'approche de l'écran).
  */
-export type PresentMode = 'open' | 'flip' | 'laptop' | 'turn' | 'shake' | 'screen';
+export type PresentMode = 'open' | 'flip' | 'laptop' | 'turn' | 'shake' | 'spin' | 'screen';
 
 export interface ItemPose {
   /** Position de repos sur le bureau (y = hauteur du bas de l'objet). */
@@ -99,7 +103,11 @@ export interface ItemPose {
 /**
  * Poses des objets du CV, reprises du prototype. Le post-it est collé au
  * cadre de l'écran (voir POSTIT_ON_MONITOR) : sa position ici n'est qu'un
- * repli. Le coffret change de place en portrait (CHEST_PORTRAIT).
+ * repli. Le coffret change de place en portrait (PORTRAIT_PLACES). Netherbrain
+ * et Homelab (étape 4) prennent deux places libres : le bocal devant le
+ * clavier, à droite de la lanière du badge ; la baie à l'avant gauche, entre
+ * la corde, le coffret et le livre (bodies.test.ts vérifie qu'aucun
+ * encombrement ne se chevauche).
  */
 export const ITEM_POSES = {
   book: {
@@ -176,6 +184,24 @@ export const ITEM_POSES = {
     mode: 'screen',
     tag: null,
   },
+  netherbrain: {
+    x: 0.75,
+    y: 0,
+    z: 0.92,
+    ry: -0.15,
+    hold: { w: 1.3, h: 1.7, oy: 0.5 },
+    mode: 'spin',
+    tag: { y: 1.15, z: 0 },
+  },
+  homelab: {
+    x: -5.35,
+    y: 0,
+    z: 0.7,
+    ry: 0.25,
+    hold: { w: 1.8, h: 1.7, oy: 0.45 },
+    mode: 'spin',
+    tag: { y: 1.05, z: 0 },
+  },
 } as const satisfies Record<ItemId, ItemPose>;
 
 /** Le post-it du CV, collé en bas à droite du cadre : position et rotation dans le repère de la dalle. */
@@ -188,85 +214,23 @@ export const POSTIT_ON_MONITOR = {
 export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
 
 /**
- * Le coffret recule vers le centre en portrait, pour rester dans le cadre
- * (z avancé de 0.3 par rapport au prototype : agrandi, il touchait le pied du casque).
+ * Limites du plateau pour poser ou glisser un objet : aucun rectangle
+ * d'encombrement (voir bodies.ts) n'en sort. Celles du prototype, qui
+ * bornait le centre des objets.
  */
-export const CHEST_PORTRAIT = { x: -3.75, z: -1.2 } as const;
-
-/** Limites du plateau pour poser ou glisser un objet (étape 4). */
 export const BOUNDS = { x0: -6.15, x1: 6.2, z0: -3.2, z1: 3.05 } as const;
 
-// ------------------------------------------------------------------
-// Caméra et cadrage
-// ------------------------------------------------------------------
-
-/** En dessous de ce rapport largeur / hauteur, la fenêtre est en portrait. */
-export const PORTRAIT_MAX_ASPECT = 0.9;
-
-/** Une vue : point visé, élévation et azimut (radians), distance, champ vertical (degrés). */
-export interface View {
-  target: Vec3;
-  elev: number;
-  az: number;
-  dist: number;
-  fov: number;
-}
-
 /**
- * La vue de repos, d'en haut. La distance est calculée au cadrage
- * (layout() du prototype) : c'est la plus petite qui fait tenir les points
- * REST_FIT dans les limites données en coordonnées normalisées de l'écran.
+ * La fiche (le bristol) à l'écran, pour que l'objet tenu reste visible :
+ * en portrait, une feuille qui monte du bas, jamais plus haute que
+ * portrait.maxHeight de la hauteur de la fenêtre (le cadrage pose l'objet
+ * tenu au-dessus) ; en paysage, à droite, jamais plus large que
+ * landscape.maxWidth pixels ni que landscape.maxFraction de la largeur
+ * (l'objet tenu est à gauche du centre, HELD.landscape).
  */
-export const REST = {
-  landscape: { target: [0.1, 0, 0.05], elev: 0.96, az: 0, dist: 15, fov: 29 },
-  portrait: { target: [0, 0, -0.05], elev: 1.2, az: 0, dist: 15, fov: 34 },
-} as const satisfies Record<string, View>;
-
-/** Points qui doivent tenir dans le cadre au repos, et limites à l'écran. */
-export const REST_FIT = {
-  landscape: {
-    points: [
-      [-6.1, 0, 2.9],
-      [5.9, 0, 2.6],
-      [-5.8, 0, -3.0],
-      [5.6, 0, -2.9],
-      [0.3, 3.85, -3.0],
-      [6.6, 2.2, -1.2],
-    ] as Vec3[],
-    limits: { x: 0.98, yBottom: -0.74, yTop: 0.86 },
-  },
-  portrait: {
-    points: [
-      [-4.3, 0, 2.55],
-      [4.3, 0, 2.4],
-      [-4.2, 0, -2.9],
-      [4.2, 0, -2.6],
-      [0.3, 3.8, -3.0],
-    ] as Vec3[],
-    limits: { x: 0.98, yBottom: -0.5, yTop: 0.7 },
-  },
-} as const;
-
-/** La vue de départ de l'arrivée, au ras du bureau (START_L et START_P). */
-export const START_L: View = { target: [-0.3, 1.2, 1.1], elev: 0.26, az: 0.3, dist: 7.8, fov: 36 };
-export const START_P: View = { target: [-2.4, 2.3, 0.9], elev: 0.32, az: 0.3, dist: 9.5, fov: 52 };
-
-/**
- * Où se tient un objet présenté : centre en coordonnées normalisées (x, y)
- * et part de la hauteur et de la largeur de l'écran qu'il occupe au plus.
- */
-export const HELD = {
-  landscape: { x: -0.3, y: 0.06, fracH: 0.6, fracW: 0.44 },
-  portrait: { x: 0, y: 0.4, fracH: 0.3, fracW: 0.8 },
-} as const;
-
-/** Distance maximale entre la caméra et un objet présenté. */
-export const HELD_MAX_DISTANCE = 6.2;
-
-/** Gros plan sur l'écran : décalage du point visé et distance, selon l'orientation. */
-export const SCREEN_FOCUS = {
-  landscape: { offset: [1.55, -0.15, 0] as Vec3, dist: 10 },
-  portrait: { offset: [0, -1.7, 0] as Vec3, dist: 14 },
+export const SHEET = {
+  portrait: { maxHeight: 0.42 },
+  landscape: { maxWidth: 400, maxFraction: 0.36 },
 } as const;
 
 // ------------------------------------------------------------------
@@ -282,12 +246,23 @@ export const AUTO_START = 12.6;
 /** Secondes sans action du visiteur avant la reprise du mode auto. */
 export const IDLE_DELAY = 12;
 
-/** L'ordre de la visite automatique. */
-export const AUTO_SEQ = ['book', 'postit', 'laptop', 'card', 'chest'] as const satisfies ItemId[];
+/**
+ * L'ordre de la visite automatique : les deux postes, les deux projets, la
+ * pile technique, le contact, puis le coffret.
+ */
+export const AUTO_SEQ = [
+  'book',
+  'postit',
+  'netherbrain',
+  'homelab',
+  'laptop',
+  'card',
+  'chest',
+] as const satisfies ItemId[];
 
 /** Durées de la visite automatique (secondes). */
 export const AUTO_TIMING = {
-  /** Temps de présentation d'un objet. */
+  /** Temps de présentation d'un objet (la fiche s'ouvre avec lui). */
   hold: { book: 6.6, chest: 7.4, default: 6.0 },
   /** Pause entre deux objets. */
   gap: 1.9,

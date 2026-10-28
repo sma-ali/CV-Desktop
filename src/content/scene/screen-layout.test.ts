@@ -1,6 +1,12 @@
 import { describe, expect, it } from 'vitest';
 import { ARRIVAL } from '@/scene/core/constants';
-import { codeLength, screenLayout, SCREEN_TEXTURE, tokenize } from '@/scene/items/screen';
+import {
+  closingBand,
+  codeLength,
+  screenLayout,
+  SCREEN_TEXTURE,
+  tokenize,
+} from '@/scene/items/screen';
 import { sceneEn } from './en';
 import { sceneFr } from './fr';
 
@@ -41,6 +47,27 @@ describe('screenLayout', () => {
       // ... et en largeur (chasse fixe : 0.6 de la taille par caractère).
       const longest = Math.max(...[...screen.code, screen.closing].map((line) => line.length));
       expect(26 + layout.gutter + longest * 0.6 * layout.fontSize).toBeLessThanOrEqual(width);
+    }
+  });
+});
+
+describe('bande repeinte après la frappe', () => {
+  it('couvre la dernière ligne du code et la ligne finale, sans la barre d’état', () => {
+    for (const { code, closing } of [sceneFr.screen, sceneEn.screen]) {
+      const { width, height } = SCREEN_TEXTURE;
+      const { fontSize, lineHeight, top } = screenLayout([...code, closing], width, height);
+      const band = closingBand(code, closing);
+      const baseline = (index: number) => top + index * lineHeight + fontSize * 0.92;
+      // Le curseur en fin de code (ligne n - 1) et sous la ligne finale (ligne n).
+      expect(band.top).toBeLessThanOrEqual(baseline(code.length - 1) - fontSize * 0.86);
+      expect(band.top + band.height).toBeGreaterThanOrEqual(
+        baseline(code.length) + fontSize * 0.25,
+      );
+      // La barre d'état (60 px) reste hors de la bande.
+      expect(band.top + band.height).toBeLessThanOrEqual(height - 60);
+      expect(Number.isInteger(band.top) && Number.isInteger(band.height)).toBe(true);
+      // Bien moins lourde à renvoyer que toute la texture.
+      expect(band.height).toBeLessThan(height / 4);
     }
   });
 });

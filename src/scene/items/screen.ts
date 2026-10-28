@@ -113,6 +113,8 @@ export interface ScreenLayout {
 const HEADER = 76;
 const STATUS = 60;
 const PADDING = 26;
+/** Début de la barre d'état, à droite du post-it rose posé sur le cadre. */
+export const STATUS_LEFT = 104;
 
 /**
  * Plus grande police qui fait tenir toutes les lignes (code et ligne finale)
@@ -137,6 +139,32 @@ export function screenLayout(
     top: HEADER + PADDING,
     gutter: Math.round(fontSize * 2.3),
   };
+}
+
+/** Bande horizontale de la texture, en pixels (top inclus, height de haut). */
+export interface ScreenBand {
+  top: number;
+  height: number;
+}
+
+/**
+ * La bande qui contient tout ce qui bouge une fois le code tapé : la dernière
+ * ligne du code (le curseur y attend), la ligne finale qui se tape et
+ * s'efface en boucle, et son numéro. Seule cette bande est repeinte ensuite,
+ * au lieu de toute la texture.
+ */
+export function closingBand(
+  code: readonly string[],
+  closing: string,
+  width: number = SCREEN_TEXTURE.width,
+  height: number = SCREEN_TEXTURE.height,
+): ScreenBand {
+  const { fontSize, lineHeight, top } = screenLayout([...code, closing], width, height);
+  const last = Math.max(0, code.length - 1);
+  const start = Math.floor(top + last * lineHeight);
+  // Jusque sous les jambages et le curseur de la ligne finale, sans toucher la barre d'état.
+  const end = Math.min(height - STATUS, Math.ceil(top + code.length * lineHeight + fontSize * 1.3));
+  return { top: start, height: end - start };
 }
 
 /** Dessine l'éditeur et le code tapé jusqu'à state. */
@@ -187,7 +215,9 @@ export function drawScreen(
   const { status } = screen;
   c.fillText(
     `${status.language}    ${status.encoding}    ${status.line} ${line}    ${status.errors}`,
-    36,
+    // Le post-it rose du cadre couvre le bord gauche de la dalle : à 36 px, il
+    // cachait le T de TypeScript.
+    STATUS_LEFT,
     h - STATUS / 2,
   );
   c.fillStyle = '#62d18e';

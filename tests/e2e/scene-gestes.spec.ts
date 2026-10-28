@@ -281,18 +281,25 @@ test.describe('les gestes', () => {
     for (const id of candidates) points.set(id, await pointOnItem(page, id));
     await expect(hud(page)).toHaveAttribute('data-auto', 'true', { timeout: 20_000 });
     await expect(hud(page)).toHaveAttribute('data-presented', 'book');
-    // La fiche du livre couvre une partie du bureau (à droite, ou en bas sur
-    // téléphone) : on prend le premier corps que le pointeur atteint.
-    let target: { id: string; point: Point } | null = null;
-    for (const [id, point] of points) {
-      const onCanvas = await page.evaluate(
-        ({ x, y }) => document.elementFromPoint(x, y)?.tagName === 'CANVAS',
-        point,
-      );
-      if (onCanvas) {
-        target = { id, point };
-        break;
+    // La fiche du livre couvre une partie du bureau (à droite sur
+    // ordinateur) : on prend le premier corps que le pointeur atteint. En
+    // portrait, la feuille du bas couvre tout le bureau : on glisse pendant
+    // la pause de la visite entre deux objets (AUTO_TIMING.gap).
+    const reachable = async () => {
+      for (const [id, point] of points) {
+        const onCanvas = await page.evaluate(
+          ({ x, y }) => document.elementFromPoint(x, y)?.tagName === 'CANVAS',
+          point,
+        );
+        if (onCanvas) return { id, point };
       }
+      return null;
+    };
+    let target = await reachable();
+    if (!target) {
+      await expect(hud(page)).toHaveAttribute('data-presented', '', { timeout: 20_000 });
+      await expect(hud(page)).toHaveAttribute('data-auto', 'true');
+      target = await reachable();
     }
     if (!target) throw new Error('aucun corps hors de la fiche');
     const { id, point } = target;

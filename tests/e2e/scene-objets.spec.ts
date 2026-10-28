@@ -31,7 +31,7 @@ test.describe('les objets du CV', () => {
     test.slow();
     await page.goto(SETTLED);
     await waitForScene(page);
-    for (const item of ['book', 'postit', 'laptop', 'card', 'chest']) {
+    for (const item of ['book', 'postit', 'laptop', 'card', 'chest', 'netherbrain', 'homelab']) {
       await expect(tag(page, item)).toHaveAttribute('data-shown', 'true');
     }
     await expect(tag(page, 'book')).toHaveText(/2020\s*DEFI-METIERS/);
@@ -52,15 +52,16 @@ test.describe('les objets du CV', () => {
   test('présentent l’objet d’une puce, puis le reposent', async ({ page }) => {
     await page.goto(SETTLED);
     await waitForScene(page);
+    // La puce des projets présente Netherbrain (étape 4).
     await page.getByRole('link', { name: /2026/ }).click();
-    await expect(hud(page)).toHaveAttribute('data-presented', 'laptop');
+    await expect(hud(page)).toHaveAttribute('data-presented', 'netherbrain');
     // Pendant la présentation, les étiquettes s'effacent.
-    await expect(tag(page, 'laptop')).toHaveAttribute('data-shown', 'false');
+    await expect(tag(page, 'netherbrain')).toHaveAttribute('data-shown', 'false');
     await expect(tag(page, 'card')).toHaveAttribute('data-shown', 'false');
     await page.keyboard.press('Escape');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     // Une fois l'objet reposé, son étiquette revient.
-    await expect(tag(page, 'laptop')).toHaveAttribute('data-shown', 'true');
+    await expect(tag(page, 'netherbrain')).toHaveAttribute('data-shown', 'true');
   });
 
   test('présentent l’objet de son étiquette', async ({ page }) => {

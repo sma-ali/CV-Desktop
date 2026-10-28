@@ -57,6 +57,10 @@ body {
   line-height: 1.55;
   overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
+  /* Positions des glyphes sans arrondi au pixel : sans cela, Chromium sous
+     Linux ouvre des blancs parasites dans Fraunces aux petites tailles
+     (« f ormations », « perf ormed »), à l'écran comme dans le PDF. */
+  text-rendering: geometricPrecision;
 }
 
 a {

@@ -322,3 +322,131 @@
 .interests li::marker {
   color: var(--accent);
 }
+
+/* Sur papier : deux colonnes serrées, aucune expérience ni aucun projet coupé. */
+@media print {
+  .cv {
+    grid-template-columns: minmax(0, 1.75fr) minmax(0, 1fr);
+    grid-template-areas:
+      'identity contact'
+      'summary side'
+      'main side';
+    grid-template-rows: auto auto 1fr;
+    column-gap: 7mm;
+    row-gap: 4mm;
+  }
+
+  .identity {
+    grid-area: identity;
+  }
+
+  .contact {
+    grid-area: contact;
+  }
+
+  .summary {
+    grid-area: summary;
+  }
+
+  .main {
+    grid-area: main;
+  }
+
+  .side {
+    grid-area: side;
+  }
+
+  .identity,
+  .contact {
+    padding-bottom: 3mm;
+    border-bottom: 1px solid #000;
+  }
+
+  .main,
+  .side {
+    gap: 4mm;
+  }
+
+  .name {
+    font-size: 26pt;
+  }
+
+  .headline {
+    font-size: 13pt;
+  }
+
+  .location,
+  .contactLink,
+  .period,
+  .level,
+  .organizationName {
+    font-size: 8.5pt;
+  }
+
+  .heading,
+  .contactLabel {
+    font-size: 7.5pt;
+  }
+
+  .contactLabel {
+    min-width: 17mm;
+  }
+
+  .skillLabel,
+  .educationTitle,
+  .educationSchool {
+    font-size: 9.5pt;
+  }
+
+  .skillLabel {
+    margin-bottom: 1mm;
+  }
+
+  .heading {
+    margin-bottom: 2mm;
+  }
+
+  .summaryText {
+    max-width: none;
+    font-size: 10pt;
+  }
+
+  .entry {
+    padding: 2.2mm 0 2.4mm;
+    break-inside: avoid;
+  }
+
+  .entryTitle {
+    font-size: 11pt;
+  }
+
+  .highlights {
+    margin-top: 1.2mm;
+  }
+
+  .highlights li + li {
+    margin-top: 0.8mm;
+  }
+
+  .chips li {
+    padding: 0.2mm 1.4mm 0;
+    font-size: 8pt;
+  }
+
+  .education li {
+    padding: 1.6mm 0;
+    break-inside: avoid;
+  }
+
+  .skillGroup {
+    break-inside: avoid;
+  }
+
+  .skillGroup + .skillGroup {
+    margin-top: 2mm;
+  }
+
+  .heading {
+    break-after: avoid;
+  }
+}

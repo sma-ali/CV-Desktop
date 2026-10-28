@@ -103,3 +103,36 @@ a:hover {
     scroll-behavior: auto !important;
   }
 }
+
+/* Sur papier : noir sur blanc, quel que soit le thème. */
+@media print {
+  :root {
+    color-scheme: light;
+    --page: #fff;
+    --paper: #fff;
+    --ink: #000;
+    --ink-soft: #000;
+    --muted: #333;
+    --accent: #000;
+    --rule: #999;
+    --rule-strong: #000;
+    --chip: #999;
+    --shadow: none;
+  }
+
+  @page {
+    size: A4;
+    margin: 12mm 13mm;
+  }
+
+  body {
+    font-size: 9.5pt;
+    line-height: 1.38;
+    background: #fff;
+    color: #000;
+  }
+
+  a {
+    text-decoration: none;
+  }
+}

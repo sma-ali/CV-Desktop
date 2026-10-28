@@ -152,3 +152,21 @@
       color 0.15s ease;
   }
 }
+
+/* Sur papier : la feuille seule, sans fond, sans ombre ni interface. */
+@media print {
+  .page,
+  .sheet {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+
+  .skip,
+  .bar,
+  .footer {
+    display: none;
+  }
+}

@@ -1,29 +1,30 @@
 'use client';
 
-import { Box } from '../core/geometry';
-import { DESK, DESK_THICKNESS, WALL_Z } from '../core/constants';
-import { standardMaterial } from '../core/materials';
+import { Lamp } from './Lamp';
+import { Props } from './Props';
+import { Room } from './Room';
+import { StreamGear } from './StreamGear';
+import { Workspace } from './Workspace';
 
-// PROVISOIRE : le plateau et le mur, en aplats, pour que les autres parties
-// aient un rendu correct. La partie « décor » remplace ce fichier (plateau
-// en bois peint, mur et fenêtre, lampe, clavier, tapis, matériel de stream,
-// plante, mangas, figurines, tasse, manette...).
+// Le décor du bureau : la pièce (plateau en noyer, sol, mur et fenêtre), la
+// lampe d'architecte, le poste de travail (tapis, clavier, souris, câbles),
+// le matériel de stream (pavé de boutons, micro sur bras, panneau de lumière
+// et gants) et les petites choses posées (corde, bandes, plante, mangas,
+// figurines, tasse, manette). Tout est inventé : aucune marque, aucun logo,
+// aucun jeu, anime ou pseudo réel.
+//
+// Lumières, ciel derrière la vitre, cône et poussière de la lampe : mise en
+// scène. Le décor laisse au ciel un emplacement nommé (voir WINDOW_SKY dans
+// layout.ts) et suit l'horloge du store pour ses LED et ses petites
+// animations (figées par ?fige, coupées en mouvement réduit).
 export function Decor() {
-  const width = DESK.x1 - DESK.x0;
-  const depth = DESK.z1 - DESK.z0;
   return (
-    <group>
-      <Box
-        size={[width, DESK_THICKNESS, depth]}
-        position={[0, -DESK_THICKNESS / 2, (DESK.z0 + DESK.z1) / 2]}
-        material={standardMaterial(0x5f3c25, { roughness: 0.62 })}
-      />
-      <Box
-        size={[32, 17.4, 0.1]}
-        position={[0, 5.3, WALL_Z - 0.05]}
-        material={standardMaterial(0xb09478, { roughness: 0.95 })}
-        castShadow={false}
-      />
+    <group name="decor">
+      <Room />
+      <Lamp />
+      <Workspace />
+      <StreamGear />
+      <Props />
     </group>
   );
 }

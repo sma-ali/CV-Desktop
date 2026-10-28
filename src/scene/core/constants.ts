@@ -161,7 +161,7 @@ export const ITEM_POSES = {
   chest: {
     x: -4.45,
     y: 0,
-    z: -0.12,
+    z: -0.7,
     ry: 0.35,
     hold: { w: 2.5, h: 2.3, oy: 0.42 },
     mode: 'shake',
@@ -432,7 +432,9 @@ export const MOODS = {
     sun: 0.3,
     dir: [0.85, -1, 1.0],
     patch: 0xff9a58,
-    patchOpacity: 0.6,
+    // 0.6 dans le prototype : le soleil du soir, passé en linéaire, éclaire
+    // moins le plateau, et la tache orange sous la fenêtre se perdait.
+    patchOpacity: 1.1,
     shaft: 0.06,
     hemiSky: 0x9a7f8f,
     hemiGround: 0x2e1c12,

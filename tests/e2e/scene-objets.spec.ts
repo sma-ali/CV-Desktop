@@ -26,6 +26,9 @@ test.describe('les objets du CV', () => {
   test('portent leurs étiquettes, dans la langue de la page, cachées aux lecteurs d’écran', async ({
     page,
   }) => {
+    // Deux scènes de suite (FR puis EN) : sous la charge des autres pages
+    // SwiftShader, la seconde dépassait parfois la minute du test.
+    test.slow();
     await page.goto(SETTLED);
     await waitForScene(page);
     for (const item of ['book', 'postit', 'laptop', 'card', 'chest']) {
@@ -104,6 +107,8 @@ test.describe('les objets du CV', () => {
 
   test('montrent le verso du badge retourné', async ({ page, isMobile }) => {
     test.skip(isMobile, 'le défaut est dans la géométrie : un cadrage suffit');
+    // Capture du canvas en plus de la scène : lent sous SwiftShader chargé.
+    test.slow();
     // Le badge présenté se retourne (posé aussitôt sous &fige) : son verso
     // peint doit se voir. Avant correction, la face du dessous de la
     // pochette le cachait et l'on ne voyait qu'une plaque grise unie.

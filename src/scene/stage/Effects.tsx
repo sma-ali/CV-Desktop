@@ -13,8 +13,12 @@ import type { StageShared } from './shared';
 
 /** Seuil du bloom (luminance linéaire) : seuls les émissifs (ampoule, écran, LED) le passent. */
 const BLOOM_THRESHOLD = 0.82;
-/** Échantillons de l'anticrénelage (le canvas n'a plus le sien une fois le post-traitement branché). */
+/**
+ * Échantillons de l'anticrénelage (le canvas n'a plus le sien une fois le
+ * post-traitement branché). Inutile sur un écran dense, où il coûte cher.
+ */
 const MULTISAMPLING = 4;
+const DENSE_DPR = 1.5;
 
 // Le post-traitement : bloom sur les émissifs (son intensité suit la lampe,
 // comme dans le prototype), puis l'étalonnage chaud (GradeEffect : courbe,
@@ -31,6 +35,7 @@ export function Effects({
   const store = useSceneStoreApi();
   const width = useThree((state) => state.size.width);
   const height = useThree((state) => state.size.height);
+  const dpr = useThree((state) => state.viewport.dpr);
   const portrait = isPortrait(width / Math.max(1, height));
   const grade = useMemo(() => new GradeEffect(), []);
   const bloomRef = useRef<BloomEffect>(null);
@@ -55,7 +60,7 @@ export function Effects({
 
   return (
     <EffectComposer
-      multisampling={MULTISAMPLING}
+      multisampling={dpr >= DENSE_DPR ? 0 : MULTISAMPLING}
       renderPriority={RENDER_PRIORITY}
       enableNormalPass={false}
     >

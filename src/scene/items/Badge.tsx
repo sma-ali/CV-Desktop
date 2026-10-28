@@ -47,13 +47,15 @@ export function Badge({ texts }: { texts: SceneTexts }) {
 
   return (
     <group ref={ref} {...handlers}>
+      {/* La pochette (de 0.003 à 0.033) laisse le verso dessous : à l'intérieur,
+          sa face du dessous le cachait quand le badge se retourne. */}
       <Box
         size={[W + 0.07, 0.03, D + 0.07]}
-        position={[0, 0.016, 0]}
+        position={[0, 0.018, 0]}
         material={standardMaterial(0x9aa6aa, { roughness: 0.5 })}
       />
       <mesh geometry={face} material={front} position={[0, 0.039, 0]} receiveShadow />
-      <mesh geometry={face} material={back} position={[0, 0.004, 0]} />
+      <mesh geometry={face} material={back} position={[0, 0.001, 0]} />
       <Box
         size={[0.16, 0.04, 0.12]}
         position={[0, 0.03, -D / 2 - 0.06]}

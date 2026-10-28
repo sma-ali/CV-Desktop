@@ -102,6 +102,46 @@ test.describe('les objets du CV', () => {
     await expect(hud(page)).toHaveAttribute('data-presented', '');
   });
 
+  test('montrent le verso du badge retourné', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'le défaut est dans la géométrie : un cadrage suffit');
+    // Le badge présenté se retourne (posé aussitôt sous &fige) : son verso
+    // peint doit se voir. Avant correction, la face du dessous de la
+    // pochette le cachait et l'on ne voyait qu'une plaque grise unie.
+    await page.goto(`${SETTLED}&prendre=badge`);
+    await waitForScene(page);
+    await expect(hud(page)).toHaveAttribute('data-presented', 'badge');
+    await page.waitForTimeout(500);
+    const canvas = page.locator('canvas');
+    const png = (
+      await canvas.screenshot({ style: '#hud { visibility: hidden !important; }' })
+    ).toString('base64');
+    // Écart type de la luminance au cœur de la carte tenue (HELD.landscape :
+    // un peu à gauche du centre) : des lignes de texte sur le carton.
+    const spread = await page.evaluate(async (data) => {
+      const image = new Image();
+      image.src = `data:image/png;base64,${data}`;
+      await image.decode();
+      const scratch = document.createElement('canvas');
+      scratch.width = image.width;
+      scratch.height = image.height;
+      const ctx = scratch.getContext('2d')!;
+      ctx.drawImage(image, 0, 0);
+      const x = Math.round(image.width * 0.3);
+      const y = Math.round(image.height * 0.5);
+      const w = Math.round(image.width * 0.1);
+      const h = Math.round(image.height * 0.2);
+      const pixels = ctx.getImageData(x, y, w, h).data;
+      const values: number[] = [];
+      for (let i = 0; i < pixels.length; i += 4) {
+        values.push(0.2126 * pixels[i]! + 0.7152 * pixels[i + 1]! + 0.0722 * pixels[i + 2]!);
+      }
+      const mean = values.reduce((sum, v) => sum + v, 0) / values.length;
+      return Math.sqrt(values.reduce((sum, v) => sum + (v - mean) ** 2, 0) / values.length);
+    }, png);
+    // Plaque unie : environ 4 ; verso peint : environ 20.
+    expect(spread).toBeGreaterThan(10);
+  });
+
   test('présentent sans animation en mouvement réduit', async ({ page }) => {
     await page.goto('/fr?reduit&prendre=chest&heure=14');
     await waitForScene(page);

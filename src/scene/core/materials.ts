@@ -48,9 +48,6 @@ export function standardMaterial(
 /** Laiton (charnières, rotules, coins du coffret). */
 export const brass = () => standardMaterial(0xc9973f, { roughness: 0.38, metalness: 0.75 });
 
-/** Fer noirci (bras de la lampe, du micro, pieds). */
-export const iron = () => standardMaterial(0x1d1b19, { roughness: 0.55, metalness: 0.45 });
-
 /**
  * Matériau d'une texture peinte (texMat du prototype) : la même texture sert
  * d'émissive, d'intensité 0 au repos ; l'augmenter fait luire l'objet

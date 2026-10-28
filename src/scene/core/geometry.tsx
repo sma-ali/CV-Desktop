@@ -8,7 +8,6 @@ import {
   CylinderGeometry,
   IcosahedronGeometry,
   PlaneGeometry,
-  Quaternion,
   TubeGeometry,
   Vector3,
   type BufferGeometry,
@@ -68,44 +67,6 @@ export function Sph({
     useMemo(() => new IcosahedronGeometry(radius, detail), [radius, detail]),
   );
   return <mesh geometry={geometry} castShadow receiveShadow {...props} />;
-}
-
-/** Tige cylindrique d'un point à un autre (bras de lampe, de micro). */
-export function Rod({
-  from,
-  to,
-  radius,
-  segments = 7,
-  ...props
-}: Omit<MeshProps, 'position' | 'quaternion' | 'rotation'> & {
-  from: Vec3;
-  to: Vec3;
-  radius: number;
-  segments?: number;
-}) {
-  const [ax, ay, az] = from;
-  const [bx, by, bz] = to;
-  const { geometry, position, quaternion } = useMemo(() => {
-    const a = new Vector3(ax, ay, az);
-    const direction = new Vector3(bx, by, bz).sub(a);
-    const length = direction.length();
-    return {
-      geometry: new CylinderGeometry(radius, radius, length, segments),
-      position: a.addScaledVector(direction, 0.5),
-      quaternion: new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction.normalize()),
-    };
-  }, [ax, ay, az, bx, by, bz, radius, segments]);
-  useDisposable(geometry);
-  return (
-    <mesh
-      geometry={geometry}
-      position={position}
-      quaternion={quaternion}
-      castShadow
-      receiveShadow
-      {...props}
-    />
-  );
 }
 
 /** Câble souple passant par des points (courbe de Catmull-Rom). */

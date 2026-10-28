@@ -38,9 +38,7 @@ export const sceneFr = {
       '  disponible: true,',
       '} as const;',
     ],
-    // « prochaine étape » serait attrapé par le test du coffret (cha[iî]ne
-    // sans limite de mot) : voir les besoins de l'assemblage.
-    closing: '// étape suivante\u00a0: votre équipe\u00a0?',
+    closing: '// prochaine étape\u00a0: votre équipe\u00a0?',
     status: { language: 'TypeScript', encoding: 'UTF-8', line: 'Ln', errors: '0 erreur' },
   },
   facts: {

@@ -82,7 +82,7 @@ describe.each(locales)('contenu %s', (locale) => {
   // plateforme. Vaut pour tout ce que la scène et le bureau affichent.
   it('ne trahit pas le contenu du coffret scellé', () => {
     const forbidden =
-      /automatisation|automation|\busines?\b|factory|vid[ée]os?|tiktok|youtube|instagram|twitch|cha[iî]ne|channel/i;
+      /automatisation|automation|\busines?\b|factory|vid[ée]os?|tiktok|youtube|instagram|twitch|\bcha[iî]nes?\b|channel/i;
     const leaked = textLeaves(content).filter(
       (leaf) => /^(desk|scene)\./.test(leaf.path) && forbidden.test(leaf.value),
     );

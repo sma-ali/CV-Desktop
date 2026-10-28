@@ -113,6 +113,8 @@ test.describe('Rejouer', () => {
     await page.getByRole('button', { name: 'Rejouer' }).click();
     await expect(hud(page)).not.toHaveAttribute('data-phase', 'settled');
     await expect(hud(page)).toHaveAttribute('data-mood', 'night');
+    // Le bas de page revient à la fin de l'arrivée, avec la nuit choisie.
+    await expect(hud(page)).toHaveAttribute('data-phase', 'settled', { timeout: 45_000 });
     await expect(page.getByRole('button', { name: 'Nuit' })).toHaveAttribute(
       'aria-pressed',
       'true',

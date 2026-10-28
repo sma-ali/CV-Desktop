@@ -18,6 +18,11 @@ export default defineConfig({
   fullyParallel: true,
   forbidOnly: isCI,
   retries: isCI ? 2 : 0,
+  // Chaque page dessine la scène complète par SwiftShader, sur le processeur :
+  // au-delà de 4 pages à la fois, une machine de 16 cœurs ne suit plus et les
+  // scènes mettent plus de 45 s à démarrer. En CI, le défaut (la moitié des
+  // cœurs) suffit.
+  workers: isCI ? undefined : 4,
   // La 3D logicielle est lente : le bureau a besoin de plus de temps.
   timeout: 60_000,
   expect: { timeout: 15_000 },

@@ -268,4 +268,6 @@ Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (`DEC
 - `CHEST_PORTRAIT.z` avance de 0.3 (le coffret agrandi touchait le pied du casque en portrait).
 - Un clic n'importe où hors de l'objet tenu le repose, décor compris (le décor garde ses propres réactions : lampe, figurines, tasse...).
 - Les deux vignettes restent : celle du CSS et celle de `GradeEffect` (0.75), qui ensemble retrouvent celle du prototype.
+- L'horloge ne part qu'à la deuxième image : la première compile les shaders et peut prendre des secondes sur une machine lente, et le visiteur manquait alors le début de l'arrivée.
+- Les tests de bout en bout tournent sur 4 pages à la fois en local (`workers` dans `playwright.config.ts`) : au-delà, SwiftShader sature le processeur et les scènes mettent plus de 45 s à démarrer.
 - Le test du coffret attrape « chaîne » comme mot entier (`\bcha[iî]nes?\b`) : « prochaine étape » revient à l'écran.

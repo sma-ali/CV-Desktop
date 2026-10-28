@@ -44,7 +44,10 @@ export function ClockDriver({ onReady }: { onReady?: () => void }) {
 
   useFrame((state) => {
     const scene = store.getState();
-    scene.clock.tick(performance.now() / 1000);
+    // La première image compile les shaders et envoie les textures : sur une
+    // machine lente, cela prend des secondes. L'horloge ne part qu'à l'image
+    // suivante, sinon le visiteur manquerait le début de l'arrivée.
+    if (frames.current >= READY_AFTER_FRAMES - 1) scene.clock.tick(performance.now() / 1000);
     const frame = updateFrame(scene, state.size.width / state.size.height < PORTRAIT_MAX_ASPECT);
 
     // L'ambiance : instantanée au départ et en mouvement réduit, sinon en 1.4 s.

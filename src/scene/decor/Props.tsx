@@ -43,7 +43,7 @@ import {
   type FigureSpec,
   type SteamPuff,
 } from './layout';
-import type { Part } from './merge';
+import { withFinish, type Part } from './merge';
 import {
   paintSoftDot,
   paintSpineAtlas,
@@ -324,6 +324,13 @@ const FIGURE_PARTS: Record<FigureKind, () => Part[]> = {
   ],
 };
 
+/** Chaque figurine en un seul fini satiné (ses yeux mis à part) : un ou deux appels de dessin. */
+const FIGURE_BUILDS: Record<FigureKind, () => Part[]> = {
+  robot: () => withFinish(FIGURE_PARTS.robot(), 'satin'),
+  fox: () => withFinish(FIGURE_PARTS.fox(), 'satin'),
+  wanderer: () => withFinish(FIGURE_PARTS.wanderer(), 'satin'),
+};
+
 function Figure({ spec }: { spec: FigureSpec }) {
   const store = useSceneStoreApi();
   const group = useRef<Group>(null);
@@ -344,7 +351,7 @@ function Figure({ spec }: { spec: FigureSpec }) {
       rotation={[0, spec.ry, 0]}
       {...handlers}
     >
-      <MergedParts build={FIGURE_PARTS[spec.kind]} />
+      <MergedParts build={FIGURE_BUILDS[spec.kind]} />
     </group>
   );
 }
@@ -472,6 +479,8 @@ function padParts(): Part[] {
   ];
 }
 
+const padBuild = () => withFinish(padParts(), 'satin');
+
 function Gamepad() {
   const store = useSceneStoreApi();
   const group = useRef<Group>(null);
@@ -494,7 +503,7 @@ function Gamepad() {
   return (
     <group name="decor-pad" position={PAD.position} rotation={[0, PAD.ry, 0]} {...handlers}>
       <group ref={group}>
-        <MergedParts build={padParts} />
+        <MergedParts build={padBuild} />
         <mesh material={led} position={[0, 0.205, -0.17]}>
           <cylinderGeometry args={[0.035, 0.035, 0.02, 8]} />
         </mesh>

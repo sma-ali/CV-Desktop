@@ -39,7 +39,7 @@ import {
   springPoints,
   sway,
 } from './layout';
-import type { Part } from './merge';
+import { withFinish, type Part } from './merge';
 import {
   alignY,
   box,
@@ -422,7 +422,11 @@ function gloveParts(glove: (typeof GLOVES)[number]): () => Part[] {
   };
 }
 
-const GLOVE_BUILDS = GLOVES.map((glove) => ({ glove, build: gloveParts(glove) }));
+// Un gant, son lacet compris, en un seul fini : un appel de dessin par gant.
+const GLOVE_BUILDS = GLOVES.map((glove) => ({
+  glove,
+  build: () => withFinish(gloveParts(glove)(), 'satin'),
+}));
 
 function LightStand() {
   const store = useSceneStoreApi();

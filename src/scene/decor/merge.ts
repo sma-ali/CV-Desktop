@@ -78,6 +78,14 @@ export function preparePart(part: Part): BufferGeometry {
   return geometry;
 }
 
+/**
+ * Donne un même fini à toutes les pièces éclairées d'un petit objet : un
+ * appel de dessin au lieu d'un par fini (les pièces « unlit » restent à part).
+ */
+export function withFinish(parts: readonly Part[], finish: Finish): Part[] {
+  return parts.map((part) => (part.finish === 'unlit' ? part : { ...part, finish }));
+}
+
 /** Fusionne des pièces déjà préparées (ou non) en une géométrie. */
 export function mergeParts(parts: readonly Part[]): BufferGeometry {
   const prepared = parts.map(preparePart);

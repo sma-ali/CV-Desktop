@@ -3,13 +3,16 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import {
+  CylinderGeometry,
   DoubleSide,
   IcosahedronGeometry,
   LatheGeometry,
   MeshBasicMaterial,
   SRGBColorSpace,
   Vector2,
+  type BufferGeometry,
 } from 'three';
+import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { LAMP, type Vec3 } from '../core/constants';
 import { brass, standardMaterial } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
@@ -92,6 +95,16 @@ function armParts(): Part[] {
   ];
 }
 
+/** L'abat-jour et sa calotte, d'un seul tenant (même matériau, un appel de dessin). */
+function shadeGeometry(): BufferGeometry {
+  const shade = new LatheGeometry(shadeProfile(0.12, 0.5, 0.62), 10);
+  const cap = new CylinderGeometry(0.13, 0.13, 0.16, 8).translate(0, 0.06, 0);
+  const merged = mergeGeometries([shade, cap]);
+  shade.dispose();
+  cap.dispose();
+  return merged;
+}
+
 export function Lamp() {
   const store = useSceneStoreApi();
   const handlers = usePressable((_, state) => state.toggleLamp());
@@ -99,7 +112,7 @@ export function Lamp() {
   const headQuaternion = useMemo(() => alignY([-AIM_DIR[0], -AIM_DIR[1], -AIM_DIR[2]]), []);
   const geometries = useMemo(
     () => ({
-      shade: new LatheGeometry(shadeProfile(0.12, 0.5, 0.62), 10),
+      shade: shadeGeometry(),
       inner: new LatheGeometry(shadeProfile(0.112, 0.485, 0.6, -0.008), 10),
       bulb: new IcosahedronGeometry(0.16, 1),
     }),
@@ -143,9 +156,6 @@ export function Lamp() {
       <group position={LAMP.head} quaternion={headQuaternion}>
         <mesh geometry={geometries.shade} material={shadeMaterial} castShadow />
         <mesh geometry={geometries.inner} material={glow.inner} scale={[0.985, 1, 0.985]} />
-        <mesh position={[0, 0.06, 0]} material={shadeMaterial} castShadow>
-          <cylinderGeometry args={[0.13, 0.13, 0.16, 8]} />
-        </mesh>
         <mesh position={[0, 0.17, 0]} material={brass()}>
           <cylinderGeometry args={[0.05, 0.07, 0.08, 6]} />
         </mesh>

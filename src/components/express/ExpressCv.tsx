@@ -178,7 +178,7 @@ export function ExpressCv({ locale }: { locale: Locale }) {
   );
 }
 
-// « janv. 2024 - juin 2026 », chaque borne dans un <time> lisible par les machines.
+// « Janv. 2024 - Juin 2026 », chaque borne dans un <time> lisible par les machines.
 function Period({ bounds }: { bounds: DateLabel[] }) {
   return bounds.map((bound, index) => (
     <Fragment key={bound.dateTime}>

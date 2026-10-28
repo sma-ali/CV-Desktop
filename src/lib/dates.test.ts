@@ -9,11 +9,11 @@ import {
 
 describe('formatYearMonth', () => {
   it.each([
-    ['2024-01', 'janv. 2024', 'Jan 2024'],
-    ['2026-06', 'juin 2026', 'Jun 2026'],
-    ['2020-09', 'sept. 2020', 'Sep 2020'],
-    ['2023-08', 'août 2023', 'Aug 2023'],
-    ['2025-12', 'déc. 2025', 'Dec 2025'],
+    ['2024-01', 'Janv. 2024', 'Jan 2024'],
+    ['2026-06', 'Juin 2026', 'Jun 2026'],
+    ['2020-09', 'Sept. 2020', 'Sep 2020'],
+    ['2023-08', 'Août 2023', 'Aug 2023'],
+    ['2025-12', 'Déc. 2025', 'Dec 2025'],
   ])('%s donne « %s » en FR et « %s » en EN', (value, fr, en) => {
     expect(formatYearMonth(value, 'fr')).toEqual({ dateTime: value, label: fr });
     expect(formatYearMonth(value, 'en')).toEqual({ dateTime: value, label: en });
@@ -28,7 +28,7 @@ describe('formatYearMonth', () => {
 describe('périodes', () => {
   it("met « - » entre le début et la fin d'une expérience", () => {
     const period = { start: '2024-01', end: '2026-06' };
-    expect(periodText(formatMonthPeriod(period, 'fr'))).toBe('janv. 2024 - juin 2026');
+    expect(periodText(formatMonthPeriod(period, 'fr'))).toBe('Janv. 2024 - Juin 2026');
     expect(periodText(formatMonthPeriod(period, 'en'))).toBe('Jan 2024 - Jun 2026');
     expect(formatMonthPeriod(period, 'fr').map((bound) => bound.dateTime)).toEqual([
       '2024-01',

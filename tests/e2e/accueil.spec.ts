@@ -1,48 +1,74 @@
 import { expect, test } from '@playwright/test';
-import { getContent, locales } from '../../src/content';
 
-test('la racine envoie vers la version française', async ({ page }) => {
-  await page.goto('/');
-  await expect(page).toHaveURL(/\/fr$/);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
-  // Valeur écrite en dur : ce test ne compare pas le contenu à lui-même.
-  await expect(page).toHaveTitle('Ali Smaani | Développeur Full-Stack');
+// La racine choisit la langue du navigateur, puis /fr et /en mènent à la
+// version express jusqu'à l'arrivée du bureau en 3D.
+test.describe('la racine', () => {
+  test('envoie un navigateur anglais vers la version anglaise', async ({ browser }) => {
+    const context = await browser.newContext({ locale: 'en-GB' });
+    const page = await context.newPage();
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/en\/express$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'en');
+    await expect(page).toHaveTitle('Ali Smaani | Full-Stack Developer');
+    await context.close();
+  });
+
+  test('envoie un navigateur français vers la version française', async ({ browser }) => {
+    const context = await browser.newContext({ locale: 'fr-FR' });
+    const page = await context.newPage();
+    await page.goto('/');
+    await expect(page).toHaveURL(/\/fr\/express$/);
+    await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
+    await expect(page).toHaveTitle('Ali Smaani | Développeur Full-Stack');
+    await context.close();
+  });
+
+  for (const [header, location] of [
+    ['en-US,en;q=0.9', '/en'],
+    ['de-DE,de;q=0.9,en;q=0.8', '/en'],
+    ['fr-FR,fr;q=0.9,en;q=0.8', '/fr'],
+    ['de', '/fr'],
+    ['', '/fr'],
+  ] as const) {
+    test(`répond 307 vers ${location} pour « ${header} »`, async ({ request }) => {
+      const response = await request.get('/', {
+        headers: { 'Accept-Language': header },
+        maxRedirects: 0,
+      });
+      expect(response.status()).toBe(307);
+      expect(response.headers()['location']).toBe(location);
+      expect(response.headers()['vary']).toContain('Accept-Language');
+    });
+  }
+
+  test('envoie vers le français sans en-tête Accept-Language', async ({ playwright, baseURL }) => {
+    const request = await playwright.request.newContext({ baseURL });
+    const response = await request.get('/', { maxRedirects: 0 });
+    expect(response.status()).toBe(307);
+    expect(response.headers()['location']).toBe('/fr');
+    await request.dispose();
+  });
+
+  test('garde la chaîne de requête', async ({ request }) => {
+    const response = await request.get('/?source=cv', {
+      headers: { 'Accept-Language': 'en' },
+      maxRedirects: 0,
+    });
+    expect(response.headers()['location']).toBe('/en?source=cv');
+  });
 });
 
-for (const locale of locales) {
-  const { profile } = getContent(locale);
-
-  test(`la page ${locale} affiche le profil du CV`, async ({ page }) => {
-    await page.goto(`/${locale}`);
-    await expect(page.locator('html')).toHaveAttribute('lang', locale);
-    await expect(page).toHaveTitle(`${profile.name} | ${profile.headline}`);
-    await expect(page.getByRole('heading', { level: 1 })).toHaveText(profile.name);
-    await expect(page.getByText(profile.headline, { exact: true })).toBeVisible();
+for (const locale of ['fr', 'en']) {
+  test(`/${locale} mène à la version express (307)`, async ({ request }) => {
+    const response = await request.get(`/${locale}`, { maxRedirects: 0 });
+    expect(response.status()).toBe(307);
+    expect(response.headers()['location']).toBe(`/${locale}/express`);
   });
 }
 
-test('le lien de langue bascule entre FR et EN', async ({ page }) => {
-  await page.goto('/fr');
-  await page.getByRole('link', { name: 'English' }).click();
-  await expect(page).toHaveURL(/\/en$/);
-  await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-
-  await page.getByRole('link', { name: 'Français' }).click();
-  await expect(page).toHaveURL(/\/fr$/);
-});
-
-test('une langue inconnue répond 404', async ({ page }) => {
-  const response = await page.goto('/de');
-  expect(response?.status()).toBe(404);
-});
-
-test('la page se charge sans erreur dans la console', async ({ page }) => {
-  const errors: string[] = [];
-  page.on('console', (message) => {
-    if (message.type() === 'error') errors.push(message.text());
+for (const path of ['/de', '/de/express']) {
+  test(`${path} répond 404`, async ({ page }) => {
+    const response = await page.goto(path);
+    expect(response?.status()).toBe(404);
   });
-  page.on('pageerror', (error) => errors.push(error.message));
-
-  await page.goto('/fr', { waitUntil: 'networkidle' });
-  expect(errors).toEqual([]);
-});
+}

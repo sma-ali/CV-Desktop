@@ -25,7 +25,7 @@ export default defineConfig({
   // pourrait servir un ancien build.
   webServer: {
     command: `npm run start -- --port ${port}`,
-    url: `${baseURL}/fr`,
+    url: `${baseURL}/fr/express`,
     reuseExistingServer: false,
     timeout: 60_000,
   },

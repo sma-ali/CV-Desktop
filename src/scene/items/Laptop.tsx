@@ -29,7 +29,12 @@ export function Laptop({ texts }: { texts: SceneTexts }) {
     useMemo(() => paintLaptopStickers(content), [content]),
     { ...LAPTOP_TEXTURE, redrawKey: locale },
   );
-  const keys = usePaintedMaterial(paintLaptopKeys, { width: 512, height: 352, redrawKey: 'keys' });
+  const keys = usePaintedMaterial(paintLaptopKeys, {
+    width: 512,
+    height: 352,
+    redrawKey: 'keys',
+    usesFonts: false,
+  });
   const screenTexture = useCanvasTexture({
     ...LAPTOP_TEXTURE,
     draw: useMemo(() => paintLaptopScreen(content), [content]),

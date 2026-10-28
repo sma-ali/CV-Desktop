@@ -36,6 +36,11 @@ export interface CanvasTextureOptions {
   srgb?: boolean;
   /** Anisotropie maximale (8 par défaut, bornée par la carte graphique). */
   anisotropy?: number;
+  /**
+   * false pour une texture sans texte (bois, plâtre, feutre...) : elle n'est
+   * pas redessinée à l'arrivée des polices, ce qui évite une seconde passe.
+   */
+  usesFonts?: boolean;
 }
 
 /** Crée la texture d'un canvas, sans la dessiner. */
@@ -98,12 +103,15 @@ export function useSceneFonts(): { fonts: SceneFonts; version: number } {
 
 /**
  * Une texture peinte en code, dessinée au montage, quand les polices sont
- * prêtes et quand redrawKey change. Libérée au démontage.
+ * prêtes (si elle contient du texte) et quand redrawKey change. Libérée au
+ * démontage.
  */
 export function useCanvasTexture(options: CanvasTextureOptions): CanvasTexture {
   const gl = useThree((state) => state.gl);
-  const { width, height, draw, redrawKey, mirror = false } = options;
+  const { width, height, draw, redrawKey, mirror = false, usesFonts = true } = options;
   const { fonts, version } = useSceneFonts();
+  // Sans texte, l'arrivée des polices ne change rien au dessin.
+  const fontsKey = usesFonts ? version : 0;
   // La texture ne dépend que de sa taille ; le reste se règle au dessin.
   const texture = useMemo(
     () => createCanvasTexture(gl, options),
@@ -115,6 +123,6 @@ export function useCanvasTexture(options: CanvasTextureOptions): CanvasTexture {
     paintCanvasTexture(texture, draw, fonts, mirror);
     // draw n'entre pas dans les dépendances : passer redrawKey pour redessiner.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [texture, fonts, version, redrawKey, mirror]);
+  }, [texture, fontsKey, redrawKey, mirror]);
   return texture;
 }

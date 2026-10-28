@@ -156,8 +156,20 @@ function windowParts(): Part[] {
 
 export function Room() {
   const store = useSceneStoreApi();
-  const wood = useCanvasTexture({ width: 2048, height: 1024, draw: paintWood, anisotropy: 16 });
-  const plaster = useCanvasTexture({ width: 512, height: 512, draw: paintWall, repeat: [1, 1] });
+  const wood = useCanvasTexture({
+    width: 2048,
+    height: 1024,
+    draw: paintWood,
+    anisotropy: 16,
+    usesFonts: false,
+  });
+  const plaster = useCanvasTexture({
+    width: 512,
+    height: 512,
+    draw: paintWall,
+    repeat: [1, 1],
+    usesFonts: false,
+  });
 
   const desk = useMemo(() => deskGeometry(), []);
   const wall = useMemo(() => wallGeometry(), []);

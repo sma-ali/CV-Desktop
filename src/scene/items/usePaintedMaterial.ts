@@ -17,6 +17,8 @@ export interface PaintedOptions {
   metalness?: number;
   /** Teinte multipliée à la texture (blanc par défaut). */
   color?: number;
+  /** false pour une face sans texte : pas de second dessin à l'arrivée des polices. */
+  usesFonts?: boolean;
 }
 
 /**
@@ -34,9 +36,17 @@ export function usePaintedMaterial(
     roughness = 0.75,
     metalness = 0,
     color = 0xffffff,
+    usesFonts = true,
   }: PaintedOptions,
 ): MeshStandardMaterial {
-  const texture = useCanvasTexture({ width, height, draw, redrawKey, mirror: back });
+  const texture = useCanvasTexture({
+    width,
+    height,
+    draw,
+    redrawKey,
+    mirror: back,
+    usesFonts,
+  });
   const material = useMemo(() => {
     const created = texturedMaterial(texture, {
       side: back ? BackSide : FrontSide,

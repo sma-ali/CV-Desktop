@@ -403,7 +403,7 @@ const STEAM_INDICES = Array.from({ length: STEAM_COUNT }, (_, i) => i);
 function Mug() {
   const store = useSceneStoreApi();
   const { at: puffAt, handlers } = usePressTime();
-  const dot = useCanvasTexture({ width: 64, height: 64, draw: paintSoftDot });
+  const dot = useCanvasTexture({ width: 64, height: 64, draw: paintSoftDot, usesFonts: false });
   const sprites = useRef<(Sprite | null)[]>([]);
   const puffRef = useRef<SteamPuff>({ x: 0, y: 0, z: 0, scale: 0, opacity: 0 });
 

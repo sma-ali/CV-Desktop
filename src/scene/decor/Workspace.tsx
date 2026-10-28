@@ -104,7 +104,7 @@ function ledGeometry() {
 
 export function Workspace() {
   const store = useSceneStoreApi();
-  const felt = useCanvasTexture({ width: 512, height: 256, draw: paintFelt });
+  const felt = useCanvasTexture({ width: 512, height: 256, draw: paintFelt, usesFonts: false });
   const keys = useRef<InstancedMesh>(null);
 
   const geometries = useMemo(

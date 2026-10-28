@@ -17,7 +17,7 @@ import {
   TorusGeometry,
   Vector3,
 } from 'three';
-import { STAND, legacyIntensity, type Vec3 } from '../core/constants';
+import { POINT_DECAY, STAND, legacyPointIntensity, type Vec3 } from '../core/constants';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import {
   DECK,
@@ -53,6 +53,9 @@ import {
   usePressable,
   usePressTime,
 } from './shared';
+
+/** Portée de la lumière du panneau. */
+const PANEL_LIGHT_DISTANCE = 12;
 
 // Le matériel de stream : le pavé de boutons et ses LED, le micro sur son
 // bras articulé, le panneau de lumière et les gants pendus à son pied.
@@ -456,7 +459,8 @@ function LightStand() {
     const reduced = settings.reducedMotion;
     const k = panelLevel(t);
     faceMaterial.color.setRGB(0.08 + k * 1.25, 0.07 + k * 1.15, 0.06 + k * 1.0, SRGBColorSpace);
-    if (light.current) light.current.intensity = legacyIntensity(k * 0.32);
+    if (light.current)
+      light.current.intensity = legacyPointIntensity(k * 0.32, PANEL_LIGHT_DISTANCE);
     GLOVES.forEach((glove, i) => {
       const pivot = pivots.current[i];
       if (!pivot) return;
@@ -478,7 +482,7 @@ function LightStand() {
       </group>
       <pointLight
         ref={light}
-        args={[0xfff1dc, 0, 12, 0]}
+        args={[0xfff1dc, 0, PANEL_LIGHT_DISTANCE, POINT_DECAY]}
         position={[PANEL_POSITION[0] - 0.6, PANEL_POSITION[1] - 0.3, PANEL_POSITION[2] + 0.5]}
       />
       {GLOVE_BUILDS.map(({ glove, build }, i) => (

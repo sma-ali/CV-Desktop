@@ -11,10 +11,11 @@ import {
   type SpotLight,
   Vector3,
 } from 'three';
-import { LAMP, LAMP_COLOR } from '../core/constants';
+import { LAMP, LAMP_COLOR, POINT_DECAY } from '../core/constants';
 import { applyRgb } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
 import {
+  POINT_LIGHT_DISTANCE,
   handIntensity,
   hemiIntensity,
   monitorIntensity,
@@ -122,8 +123,12 @@ export function Lights({ shadows }: { shadows: boolean }) {
         shadow-bias={-0.0012}
         shadow-normalBias={0.02}
       />
-      <pointLight ref={monitor} args={[0xffd7a8, 0, 9, 0]} position={MONITOR_LIGHT} />
-      <pointLight ref={hand} args={[0xfff0dc, 0, 9, 0]} />
+      <pointLight
+        ref={monitor}
+        args={[0xffd7a8, 0, POINT_LIGHT_DISTANCE, POINT_DECAY]}
+        position={MONITOR_LIGHT}
+      />
+      <pointLight ref={hand} args={[0xfff0dc, 0, POINT_LIGHT_DISTANCE, POINT_DECAY]} />
       <object3D ref={spotTarget} position={LAMP.aim} />
       <object3D ref={sunTarget} position={SUN_TARGET} />
     </>

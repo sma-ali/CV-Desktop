@@ -106,12 +106,15 @@ export function usePresentation({
     const scene = store.getState();
     const { frame, settings } = scene;
     const reduced = settings.reducedMotion;
+    // Horloge gelée (?fige, captures et tests) : la présentation se pose
+    // aussitôt dans son état final, comme en mouvement réduit, au lieu de
+    // dépendre du nombre d'images que la machine arrive à dessiner.
     const current = stepPresentation(
       state.current,
       scene.presented === id,
       scene.hovered === id,
       frame.dt,
-      reduced,
+      reduced || scene.clock.frozen,
     );
     progress?.set(id, current.p);
 

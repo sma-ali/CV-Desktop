@@ -17,15 +17,15 @@ import { DESK, DESK_THICKNESS, FLOOR_Y, WALL_Z, WIN } from '../core/constants';
 import { applyRgb } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
 import { useCanvasTexture } from '../core/textures';
-import { WINDOW_BACKSTOP, WINDOW_SKY } from './layout';
+import { WINDOW_BACKSTOP } from './layout';
 import type { Part } from './merge';
 import { paintWall, paintWood } from './paint';
 import { box, MergedParts } from './shared';
 
 // La pièce : le plateau en noyer, le sol, le mur du fond percé de la fenêtre
 // (embrasure, dormant, croisillons, appui). Le ciel derrière la vitre
-// appartient à la mise en scène : le décor lui laisse un emplacement nommé
-// (WINDOW_SKY, groupe « decor-window-sky ») et met un fond sombre derrière.
+// appartient à la mise en scène (WINDOW_SKY, constante du socle) : le décor
+// met un fond sombre derrière.
 
 const DESK_WIDTH = DESK.x1 - DESK.x0;
 const DESK_DEPTH = DESK.z1 - DESK.z0;
@@ -218,8 +218,7 @@ export function Room() {
         receiveShadow
       />
       <MergedParts build={windowParts} />
-      {/* Emplacement du ciel (mise en scène), et fond sombre de secours derrière. */}
-      <group name="decor-window-sky" position={WINDOW_SKY.position} />
+      {/* Fond sombre de secours derrière le ciel de la mise en scène. */}
       <mesh geometry={backstop} material={backstopMaterial} position={WINDOW_BACKSTOP.position} />
     </group>
   );

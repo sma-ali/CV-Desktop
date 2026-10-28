@@ -24,6 +24,16 @@ export const WIN = { x0: -6.3, x1: -2.5, y0: 0.62, y1: 4.5, z: -3.62 } as const;
 /** Plan du mur du fond. */
 export const WALL_Z = -3.66;
 
+/**
+ * Le ciel derrière la vitre : un plan centré en position, de taille size,
+ * un peu plus grand que l'ouverture. La mise en scène le peint (Sky.tsx), le
+ * décor met un fond sombre derrière (WINDOW_BACKSTOP).
+ */
+export const WINDOW_SKY = {
+  position: [(WIN.x0 + WIN.x1) / 2, (WIN.y0 + WIN.y1) / 2, WALL_Z - 0.55] as Vec3,
+  size: [WIN.x1 - WIN.x0 + 0.4, WIN.y1 - WIN.y0 + 0.4] as const,
+} as const;
+
 /** Le sol, sous le bureau. */
 export const FLOOR_Y = -3.2;
 
@@ -117,7 +127,9 @@ export const ITEM_POSES = {
     ry: 0,
     hold: { w: 0.82, h: 0.82 },
     mode: 'flip',
-    tag: { y: 0.05, z: -0.55 },
+    // Sous le post-it, et non au-dessus comme dans le prototype : au-dessus,
+    // l'étiquette cachait la fin des lignes de code de l'écran.
+    tag: { y: 0.05, z: 0.9 },
   },
   headset: {
     x: -3.45,
@@ -175,8 +187,11 @@ export const POSTIT_ON_MONITOR = {
 /** Le support du casque, sur lequel le casque est posé. */
 export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
 
-/** Le coffret recule vers le centre en portrait, pour rester dans le cadre. */
-export const CHEST_PORTRAIT = { x: -3.75, z: -1.5 } as const;
+/**
+ * Le coffret recule vers le centre en portrait, pour rester dans le cadre
+ * (z avancé de 0.3 par rapport au prototype : agrandi, il touchait le pied du casque).
+ */
+export const CHEST_PORTRAIT = { x: -3.75, z: -1.2 } as const;
 
 /** Limites du plateau pour poser ou glisser un objet (étape 4). */
 export const BOUNDS = { x0: -6.15, x1: 6.2, z0: -3.2, z1: 3.05 } as const;
@@ -339,6 +354,12 @@ export const ARRIVAL = {
   parallaxEnd: 11,
 } as const;
 
+/**
+ * Fin de la frappe du code à l'écran tant que l'écran ne l'a pas donnée
+ * (frame.typingEnd) : environ 480 caractères à ARRIVAL.typingRate.
+ */
+export const TYPING_END_DEFAULT = ARRIVAL.typingStart + 3.2;
+
 /** Durée d'une transition entre deux ambiances (secondes). */
 export const MOOD_TRANSITION = 1.4;
 
@@ -460,4 +481,19 @@ export const LAMP_COLOR = 0xffb565;
  */
 export function legacyIntensity(intensity: number): number {
   return Math.PI * Math.max(0, intensity);
+}
+
+/**
+ * Atténuation des lumières ponctuelles. Le prototype (r128) les déclarait
+ * avec une distance D et decay 2, ce qui donnait (1 - d / D)² ; avec
+ * decay 0, three récent ne les atténue presque plus avant D, et la lueur de
+ * l'écran éclairait tout le bureau. decay 1 (1 / d, coupé en douceur à D)
+ * suit la courbe du prototype à quelques pour cent près, à condition de
+ * multiplier l'intensité par environ 0.13 D (legacyPointIntensity).
+ */
+export const POINT_DECAY = 1;
+
+/** Intensité d'une lumière ponctuelle du prototype (distance D, decay 2), pour decay POINT_DECAY. */
+export function legacyPointIntensity(intensity: number, distance: number): number {
+  return legacyIntensity(intensity) * 0.13 * distance;
 }

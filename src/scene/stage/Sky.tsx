@@ -4,7 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PlaneGeometry, ShaderMaterial, type CanvasTexture, type Mesh } from 'three';
 import { smooth } from '../core/arrival';
-import { MOOD_TRANSITION, WALL_Z, WIN } from '../core/constants';
+import { MOOD_TRANSITION, WINDOW_SKY } from '../core/constants';
 import type { MoodId } from '../core/ids';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import { createCanvasTexture, paintCanvasTexture } from '../core/textures';
@@ -14,9 +14,6 @@ import { STAGE_PRIORITY } from './priorities';
 import { noRaycast } from './shaders';
 
 const SKY_SIZE = 512;
-/** Le ciel se tient derrière l'embrasure, un peu plus grand que l'ouverture. */
-const SKY_DEPTH = 0.55;
-const SKY_MARGIN = 0.4;
 
 const vertexShader = /* glsl */ `
 varying vec2 vUv;
@@ -75,7 +72,7 @@ export function Sky() {
       vertexShader,
       fragmentShader,
     });
-    const geometry = new PlaneGeometry(WIN.x1 - WIN.x0 + SKY_MARGIN, WIN.y1 - WIN.y0 + SKY_MARGIN);
+    const geometry = new PlaneGeometry(...WINDOW_SKY.size);
     const texture = (id: MoodId): CanvasTexture => {
       let found = textures.get(id);
       if (!found) {
@@ -125,7 +122,7 @@ export function Sky() {
       ref={meshRef}
       geometry={sky.geometry}
       material={sky.material}
-      position={[(WIN.x0 + WIN.x1) / 2, (WIN.y0 + WIN.y1) / 2, WALL_Z - SKY_DEPTH]}
+      position={WINDOW_SKY.position}
       raycast={noRaycast}
     />
   );

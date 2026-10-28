@@ -154,7 +154,7 @@ export function Workspace() {
     const mesh = keys.current;
     if (mesh) {
       const { dips, shown, dummy } = keyState.current;
-      keyDips(frame.t, dips);
+      keyDips(frame.t, dips, frame.typingEnd);
       let changed = false;
       for (let i = 0; i < KEY_COUNT; i++) {
         const key = KEYS[i];

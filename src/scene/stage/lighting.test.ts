@@ -7,7 +7,7 @@ import {
   screenLevel,
   windowLevel,
 } from '../core/arrival';
-import { ARRIVAL, MOODS, SETTLE } from '../core/constants';
+import { ARRIVAL, legacyPointIntensity, MOODS, POINT_DECAY, SETTLE } from '../core/constants';
 import { MOOD_IDS, type MoodId } from '../core/ids';
 import { moodOfHour } from '../core/mood';
 import {
@@ -17,6 +17,7 @@ import {
   dustOpacity,
   fadeLevel,
   hemiIntensity,
+  POINT_LIGHT_DISTANCE,
   skyLevel,
   spotIntensity,
   sunIntensity,
@@ -128,5 +129,35 @@ describe('les ambiances selon l’heure', () => {
     expect(dimLevel(0, 0)).toBe(0);
     expect(dimLevel(1, 0)).toBeCloseTo(0.62);
     expect(dimLevel(0.2, 1)).toBeCloseTo(0.62);
+  });
+});
+
+describe('le calage sur le prototype', () => {
+  it('garde l’écart entre les ambiances : la nuit bien plus sombre que l’après-midi', () => {
+    const day = hemiIntensity(1, MOODS.afternoon.hemi);
+    const night = hemiIntensity(1, MOODS.night.hemi);
+    // Dans le prototype, la nuit valait 0.18 / 0.42 du jour à l'écran ; en
+    // linéaire, cet écart passe à la puissance 2.2.
+    expect(night / day).toBeCloseTo(Math.pow(MOODS.night.hemi / MOODS.afternoon.hemi, 2.2), 5);
+    expect(sunIntensity(1, MOODS.night.sun)).toBeLessThan(
+      sunIntensity(1, MOODS.afternoon.sun) * 0.1,
+    );
+  });
+
+  it('garde le ciel noir avant que la fenêtre n’éclaire', () => {
+    expect(skyLevel(0)).toBeLessThan(0.01);
+    expect(skyLevel(1)).toBe(1);
+  });
+
+  it('atténue les lumières ponctuelles comme le prototype (distance D, decay 2)', () => {
+    // Le prototype : (1 - d / D)² ; three récent, decay 1 : 1 / d coupé en douceur à D.
+    const D = POINT_LIGHT_DISTANCE;
+    const modern = (d: number) =>
+      (legacyPointIntensity(1, D) / Math.PI / Math.pow(d, POINT_DECAY)) *
+      Math.pow(Math.max(0, 1 - Math.pow(d / D, 4)), 2);
+    for (const d of [1.5, 3, 4.5, 6, 7.5]) {
+      const legacy = Math.pow(1 - d / D, 2);
+      expect(Math.abs(modern(d) - legacy)).toBeLessThan(0.1);
+    }
   });
 });

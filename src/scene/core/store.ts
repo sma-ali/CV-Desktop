@@ -14,7 +14,7 @@ import {
   type HudFlags,
 } from './arrival';
 import { createClock, type Clock } from './clock';
-import { ARRIVAL, SETTLE } from './constants';
+import { ARRIVAL, SETTLE, TYPING_END_DEFAULT } from './constants';
 import type { ItemId, MoodId } from './ids';
 import { moodValues, type MoodValues } from './mood-values';
 import type { TestParams } from './params';
@@ -114,6 +114,11 @@ export interface FrameState {
   portrait: boolean;
   /** Écrit par les objets : avancement de la présentation de l'objet tenu (0 à 1). */
   presentLevel: number;
+  /**
+   * Écrit par les objets : T où le code de l'écran est entièrement tapé (sa
+   * longueur divisée par ARRIVAL.typingRate). Le clavier du décor s'y cale.
+   */
+  typingEnd: number;
 }
 
 export interface SceneState {
@@ -187,6 +192,7 @@ function initialFrame(mood: MoodId): FrameState {
     mood: moodValues(mood),
     portrait: false,
     presentLevel: 0,
+    typingEnd: TYPING_END_DEFAULT,
   };
 }
 

@@ -14,9 +14,9 @@ import { Workspace } from './Workspace';
 // aucun jeu, anime ou pseudo réel.
 //
 // Lumières, ciel derrière la vitre, cône et poussière de la lampe : mise en
-// scène. Le décor laisse au ciel un emplacement nommé (voir WINDOW_SKY dans
-// layout.ts) et suit l'horloge du store pour ses LED et ses petites
-// animations (figées par ?fige, coupées en mouvement réduit).
+// scène. Le ciel se pose à WINDOW_SKY (constante du socle) ; le décor suit
+// l'horloge du store pour ses LED et ses petites animations (figées par
+// ?fige, coupées en mouvement réduit).
 export function Decor() {
   return (
     <group name="decor">

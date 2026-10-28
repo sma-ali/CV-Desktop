@@ -112,6 +112,8 @@ export function Monitor({ texts }: { texts: SceneTexts }) {
     screenMaterial.color.setScalar(Math.min(1, frame.screen * 0.98 + boost * frame.screen));
 
     // La frappe : le code, puis la ligne finale tapée, laissée et effacée en boucle.
+    // Le clavier du décor se cale sur la fin exacte du code.
+    frame.typingEnd = ARRIVAL.typingStart + total / ARRIVAL.typingRate;
     const typed = Math.min(frame.typed, total);
     const done = typed >= total;
     const length = screen.closing.length;

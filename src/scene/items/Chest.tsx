@@ -3,7 +3,13 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import { MeshBasicMaterial, PlaneGeometry, Vector3, type PointLight } from 'three';
-import { ARRIVAL, CHEST_PORTRAIT, ITEM_POSES, legacyIntensity } from '../core/constants';
+import {
+  ARRIVAL,
+  CHEST_PORTRAIT,
+  ITEM_POSES,
+  legacyPointIntensity,
+  POINT_DECAY,
+} from '../core/constants';
 import { Box, Cyl } from '../core/geometry';
 import { brass, standardMaterial } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
@@ -14,6 +20,9 @@ import { paintPlaque, PLAQUE_TEXTURE } from './paint';
 import { deskRestPose, ITEMS_PRIORITY, type PresentState } from './presentation';
 import { usePaintedMaterial } from './usePaintedMaterial';
 import { usePresentation } from './usePresentation';
+
+/** Portée de la lueur verte du coffret. */
+const GLOW_DISTANCE = 2.6;
 
 // Le coffret scellé (projets perso) : il ne dit jamais ce qu'il contient.
 // Plus grand et plus clair que dans le prototype (défaut connu : petit et
@@ -26,11 +35,6 @@ const CH = 0.66;
 const CD = 1.02;
 /** Le coffret recule un peu dans son repère : il ne mord plus sur le livre. */
 const OFFSET_Z = -0.2;
-/**
- * En portrait (CHEST_PORTRAIT), le coffret agrandi toucherait le pied du
- * casque : il avance un peu. À reporter dans CHEST_PORTRAIT à l'assemblage.
- */
-const PORTRAIT_NUDGE_Z = 0.3;
 
 const CORNERS: BoxPiece[] = [
   [-1, -1],
@@ -69,10 +73,7 @@ export function Chest({ texts }: { texts: SceneTexts }) {
   );
 
   const rest = useMemo(() => deskRestPose(ITEM_POSES.chest), []);
-  const portraitRest = useMemo(
-    () => new Vector3(CHEST_PORTRAIT.x, 0, CHEST_PORTRAIT.z + PORTRAIT_NUDGE_Z),
-    [],
-  );
+  const portraitRest = useMemo(() => new Vector3(CHEST_PORTRAIT.x, 0, CHEST_PORTRAIT.z), []);
   const glow = useMemo(() => [plaque], [plaque]);
   const { ref, handlers } = usePresentation({
     id: 'chest',
@@ -95,7 +96,10 @@ export function Chest({ texts }: { texts: SceneTexts }) {
     seam.color.setRGB(on * (0.25 + beat * 0.9), on * (0.14 + beat * 0.5), on * 0.04);
     if (glowLight.current) {
       const p = held.current?.p ?? 0;
-      glowLight.current.intensity = legacyIntensity(on * (0.12 + beat * 0.9) * (1 - p * 0.6));
+      glowLight.current.intensity = legacyPointIntensity(
+        on * (0.12 + beat * 0.9) * (1 - p * 0.6),
+        GLOW_DISTANCE,
+      );
     }
   }, ITEMS_PRIORITY);
 
@@ -150,8 +154,8 @@ export function Chest({ texts }: { texts: SceneTexts }) {
           ref={glowLight}
           color={0x4fe08a}
           intensity={0}
-          distance={2.6}
-          decay={0}
+          distance={GLOW_DISTANCE}
+          decay={POINT_DECAY}
           position={[0.56, 0.36, CD / 2 + 0.35]}
         />
       </group>

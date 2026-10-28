@@ -1,4 +1,13 @@
-import { ARRIVAL, KEYBOARD, LAMP, WALL_Z, WIN, type Vec3 } from '../core/constants';
+import {
+  ARRIVAL,
+  KEYBOARD,
+  LAMP,
+  TYPING_END_DEFAULT,
+  WALL_Z,
+  WIN,
+  WINDOW_SKY,
+  type Vec3,
+} from '../core/constants';
 import { clamp, deckLedOn, seg } from '../core/arrival';
 import { rng } from '../core/rng';
 
@@ -11,16 +20,8 @@ import { rng } from '../core/rng';
 // La fenêtre : emplacement du ciel (fourni par la mise en scène)
 // ------------------------------------------------------------------
 
-/**
- * Où poser le ciel derrière la vitre. Le décor ne le dessine pas : la mise en
- * scène y place un plan (une texture par ambiance), centré en position, de
- * taille size. Derrière, le décor met un fond sombre (WINDOW_BACKSTOP) pour
- * que l'ouverture ne montre jamais le vide si le ciel manque.
- */
-export const WINDOW_SKY = {
-  position: [(WIN.x0 + WIN.x1) / 2, (WIN.y0 + WIN.y1) / 2, WALL_Z - 0.55] as Vec3,
-  size: [WIN.x1 - WIN.x0 + 0.4, WIN.y1 - WIN.y0 + 0.4] as const,
-} as const;
+/** Le ciel de la mise en scène (constante du socle), repris ici pour les tests du décor. */
+export { WINDOW_SKY };
 
 /** Le fond de secours, derrière l'emplacement du ciel. */
 export const WINDOW_BACKSTOP = {
@@ -79,11 +80,11 @@ export function keyColor(row: number, col: number): number {
 export const KEY_DIP_TIME = 0.11;
 
 /**
- * Fin estimée de la frappe du code à l'écran. La longueur du code appartient
- * aux objets ; le décor l'estime (environ 470 caractères à 150 par seconde).
- * Voir « needs » : un champ du store donnerait la fin exacte.
+ * Fin de la frappe du code à l'écran, par défaut. La longueur du code
+ * appartient aux objets : l'écran écrit la fin exacte dans frame.typingEnd,
+ * que le clavier passe à keyDips.
  */
-export const TYPING_END_ESTIMATE = ARRIVAL.typingStart + 3.2;
+export const TYPING_END_ESTIMATE = TYPING_END_DEFAULT;
 
 /** Caractères par seconde de la ligne finale (tapée en 3 s, effacée en 1.2 s). */
 const EXTRA_RATE = 12;
@@ -99,8 +100,8 @@ export function keyForChar(n: number): number {
  * vitesse, ou null quand personne ne tape. Pendant le code, 150 caractères
  * par seconde ; pendant la ligne finale (tapée puis effacée en boucle), 12.
  */
-function typingAt(t: number): { start: number; rate: number } | null {
-  if (t >= ARRIVAL.typingStart && t < TYPING_END_ESTIMATE) {
+function typingAt(t: number, typingEnd: number): { start: number; rate: number } | null {
+  if (t >= ARRIVAL.typingStart && t < typingEnd) {
     return { start: ARRIVAL.typingStart, rate: ARRIVAL.typingRate };
   }
   if (t >= ARRIVAL.extraLineStart) {
@@ -115,10 +116,14 @@ function typingAt(t: number): { start: number; rate: number } | null {
  * case par touche, aucune allocation). Fonction pure de t : figée par ?fige.
  * Renvoie true si une touche au moins est enfoncée.
  */
-export function keyDips(t: number, out: Float32Array): boolean {
+export function keyDips(
+  t: number,
+  out: Float32Array,
+  typingEnd: number = TYPING_END_ESTIMATE,
+): boolean {
   out.fill(0);
   // Ce qui se tape maintenant, ou se tapait il y a un instant (la touche remonte).
-  const typing = typingAt(t) ?? typingAt(t - KEY_DIP_TIME);
+  const typing = typingAt(t, typingEnd) ?? typingAt(t - KEY_DIP_TIME, typingEnd);
   if (!typing) return false;
   const { start, rate } = typing;
   let any = false;
@@ -128,7 +133,7 @@ export function keyDips(t: number, out: Float32Array): boolean {
     const at = start + n / rate;
     const age = t - at;
     // Seulement les caractères frappés pendant une période de frappe.
-    if (age < 0 || age > KEY_DIP_TIME || !typingAt(at)) continue;
+    if (age < 0 || age > KEY_DIP_TIME || !typingAt(at, typingEnd)) continue;
     const k = keyForChar(n + Math.round(start * 1000));
     const dip = 1 - age / KEY_DIP_TIME;
     if (dip > (out[k] ?? 0)) out[k] = dip;

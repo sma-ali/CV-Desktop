@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
-import { screenLayout, SCREEN_TEXTURE, tokenize } from '@/scene/items/screen';
+import { ARRIVAL } from '@/scene/core/constants';
+import { codeLength, screenLayout, SCREEN_TEXTURE, tokenize } from '@/scene/items/screen';
 import { sceneEn } from './en';
 import { sceneFr } from './fr';
 
@@ -14,6 +15,14 @@ describe('code de l’écran', () => {
           .map(([text]) => text)
           .join(''),
       ).toBe(line);
+    }
+  });
+
+  it('finit de se taper avant la ligne finale', () => {
+    // frame.typingEnd, que le clavier du décor suit.
+    for (const screen of [sceneFr.screen, sceneEn.screen]) {
+      const end = ARRIVAL.typingStart + codeLength(screen.code) / ARRIVAL.typingRate;
+      expect(end).toBeLessThan(ARRIVAL.extraLineStart);
     }
   });
 });

@@ -95,6 +95,13 @@ describe('le clavier', () => {
     expect(keyDips(ARRIVAL.extraLineStart + 5, dips)).toBe(false);
   });
 
+  it('se cale sur la fin exacte de la frappe donnée par l’écran', () => {
+    const dips = new Float32Array(KEY_COUNT);
+    const end = ARRIVAL.typingStart + 2;
+    expect(keyDips(end - 0.1, dips, end)).toBe(true);
+    expect(keyDips(end + KEY_DIP_TIME + 0.05, dips, end)).toBe(false);
+  });
+
   it('est une fonction pure du temps (figée par ?fige)', () => {
     const a = new Float32Array(KEY_COUNT);
     const b = new Float32Array(KEY_COUNT);

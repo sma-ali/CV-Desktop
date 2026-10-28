@@ -202,7 +202,14 @@ export function blendPose(out: CameraPose, to: CameraPose, k: number): CameraPos
  * (HELD), ou la dalle quand la caméra s'approche de l'écran.
  */
 export function focusPoint(screen: boolean, portrait: boolean): readonly [number, number] {
-  if (screen) return portrait ? [0.5, 0.62] : [0.32, 0.52];
-  const held = portrait ? HELD.portrait : HELD.landscape;
-  return [held.x * 0.5 + 0.5, held.y * 0.5 + 0.5];
+  if (screen) return portrait ? FOCUS.screenPortrait : FOCUS.screenLandscape;
+  return portrait ? FOCUS.heldPortrait : FOCUS.heldLandscape;
 }
+
+// Lu à chaque image : des constantes, pour ne rien allouer.
+const FOCUS = {
+  screenPortrait: [0.5, 0.62],
+  screenLandscape: [0.32, 0.52],
+  heldPortrait: [HELD.portrait.x * 0.5 + 0.5, HELD.portrait.y * 0.5 + 0.5],
+  heldLandscape: [HELD.landscape.x * 0.5 + 0.5, HELD.landscape.y * 0.5 + 0.5],
+} as const satisfies Record<string, readonly [number, number]>;

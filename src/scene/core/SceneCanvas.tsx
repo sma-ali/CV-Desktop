@@ -26,6 +26,7 @@ export interface SceneCanvasProps {
 // - pas de tone mapping (flat) : l'étalonnage du prototype se fait en
 //   post-traitement (mise en scène) ;
 // - ombres PCF, comme le prototype ;
+// - anticrénelage confié au post-traitement (voir gl) ;
 // - densité de pixels bornée à 2 (la qualité adaptative peut descendre) ;
 // - rendu suspendu quand l'onglet est caché.
 export function SceneCanvas({
@@ -36,6 +37,7 @@ export function SceneCanvas({
   children,
 }: SceneCanvasProps) {
   const noShadow = useSceneStore((state) => state.settings.noShadow);
+  const noPost = useSceneStore((state) => state.settings.noPost);
   const [hidden, setHidden] = useState(false);
 
   useEffect(() => {
@@ -50,7 +52,10 @@ export function SceneCanvas({
       shadows={noShadow ? false : 'percentage'}
       flat
       dpr={[1, 2]}
-      gl={{ antialias: true, powerPreference: 'high-performance' }}
+      // Le post-traitement dessine la scène dans ses propres cibles, avec son
+      // multisampling : l'anticrénelage du canvas ne servirait qu'au quad
+      // final. Il n'est gardé que sans post-traitement (?nopost).
+      gl={{ antialias: noPost, powerPreference: 'high-performance' }}
       camera={{ fov: REST.landscape.fov, near: 0.1, far: 90, position: [0, 13, 9] }}
       frameloop={hidden ? 'never' : 'always'}
       onCreated={({ gl, scene }) => {

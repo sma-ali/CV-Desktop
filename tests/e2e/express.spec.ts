@@ -13,6 +13,8 @@ const expected = {
     ],
     print: 'Imprimer',
     skip: 'Aller au contenu',
+    desk: 'Revenir au bureau',
+    availability: 'Disponible',
   },
   en: {
     title: 'Ali Smaani | Full-Stack Developer',
@@ -23,6 +25,8 @@ const expected = {
     ],
     print: 'Print',
     skip: 'Skip to content',
+    desk: 'Back to the desk',
+    availability: 'Available',
   },
 } satisfies Record<Locale, unknown>;
 
@@ -152,6 +156,25 @@ for (const locale of locales) {
       expect(errors).toEqual([]);
     });
 
+    test('annonce la disponibilité et ramène au bureau', async ({ page }) => {
+      await page.goto(path);
+      await expect(
+        page.getByRole('article').getByText(facts.availability, { exact: true }),
+      ).toBeInViewport();
+      const desk = page.getByRole('link', { name: facts.desk });
+      await expect(desk).toHaveAttribute('href', `/${locale}`);
+      await desk.click();
+      await expect(page).toHaveURL(new RegExp(`/${locale}$`));
+      await expect(page.locator('#hud')).toBeAttached();
+    });
+
+    test('donne une ancre à chaque étape du bureau', async ({ page }) => {
+      await page.goto(path);
+      for (const id of ['contact', 'projects', 'defi-metiers', 'dares']) {
+        await expect(page.locator(`[id="${id}"]`)).toHaveCount(1);
+      }
+    });
+
     test('bascule vers l’autre langue', async ({ page }) => {
       await page.goto(path);
       const link = page.getByRole('link', { name: facts.other.name });
@@ -261,6 +284,8 @@ test.describe('au clavier', () => {
     await expect(page.getByRole('banner')).toBeInViewport();
     // Le Tab suivant tombe sur le premier outil de la barre.
     await page.keyboard.press('Tab');
+    await expect(page.getByRole('link', { name: 'Revenir au bureau' })).toBeFocused();
+    await page.keyboard.press('Tab');
     await expect(page.getByRole('link', { name: 'English' })).toBeFocused();
   });
 });
@@ -312,6 +337,7 @@ test.describe('impression', () => {
     await expect(page.getByRole('button', { name: expected.fr.print })).toBeHidden();
     await expect(page.getByRole('link', { name: 'English' })).toBeHidden();
     await expect(page.getByRole('link', { name: expected.fr.skip })).toBeHidden();
+    await expect(page.getByRole('link', { name: expected.fr.desk })).toBeHidden();
     await expect(page.getByRole('heading', { level: 1 })).toBeVisible();
     await expect(page.getByText('smanali.pro@gmail.com')).toBeVisible();
 
@@ -329,6 +355,8 @@ test('sitemap.xml et robots.txt répondent', async ({ request }) => {
   const sitemap = await request.get('/sitemap.xml');
   expect(sitemap.status()).toBe(200);
   const xml = await sitemap.text();
+  expect(xml).toContain('<loc>https://alismaani.fr/fr</loc>');
+  expect(xml).toContain('<loc>https://alismaani.fr/en</loc>');
   expect(xml).toContain('<loc>https://alismaani.fr/fr/express</loc>');
   expect(xml).toContain('<loc>https://alismaani.fr/en/express</loc>');
 

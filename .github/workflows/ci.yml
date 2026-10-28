@@ -40,7 +40,10 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npx playwright install --with-deps chromium
+      # WebGL par SwiftShader (arguments dans playwright.config.ts).
       - run: npm run test:e2e
+        env:
+          E2E_PORT: 3100
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:

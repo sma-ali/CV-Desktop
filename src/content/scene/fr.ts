@@ -6,9 +6,11 @@ export const sceneFr = {
   labels: {
     book: { mark: '2020', text: 'DEFI-METIERS' },
     postit: { mark: '2024', text: 'DARES' },
-    laptop: { mark: '2026', text: 'Projets' },
+    laptop: { mark: 'Pile', text: 'Compétences' },
     card: { mark: 'Ali', text: 'Contact' },
     chest: { mark: 'Projets perso', text: 'Scellé' },
+    netherbrain: { mark: '2026', text: 'Netherbrain' },
+    homelab: { mark: '2026', text: 'Homelab' },
   },
   screen: {
     fileName: 'parcours.ts',
@@ -102,4 +104,18 @@ export const sceneFr = {
   card: { contact: 'Contact' },
   laptop: { path: '~/projets' },
   chest: { kicker: 'PROJETS PERSO', title: 'Scellé' },
+  netherbrain: {
+    label: {
+      name: 'Netherbrain',
+      tagline: 'plateforme LLM auto-hébergée',
+      year: '2026',
+      stack: ['Ollama / GPU', 'FastAPI', 'PostgreSQL + pgvector', 'Next.js / React / TypeScript'],
+      tests: '236 tests automatisés',
+    },
+  },
+  homelab: {
+    name: 'Homelab',
+    units: { server: 'Proxmox', firewall: 'OPNsense' },
+    access: 'WireGuard',
+  },
 } satisfies SceneContent;

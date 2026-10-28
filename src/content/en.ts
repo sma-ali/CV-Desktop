@@ -1,5 +1,6 @@
 import type { Content } from './schema';
 import { sceneEn } from './scene/en';
+import { sheetsEn } from './sheets/en';
 import { contact } from './shared';
 
 // Source : le CV d'Ali en anglais (septembre 2026). Même structure que fr.ts.
@@ -197,10 +198,14 @@ export const en = {
       night: { name: 'Night', light: 'Night. The lamp keeps watch.' },
     },
     hint: {
-      pointer: 'Click an object to take a closer look.',
-      touch: 'Tap an object to take a closer look.',
+      pointer: 'Click an object to take a closer look. Drag it to move it.',
+      touch: 'Tap an object to take a closer look. Drag it to move it.',
       auto: 'Guided tour. Tap an object to take over.',
       presented: 'Object shown up close. Press Escape to put it back.',
+      held: {
+        pointer: 'Click the object to turn it over. Press Escape to put it back.',
+        touch: 'Tap the object to turn it over.',
+      },
     },
     fallback: {
       noScript: 'The 3D desk needs JavaScript. Here is the CV in its express version.',
@@ -211,4 +216,5 @@ export const en = {
     },
   },
   scene: sceneEn,
+  sheets: sheetsEn,
 } satisfies Content;

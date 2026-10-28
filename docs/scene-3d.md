@@ -1,6 +1,6 @@
 # Le bureau en 3D (étape 3)
 
-Ce document fixe le contrat entre les parties de la scène. Le socle a été posé sur la branche `feat/bureau-3d` ; trois parties (décor, objets, mise en scène) se sont construites en parallèle, chacune dans son worktree et dans ses propres fichiers, puis une passe d'assemblage les a fusionnées et a calé le rendu sur le prototype (voir « État à la fin de l'étape 3 »). Le contrat reste valable pour l'étape 4.
+Ce document fixe le contrat entre les parties de la scène. Le socle a été posé sur la branche `feat/bureau-3d` ; trois parties (décor, objets, mise en scène) se sont construites en parallèle, chacune dans son worktree et dans ses propres fichiers, puis une passe d'assemblage les a fusionnées et a calé le rendu sur le prototype (voir « État à la fin de l'étape 3 »). Le contrat reste valable pour l'étape 4, que [`docs/gestes.md`](gestes.md) complète (gestes, fiches, son, signes de vie, nouveaux objets) et corrige là où il le dit.
 
 Référence visuelle et de comportement : `prototype/bureau-plateau.html` (Three.js r128). On le reproduit et on l'améliore, on ne le recopie pas : ses textes ne sont pas des faits (voir « Textes »).
 
@@ -8,7 +8,7 @@ Référence visuelle et de comportement : `prototype/bureau-plateau.html` (Three
 
 Dans l'étape 3 : le port du prototype en composants React Three Fiber avec un Three.js récent. Plateau, mur et fenêtre, lampe, écran au code TypeScript, objets du CV, décor, lumière selon l'heure du visiteur (quatre ambiances et sélecteur), arrivée (carton, lampe qui s'allume, LED du clavier, code tapé à l'écran, montée de caméra), étiquettes des objets, survol, présentation d'un objet (il se soulève devant la caméra, tourne lentement, puis se repose) déclenchée par le mode auto, un clic sur l'objet ou une puce du bas de page, mode auto (visite), Rejouer, `prefers-reduced-motion`, chargement progressif, repli sur la version express. Défauts du prototype à corriger ici : code de l'écran illisible en vue large, micro illisible vu de dessus, coffret petit et sombre.
 
-Hors périmètre (étape 4) : retourner un objet, le faire glisser, les collisions, les fiches (le bristol), le son, les nouveaux objets de Netherbrain et Homelab, les signes de vie du coffret, la correction complète des bords coupés sur téléphone (le cadrage portrait du prototype suffit ici).
+Hors périmètre (étape 4, voir [`docs/gestes.md`](gestes.md)) : retourner un objet, le faire glisser, les collisions, les fiches (le bristol), le son, les nouveaux objets de Netherbrain et Homelab, les signes de vie du coffret, la correction complète des bords coupés sur téléphone (le cadrage portrait du prototype suffit ici).
 
 ## Architecture
 
@@ -100,8 +100,8 @@ Portées du prototype, sans dépendance à three :
 
 - Bureau et pièce : `DESK`, `DESK_THICKNESS`, `WIN`, `WALL_Z`, `WINDOW_SKY` (le plan du ciel, peint par la mise en scène, avec le fond sombre du décor derrière), `FLOOR_Y`, `BACKGROUND`.
 - Matériel partagé : `LAMP` (pied, coude, tête, point visé), `STAND`, `MONITOR` (position, hauteur et inclinaison de la dalle, tailles), `KEYBOARD`, `HEADSET_STAND`.
-- Objets : `ITEM_POSES` (position, rotation, encombrement présenté `hold`, mode de présentation, accroche de l'étiquette), `POSTIT_ON_MONITOR`, `CHEST_PORTRAIT`, `BOUNDS`.
-- Caméra : `PORTRAIT_MAX_ASPECT`, `REST` et `REST_FIT` (vue de repos et points à cadrer), `START_L`, `START_P`, `HELD`, `HELD_MAX_DISTANCE`, `SCREEN_FOCUS`.
+- Objets : `ITEM_POSES` (position, rotation, encombrement présenté `hold`, mode de présentation, accroche de l'étiquette), `POSTIT_ON_MONITOR`, `BOUNDS`, `SHEET` (étape 4). Encombrement vu de dessus : `src/scene/core/bodies.ts` (étape 4).
+- Caméra (dans `framing.ts` depuis l'étape 4, réexporté par `constants.ts`) : `PORTRAIT_MAX_ASPECT`, `PORTRAIT_PLACES`, `REST` et `REST_FIT` (vue de repos et points à cadrer), `START_L`, `START_P`, `HELD`, `HELD_MAX_DISTANCE`, `SCREEN_FOCUS`.
 - Temps : `SETTLE` (10.4 s), `AUTO_START` (12.6 s), `IDLE_DELAY` (12 s), `AUTO_SEQ`, `AUTO_TIMING`, `ARRIVAL` (tous les temps de l'arrivée), `TYPING_END_DEFAULT`, `MOOD_TRANSITION`.
 - Ambiances et lumières : `MOODS` (valeurs du prototype), `MOOD_SWATCHES`, `LAMP_COLOR`, `legacyIntensity()`, `POINT_DECAY` et `legacyPointIntensity()`.
 
@@ -109,7 +109,7 @@ Les niveaux de l'arrivée sont des fonctions pures de T dans `arrival.ts` (`lamp
 
 ## Identifiants (`src/scene/core/ids.ts`)
 
-Objets : `book`, `badge`, `postit`, `headset`, `laptop`, `card`, `chest`, `monitor`. Étapes du CV (puces) : `defi-metiers`, `dares`, `projects`, `perso`, `contact`.
+Objets : `book`, `badge`, `postit`, `headset`, `laptop`, `card`, `chest`, `monitor`, et depuis l'étape 4 `netherbrain` et `homelab` (tableau à jour dans [`docs/gestes.md`](gestes.md) : l'étape `projects` présente désormais `netherbrain`). Étapes du CV (puces) : `defi-metiers`, `dares`, `projects`, `perso`, `contact`.
 
 | Étape          | Objets              | Objet présenté (`STEP_ITEM`) | Puce                         |
 | -------------- | ------------------- | ---------------------------- | ---------------------------- |
@@ -121,7 +121,7 @@ Objets : `book`, `badge`, `postit`, `headset`, `laptop`, `card`, `chest`, `monit
 
 L'écran (`monitor`) n'appartient à aucune étape : il montre tout le parcours, et son gros plan n'allume aucune puce.
 
-Visite automatique (`AUTO_SEQ`) : `book`, `postit`, `laptop`, `card`, `chest`. Chaque puce est un lien vers la section de la version express (`#defi-metiers`, `#dares`, `#projects`, `#contact`) ; quand la scène tourne, le HUD l'intercepte et présente l'objet.
+Visite automatique (`AUTO_SEQ`) à l'étape 3 : `book`, `postit`, `laptop`, `card`, `chest` (étape 4 : `book`, `postit`, `netherbrain`, `homelab`, `laptop`, `card`, `chest`). Chaque puce est un lien vers la section de la version express (`#defi-metiers`, `#dares`, `#projects`, `#contact`) ; quand la scène tourne, le HUD l'intercepte et présente l'objet.
 
 ## Rendu
 
@@ -201,7 +201,7 @@ Pour comparer, capturer le site avec les mêmes paramètres (`prendre=book` pour
 
 ## Worktrees et ports
 
-Les trois worktrees de l'étape 3 ont été fusionnés puis supprimés. Pour reprendre ce mode de travail à l'étape 4 :
+Les trois worktrees de l'étape 3 ont été fusionnés puis supprimés. Les ports et worktrees de l'étape 4 sont dans [`docs/gestes.md`](gestes.md). Commande de l'étape 3, pour mémoire :
 
 ```bash
 git worktree add .claude/worktrees/decor -b feat/bureau-3d-decor feat/bureau-3d
@@ -228,6 +228,7 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
   - `scene-objets.spec.ts` : étiquettes FR et EN, cachées pendant l'arrivée et la présentation, puce, étiquette, survol et clic, clic hors des objets, mouvement réduit.
   - `scene-scene.spec.ts` : arrivée du noir à `settled`, Rejouer trois fois sans fuite WebGL, visite dans l'ordre, arrêt et reprise, `?auto=0`, puce qui reprend la main, mouvement réduit, changement d'ambiance.
   - `parcours.spec.ts` (assemblage) : puce au clavier puis Échap, gros plan sur l'écran au clic et par `?prendre=monitor`, visite arrêtée par une touche, Rejouer qui repose l'objet et garde l'ambiance, passage en anglais scène comprise, aller-retour avec la version express.
+  - Étape 4 : `scene-gestes.spec.ts` (gestes), `scene-fiches.spec.ts` (fiches et son), `scene-projets.spec.ts` (Netherbrain, Homelab, cadrage) ; voir [`docs/gestes.md`](gestes.md).
 
 ## État à la fin de l'étape 3
 
@@ -248,7 +249,7 @@ Calage sur le prototype (captures côte à côte, mêmes paramètres, luminance 
 
 Réglages : `CALIBRATION` (hémisphère 0.62, soleil 0.7, spot 2.0, cône 0.3, tache 0.45, rais 0.35, poussière 0.7, écran et objet tenu 1), `MOOD_REFERENCE` (les intensités des ambiances relatives à l'après-midi, élevées à la puissance 2.2), `SPOT_BOOST` (0.3), `POINT_DECAY` (1) et `skyLevel` à la puissance 2.2.
 
-Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (`DECOR_FOOTPRINTS` dans `src/scene/decor/layout.ts` donne déjà l'encombrement du décor), fiches, son, objets dédiés à Netherbrain et Homelab, signes de vie du coffret, bords coupés sur téléphone (le coffret et le micro y sont en partie hors champ, comme dans le prototype).
+Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (devenu `DECOR_OBSTACLES`, des rectangles orientés, à l'étape 4), fiches, son, objets dédiés à Netherbrain et Homelab, signes de vie du coffret, bords coupés sur téléphone (le coffret et le micro y sont en partie hors champ, comme dans le prototype).
 
 ## Décisions du socle
 
@@ -267,7 +268,7 @@ Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (`DEC
 - L'écran écrit `frame.typingEnd` : le clavier s'arrête de taper à la dernière lettre du code, quelle que soit sa longueur.
 - Sous `&fige`, la présentation se pose aussitôt dans son état final (comme en mouvement réduit) : captures et tests ne dépendent plus de la cadence.
 - L'étiquette du post-it passe sous le post-it : au-dessus, elle cachait la fin des lignes de code de l'écran.
-- `CHEST_PORTRAIT.z` avance de 0.3 (le coffret agrandi touchait le pied du casque en portrait).
+- `CHEST_PORTRAIT.z` avance de 0.3 (le coffret agrandi touchait le pied du casque en portrait). Supprimé à l'étape 4 : voir [`docs/gestes.md`](gestes.md).
 - Un clic n'importe où hors de l'objet tenu le repose, décor compris (le décor garde ses propres réactions : lampe, figurines, tasse...).
 - Les deux vignettes restent : celle du CSS et celle de `GradeEffect` (0.75), qui ensemble retrouvent celle du prototype.
 - L'horloge ne part qu'à la deuxième image : la première compile les shaders et peut prendre des secondes sur une machine lente, et le visiteur manquait alors le début de l'arrivée.

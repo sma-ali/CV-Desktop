@@ -74,6 +74,23 @@
   color: var(--muted);
 }
 
+/* « Disponible », précédé d'un point vert comme sur le bureau. */
+.availability {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.45em;
+  font-weight: 600;
+  color: var(--ink);
+}
+
+.availabilityDot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: #2fbf6a;
+  box-shadow: 0 0 0 3px rgb(47 191 106 / 0.18);
+}
+
 /* Titres de section : petites capitales espacées, à la manière d'une étiquette. */
 
 .heading {

@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { Content } from '@/content';
 import { locales, type Locale } from '@/content/locales';
-import { absoluteUrl, expressPath } from './site';
+import { absoluteUrl, deskPath, expressPath } from './site';
 
 const openGraphLocales: Record<Locale, string> = { fr: 'fr_FR', en: 'en_US' };
 
@@ -18,18 +18,52 @@ export function expressAlternates(): Record<string, string> {
   };
 }
 
+// Adresses du bureau dans chaque langue. x-default est la racine, qui choisit
+// la langue du navigateur.
+export function deskAlternates(): Record<string, string> {
+  return {
+    ...Object.fromEntries(locales.map((locale) => [locale, absoluteUrl(deskPath(locale))])),
+    'x-default': absoluteUrl('/'),
+  };
+}
+
 // Métadonnées de la version express. L'image Open Graph vient du fichier
 // opengraph-image.tsx de la route, que Next.js ajoute de lui-même.
 export function buildExpressMetadata(content: Content, locale: Locale): Metadata {
+  return buildMetadata(content, locale, absoluteUrl(expressPath(locale)), expressAlternates());
+}
+
+// Métadonnées du bureau en 3D. Il partage l'image de partage de la version
+// express de sa langue (générée au build par son opengraph-image.tsx).
+export function buildDeskMetadata(content: Content, locale: Locale): Metadata {
+  const metadata = buildMetadata(content, locale, absoluteUrl(deskPath(locale)), deskAlternates());
+  const image = {
+    url: absoluteUrl(`${expressPath(locale)}/opengraph-image`),
+    width: 1200,
+    height: 630,
+    alt: content.profile.name,
+  };
+  return {
+    ...metadata,
+    openGraph: { ...metadata.openGraph, images: [image] },
+    twitter: { ...metadata.twitter, images: [image.url] },
+  };
+}
+
+function buildMetadata(
+  content: Content,
+  locale: Locale,
+  url: string,
+  languages: Record<string, string>,
+): Metadata {
   const { profile } = content;
   const title = pageTitle(content);
-  const url = absoluteUrl(expressPath(locale));
   const [firstName = profile.name, ...rest] = profile.name.split(' ');
 
   return {
     title,
     description: profile.summary,
-    alternates: { canonical: url, languages: expressAlternates() },
+    alternates: { canonical: url, languages },
     openGraph: {
       type: 'profile',
       firstName,

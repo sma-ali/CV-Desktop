@@ -5,8 +5,9 @@ import { displayUrl } from '@/lib/urls';
 import styles from './ExpressCv.module.css';
 
 // Le CV entier en HTML, depuis le module de contenu. Composant serveur sans
-// état ni lien vers une route : il sert la page /[locale]/express et servira
-// de repli sans WebGL et de panneau par-dessus le bureau en 3D.
+// état ni lien vers une route : il sert la page /[locale]/express et le repli
+// du bureau (sans JavaScript, sans WebGL). Les puces du bureau visent ses ids
+// (contact, projects, et l'id de chaque expérience).
 export function ExpressCv({ locale }: { locale: Locale }) {
   const nameId = useId();
   const content = getContent(locale);
@@ -32,10 +33,17 @@ export function ExpressCv({ locale }: { locale: Locale }) {
           {profile.name}
         </h1>
         <p className={styles.headline}>{profile.headline}</p>
-        <p className={styles.location}>{profile.location}</p>
+        <p className={styles.location}>
+          <span className={styles.availability}>
+            <span className={styles.availabilityDot} aria-hidden="true" />
+            {profile.availability}
+          </span>
+          {' | '}
+          {profile.location}
+        </p>
       </header>
 
-      <section className={styles.contact}>
+      <section id="contact" className={styles.contact}>
         <h2 className={styles.heading}>{sections.contact}</h2>
         <ul className={styles.contactList}>
           {contactLinks.map(({ label, href, text, me }) => (
@@ -59,7 +67,7 @@ export function ExpressCv({ locale }: { locale: Locale }) {
           <h2 className={styles.heading}>{sections.experience}</h2>
           <ol className={styles.entries}>
             {experiences.map((experience) => (
-              <li key={experience.id} className={styles.entry}>
+              <li key={experience.id} id={experience.id} className={styles.entry}>
                 <div className={styles.entryHead}>
                   <h3 className={styles.entryTitle}>{experience.role}</h3>
                   <p className={styles.period}>
@@ -81,7 +89,7 @@ export function ExpressCv({ locale }: { locale: Locale }) {
           </ol>
         </section>
 
-        <section className={styles.block}>
+        <section id="projects" className={styles.block}>
           <h2 className={styles.heading}>{sections.projects}</h2>
           <ul className={styles.entries}>
             {projects.map((project) => (

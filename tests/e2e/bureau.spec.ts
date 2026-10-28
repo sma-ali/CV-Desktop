@@ -196,7 +196,10 @@ test.describe('en mouvement réduit', () => {
     await expect(hud(page)).toHaveAttribute('data-reduced', 'true');
     await expect(hud(page)).toHaveAttribute('data-phase', 'settled');
     await expect(page.getByRole('button', { name: 'Rejouer' })).toHaveCount(0);
-    await page.waitForTimeout(1_500);
+    // L'horloge part de REDUCED_START (11 s) : sans le mouvement réduit, la
+    // visite démarrerait 1.6 s plus tard (AUTO_START). On laisse passer ce
+    // moment, avec de la marge pour SwiftShader.
+    await page.waitForTimeout(3_000);
     await expect(hud(page)).toHaveAttribute('data-auto', 'false');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
   });

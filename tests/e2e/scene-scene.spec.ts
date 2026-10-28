@@ -23,6 +23,45 @@ function collectErrors(page: Page): string[] {
 /** Les étapes de l'arrivée, dans l'ordre. */
 const PHASES = ['dark', 'lamp', 'screen', 'window', 'settled'];
 
+interface GlCounts {
+  textures: number;
+  buffers: number;
+  framebuffers: number;
+}
+
+/**
+ * Compte les textures, tampons et framebuffers WebGL vivants (créés moins
+ * supprimés), côté test seulement : la page n'expose rien.
+ */
+async function countGlObjects(page: Page) {
+  await page.addInitScript(() => {
+    const counts = { textures: 0, buffers: 0, framebuffers: 0 };
+    Object.assign(window, { __glCounts: counts });
+    const pairs = [
+      ['createTexture', 'deleteTexture', 'textures'],
+      ['createBuffer', 'deleteBuffer', 'buffers'],
+      ['createFramebuffer', 'deleteFramebuffer', 'framebuffers'],
+    ] as const;
+    for (const proto of [WebGLRenderingContext.prototype, WebGL2RenderingContext.prototype]) {
+      const methods = proto as unknown as Record<string, (...args: unknown[]) => unknown>;
+      for (const [create, remove, key] of pairs) {
+        const originalCreate = methods[create]!;
+        const originalRemove = methods[remove]!;
+        methods[create] = function (this: unknown, ...args: unknown[]) {
+          counts[key] += 1;
+          return originalCreate.apply(this, args);
+        };
+        methods[remove] = function (this: unknown, ...args: unknown[]) {
+          if (args[0]) counts[key] -= 1;
+          return originalRemove.apply(this, args);
+        };
+      }
+    }
+  });
+  return () =>
+    page.evaluate(() => ({ ...(window as unknown as { __glCounts: GlCounts }).__glCounts }));
+}
+
 test.describe('l’arrivée', () => {
   test('part du noir et se pose après SETTLE', async ({ page }) => {
     test.setTimeout(90_000);
@@ -39,9 +78,12 @@ test.describe('l’arrivée', () => {
   test('Rejouer relance l’arrivée autant de fois qu’on veut', async ({ page }) => {
     test.setTimeout(90_000);
     const errors = collectErrors(page);
+    const glObjects = await countGlObjects(page);
     await page.goto('/fr?t=9000&heure=19&auto=0');
     await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-phase', 'settled', { timeout: 15_000 });
+    await page.waitForTimeout(1_000);
+    const before = await glObjects();
     const replay = page.getByRole('button', { name: 'Rejouer' });
     for (let i = 0; i < 3; i++) {
       await replay.click();
@@ -50,6 +92,12 @@ test.describe('l’arrivée', () => {
       await page.waitForTimeout(400);
     }
     await expect(hud(page)).toHaveAttribute('data-phase', 'settled', { timeout: 25_000 });
+    await page.waitForTimeout(1_000);
+    // Rejouer ne recrée rien : pas une texture ni un tampon de plus.
+    const after = await glObjects();
+    expect(after.textures).toBeLessThanOrEqual(before.textures);
+    expect(after.buffers).toBeLessThanOrEqual(before.buffers);
+    expect(after.framebuffers).toBeLessThanOrEqual(before.framebuffers);
     expect(errors).toEqual([]);
   });
 });

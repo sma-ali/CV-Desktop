@@ -99,9 +99,11 @@ export function Chest({ texts }: { texts: SceneTexts }) {
     const beat = settings.reducedMotion
       ? 0.25
       : heartbeat(frame.t, pulseFor(scene.lifeSigns, pulse.current));
-    // Tenu, il tremble par à-coups (mode shake) : un bruit au début de chacun.
+    // Tenu et retourné, il tremble par à-coups (mode shake, selon f) : un
+    // bruit au début de chacun. Remis à l'endroit, il est calme et muet.
     const p = held.current?.p ?? 0;
-    if (scene.presented === 'chest' && p >= 1 && !settings.reducedMotion) {
+    const f = held.current?.f ?? 0;
+    if (scene.presented === 'chest' && p >= 1 && f > 0.5 && !settings.reducedMotion) {
       if (rattleStarts(lastT.current, frame.t)) scene.sound.play('rattle', 0.6);
     }
     lastT.current = frame.t;

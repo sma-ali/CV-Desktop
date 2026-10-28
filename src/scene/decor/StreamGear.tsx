@@ -29,6 +29,7 @@ import {
   micPoint,
   PANEL,
   addScaled,
+  cross,
   damped,
   deckButtonLevel,
   deckLayout,
@@ -164,11 +165,7 @@ function doubleRod(from: Vec3, to: Vec3, gap: number): Part[] {
   const dir = normalize([to[0] - from[0], to[1] - from[1], to[2] - from[2]]);
   // Écart perpendiculaire au bras, dans le plan vertical.
   const side = normalize([-dir[2], 0, dir[0]]);
-  const up = normalize([
-    side[1] * dir[2] - side[2] * dir[1],
-    side[2] * dir[0] - side[0] * dir[2],
-    side[0] * dir[1] - side[1] * dir[0],
-  ]);
+  const up = normalize(cross(side, dir));
   return [-1, 1].map((s) =>
     rodPart(addScaled(from, up, s * gap), addScaled(to, up, s * gap), 0.03, ARM, 'satin', 6),
   );

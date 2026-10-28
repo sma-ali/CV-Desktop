@@ -1,6 +1,9 @@
 # Contexte privé
 CLAUDE.local.md
 
+# Worktrees des agents (git worktree add .claude/worktrees/<nom>)
+.claude/worktrees/
+
 # Dépendances et builds
 node_modules/
 .next/

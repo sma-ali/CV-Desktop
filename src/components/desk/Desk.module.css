@@ -161,7 +161,15 @@
   width: min(900px, 120%);
   height: calc(100% + 120px);
   transform: translate(-50%, -50%);
-  background: radial-gradient(closest-side, rgb(8 5 3 / 0.6), rgb(8 5 3 / 0));
+  /* Le code de l'écran, devenu lisible, passe derrière le carton pendant la
+     frappe : le voile doit l'éteindre jusque sous « Bienvenue chez ». */
+  background: radial-gradient(
+    closest-side,
+    rgb(8 5 3 / 0.82),
+    rgb(8 5 3 / 0.66) 60%,
+    rgb(8 5 3 / 0.3) 85%,
+    rgb(8 5 3 / 0)
+  );
 }
 
 .cartonKicker {
@@ -173,6 +181,9 @@
   letter-spacing: 0.5em;
   text-transform: uppercase;
   color: var(--ambre);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.95),
+    0 0 8px rgb(0 0 0 / 0.8);
 }
 
 .cartonName {
@@ -219,9 +230,32 @@
   pointer-events: none;
 }
 
+/* L'identité se pose sur la fenêtre, très claire le matin et l'après-midi :
+   un voile sombre local et une ombre serrée gardent le titre et le statut
+   lisibles (contraste d'au moins 4.5 aux quatre heures). */
 .brand {
+  position: relative;
+  isolation: isolate;
   line-height: 1;
-  text-shadow: 0 2px 18px rgb(0 0 0 / 0.7);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.9),
+    0 0 6px rgb(0 0 0 / 0.55),
+    0 2px 18px rgb(0 0 0 / 0.7);
+}
+
+.brand::before {
+  content: '';
+  position: absolute;
+  inset: -40px -70px -34px -60px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgb(14 9 6 / 0.72),
+    rgb(14 9 6 / 0.55) 55%,
+    rgb(14 9 6 / 0.25) 80%,
+    rgb(14 9 6 / 0)
+  );
 }
 
 .name {
@@ -362,6 +396,7 @@
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
+  width: max-content;
   white-space: nowrap;
   text-shadow: 0 1px 10px rgb(0 0 0 / 0.8);
   pointer-events: none;
@@ -571,6 +606,61 @@
 }
 
 /* ------------------------------------------------------------------
+   Tablette et petits écrans
+   ------------------------------------------------------------------ */
+
+/* Sous 1300 px, l'indication centrée en haut touchait les commandes : elle
+   se pose juste au-dessus du bas de page (elle est dans le footer), quelle
+   que soit sa hauteur. */
+@media (max-width: 1300px) {
+  .hint {
+    position: absolute;
+    top: auto;
+    bottom: calc(100% + 10px);
+  }
+}
+
+/* Sous 1000 px, puces et ambiances ne tiennent plus sur une ligne : l'heure
+   et les ambiances passent au-dessus, les cinq puces se partagent la largeur. */
+@media (max-width: 1000px) {
+  .bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .corner {
+    display: flex;
+    order: -1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .moods {
+    flex: none;
+    margin-top: 0;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 8px 9px 8px 10px;
+  }
+
+  .chipDetail {
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    white-space: normal;
+  }
+}
+
+/* ------------------------------------------------------------------
    Téléphone
    ------------------------------------------------------------------ */
 
@@ -659,14 +749,64 @@
   }
 
   .hint {
-    top: auto;
-    bottom: calc(max(14px, env(safe-area-inset-bottom)) + 150px);
     font-size: 9px;
     letter-spacing: 0.14em;
   }
 
   .carton {
     top: 14vh;
+  }
+}
+
+/* Téléphone à l'horizontale : peu de hauteur. Les puces perdent leur détail
+   (il reste dans leur nom accessible) et l'identité se resserre, pour
+   laisser le bureau visible entre le haut et le bas de page. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .name {
+    font-size: 30px;
+  }
+
+  .role {
+    margin-top: 4px;
+  }
+
+  .status {
+    margin-top: 6px;
+  }
+
+  .chip {
+    padding: 6px 9px 6px 10px;
+  }
+
+  .chipTitle {
+    font-size: 15px;
+  }
+
+  .chipDetail {
+    display: none;
+  }
+
+  /* Sans leur détail, les puces laissent la place à l'heure sur la même ligne. */
+  .bottom {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .steps {
+    display: flex;
+    gap: 6px;
+  }
+
+  .corner {
+    display: block;
+    flex: 0 1 auto;
+    order: 0;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .moods {
+    margin-top: 6px;
   }
 }
 

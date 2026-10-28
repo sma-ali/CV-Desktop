@@ -1,7 +1,7 @@
 import type { SceneContent } from './schema';
 
-// Squelette : la partie « objets » le complète. Les repères viennent du CV
-// (début de chaque expérience, année des projets).
+// Textes peints dans la scène, en français. Les faits (facts) et le code de
+// l'écran viennent du CV : scene.test.ts les compare au contenu.
 export const sceneFr = {
   labels: {
     book: { mark: '2020', text: 'DEFI-METIERS' },
@@ -12,12 +12,96 @@ export const sceneFr = {
   },
   screen: {
     fileName: 'parcours.ts',
+    otherFile: 'poste.ts',
+    words: {
+      list: 'parcours',
+      entry: 'poste',
+      object: 'ali',
+      title: 'titre',
+      stack: 'pile',
+      location: 'zone',
+      available: 'disponible',
+      stackItems: ['TypeScript', 'React', 'Node.js'],
+    },
+    // Généré par buildScreenCode(fr, words) : ne pas retoucher à la main.
     code: [
-      '// parcours.ts',
+      'export const parcours = [',
+      "  poste('2020-09', '2023-08', 'DEFI-METIERS',",
+      "    'Développeur Web'),",
+      "  poste('2024-01', '2026-06', 'DARES',",
+      "    'Ingénieur applicatif & gestion de données'),",
+      '];',
       'export const ali = {',
-      "  metier: 'Développeur Full-Stack',",
+      "  titre: 'Développeur Full-Stack',",
+      "  pile: ['TypeScript', 'React', 'Node.js'],",
+      "  zone: 'Île-de-France ou remote',",
       '  disponible: true,',
       '} as const;',
     ],
+    // « prochaine étape » serait attrapé par le test du coffret (cha[iî]ne
+    // sans limite de mot) : voir les besoins de l'assemblage.
+    closing: '// étape suivante\u00a0: votre équipe\u00a0?',
+    status: { language: 'TypeScript', encoding: 'UTF-8', line: 'Ln', errors: '0 erreur' },
   },
+  facts: {
+    name: 'Ali Smaani',
+    headline: 'Développeur Full-Stack',
+    location: 'Île-de-France ou remote',
+    availability: 'Disponible',
+    email: 'smanali.pro@gmail.com',
+    linkedin: 'linkedin.com/in/smaali',
+    defiMetiers: {
+      organization: 'DEFI-METIERS',
+      detail: 'CARIF-OREF Île-de-France',
+      role: 'Développeur Web',
+      year: '2020',
+      period: 'Sept. 2020 - Août 2023',
+      years: '2020 - 2023',
+      stack: 'Drupal / PHP',
+      kind: 'Alternance',
+      migration: { from: 'Dokelio', to: 'Ofeli' },
+    },
+    dares: {
+      organization: 'DARES',
+      role: 'Ingénieur applicatif & gestion de données',
+      period: 'Janv. 2024 - Juin 2026',
+      support: 'Support N1/N2',
+      tickets: '~100 tickets/mois',
+      users: '~300 utilisateurs',
+      tools: 'R / RStudio',
+    },
+    projects: {
+      year: '2026',
+      items: [
+        { name: 'Netherbrain', tagline: 'plateforme LLM auto-hébergée' },
+        { name: 'Homelab', tagline: 'infrastructure auto-hébergée' },
+      ],
+      stickers: ['Netherbrain', 'TypeScript', 'Homelab', 'Next.js', 'Proxmox'],
+      chips: ['Next.js', 'FastAPI', 'pgvector', 'Proxmox', 'WireGuard'],
+      tests: '236 tests automatisés',
+    },
+  },
+  book: {
+    cover: {
+      kicker: 'LE GRAND LIVRE DU',
+      title: 'PHP',
+      subtitle: ['Plateformes web', 'en Drupal / PHP'],
+      edition: 'ÉDITION 2020 - 2023',
+    },
+    chapter: 'CHAPITRE 1',
+    exercise: 'Exercice 1.1',
+    code: [
+      '<?php',
+      '// catalogue des formations',
+      "$avant = 'Dokelio';",
+      "$apres = 'Ofeli';",
+      'migrer($avant, $apres);',
+      '?>',
+    ],
+    lines: ['Requêtes SQL refondues', 'pour une forte volumétrie.'],
+  },
+  postit: { resolved: 'Ticket résolu', frame: ['Résolu', 'R / RStudio'] },
+  card: { contact: 'Contact' },
+  laptop: { path: '~/projets' },
+  chest: { kicker: 'PROJETS PERSO', title: 'Scellé' },
 } satisfies SceneContent;

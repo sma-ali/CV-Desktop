@@ -1,0 +1,5 @@
+# Le prototype validé reste tel quel.
+prototype/
+
+package-lock.json
+next-env.d.ts

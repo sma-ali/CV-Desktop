@@ -1,4 +1,5 @@
 import type { Content } from './schema';
+import { sceneEn } from './scene/en';
 import { contact } from './shared';
 
 // Source : le CV d'Ali en anglais (septembre 2026). Même structure que fr.ts.
@@ -9,6 +10,7 @@ export const en = {
     summary:
       'Full-stack developer (React, Node.js, TypeScript) with hands-on experience in application support and data management for high-criticality environments. Curious by nature, comfortable bridging code, infrastructure and security, from design to deployment.',
     location: 'Paris, France · Open to remote',
+    availability: 'Available',
   },
   contact,
   sections: {
@@ -174,5 +176,37 @@ export const en = {
     websiteLabel: 'Website',
     repositoryLabel: 'Repository',
     backToTop: 'Back to top',
+    backToDesk: 'Back to the desk',
   },
+  desk: {
+    canvasLabel: "Ali's desk seen from above. Each object is a step of the CV.",
+    controlsLabel: 'Controls',
+    expressLink: 'Express version',
+    replay: 'Replay',
+    loading: 'Setting up the desk',
+    arrivalKicker: 'Welcome to the desk of',
+    glance: 'The CV at a glance',
+    perso: { title: 'Side projects', detail: 'Sealed, but alive' },
+    contactDetail: 'Business card',
+    clock: { visitorTime: 'It is {time} where you are.', pinned: 'Light of your choice.' },
+    moodsLabel: 'Change the light',
+    moods: {
+      morning: { name: 'Morning', light: 'Morning light.' },
+      afternoon: { name: 'Afternoon', light: 'Afternoon light.' },
+      evening: { name: 'Evening', light: 'Evening light.' },
+      night: { name: 'Night', light: 'Night. The lamp keeps watch.' },
+    },
+    hint: {
+      pointer: 'Click an object to take a closer look.',
+      touch: 'Tap an object to take a closer look.',
+      auto: 'Guided tour. Tap an object to take over.',
+    },
+    fallback: {
+      noScript: 'The 3D desk needs JavaScript. Here is the CV in its express version.',
+      noWebgl: 'Your browser cannot display the 3D desk. Here is the CV in its express version.',
+      crashed: 'The 3D desk could not start. Here is the CV in its express version.',
+      expressLink: 'Open the express version',
+    },
+  },
+  scene: sceneEn,
 } satisfies Content;

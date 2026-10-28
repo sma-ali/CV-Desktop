@@ -57,7 +57,10 @@ describe.each(locales)('contenu %s', (locale) => {
   });
 
   it("n'a aucun texte vide", () => {
-    const empty = textLeaves(content).filter((leaf) => leaf.value.trim() === '');
+    // Seules les lignes du code de l'écran peuvent être blanches.
+    const empty = textLeaves(content).filter(
+      (leaf) => leaf.value.trim() === '' && !/^scene\.screen\.code\[\d+\]$/.test(leaf.path),
+    );
     expect(empty.map((leaf) => leaf.path)).toEqual([]);
   });
 
@@ -73,6 +76,30 @@ describe.each(locales)('contenu %s', (locale) => {
       (leaf) => phone.test(leaf.value) || age.test(leaf.value),
     );
     expect(exposed.map((leaf) => leaf.path)).toEqual([]);
+  });
+
+  // Le coffret scellé ne dit jamais ce qu'il contient : ni le sujet, ni une
+  // plateforme. Vaut pour tout ce que la scène et le bureau affichent.
+  it('ne trahit pas le contenu du coffret scellé', () => {
+    const forbidden =
+      /automatisation|automation|\busines?\b|factory|vid[ée]os?|tiktok|youtube|instagram|twitch|cha[iî]ne|channel/i;
+    const leaked = textLeaves(content).filter(
+      (leaf) => /^(desk|scene)\./.test(leaf.path) && forbidden.test(leaf.value),
+    );
+    expect(leaked.map((leaf) => leaf.path)).toEqual([]);
+  });
+
+  it('annonce la disponibilité', () => {
+    expect(content.profile.availability).toBe(locale === 'fr' ? 'Disponible' : 'Available');
+  });
+
+  it('date les étiquettes de la scène comme le CV', () => {
+    const start = (id: string) =>
+      content.experiences.find((experience) => experience.id === id)?.period.start.slice(0, 4);
+    const { labels } = content.scene;
+    expect(labels.book.mark).toBe(start('defi-metiers'));
+    expect(labels.postit.mark).toBe(start('dares'));
+    expect(labels.laptop.mark).toBe(String(content.projects[0]?.year));
   });
 
   it('est servi tel quel par getContent', () => {
@@ -119,6 +146,22 @@ describe('le schéma', () => {
     const broken = {
       ...fr,
       experiences: [{ ...first, period: { start: '2026-06', end: '2024-01' } }, ...rest],
+    };
+    expect(contentSchema.safeParse(broken).success).toBe(false);
+  });
+
+  it("refuse une phrase de l'heure sans {time}", () => {
+    const broken = {
+      ...fr,
+      desk: { ...fr.desk, clock: { ...fr.desk.clock, visitorTime: 'Chez vous.' } },
+    };
+    expect(contentSchema.safeParse(broken).success).toBe(false);
+  });
+
+  it("refuse une ligne de code trop longue pour l'écran", () => {
+    const broken = {
+      ...fr,
+      scene: { ...fr.scene, screen: { ...fr.scene.screen, code: ['x'.repeat(61)] } },
     };
     expect(contentSchema.safeParse(broken).success).toBe(false);
   });

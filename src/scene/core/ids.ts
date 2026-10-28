@@ -29,10 +29,12 @@ export const ITEM_STEP = {
   postit: 'dares',
   headset: 'dares',
   laptop: 'projects',
-  monitor: 'projects',
+  // L'écran montre tout le parcours (les deux postes, la pile) : aucune puce
+  // ne lui correspond, aucune ne s'allume pendant son gros plan.
+  monitor: null,
   card: 'contact',
   chest: 'perso',
-} as const satisfies Record<ItemId, StepId>;
+} as const satisfies Record<ItemId, StepId | null>;
 
 // L'objet présenté quand on choisit une étape (puce du bas de page, mode auto).
 export const STEP_ITEM = {

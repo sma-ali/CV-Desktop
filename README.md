@@ -15,12 +15,12 @@ npm run dev
 
 Le site répond sur http://localhost:3000.
 
-| Adresse       | Ce qui s'affiche                                                                  |
-| ------------- | --------------------------------------------------------------------------------- |
-| `/`           | redirige vers `/fr` ou `/en` selon la langue du navigateur (`Accept-Language`)    |
-| `/fr`, `/en`  | redirigent vers la version express, en attendant le bureau en 3D (étape 3)        |
-| `/fr/express` | la version express : le CV en une page, en français, imprimable sur deux pages A4 |
-| `/en/express` | la même en anglais                                                                |
+| Adresse       | Ce qui s'affiche                                                                               |
+| ------------- | ---------------------------------------------------------------------------------------------- |
+| `/`           | redirige vers `/fr/express` ou `/en/express` selon la langue du navigateur (`Accept-Language`) |
+| `/fr`, `/en`  | redirigent vers la version express, en attendant le bureau en 3D (étape 3)                     |
+| `/fr/express` | la version express : le CV en une page, en français, imprimable sur une page A4                |
+| `/en/express` | la même en anglais                                                                             |
 
 Un navigateur sans langue reconnue, ou sans en-tête `Accept-Language`, arrive en français. Le site sert aussi `/sitemap.xml`, `/robots.txt` et une image de partage par langue (`/fr/express/opengraph-image`).
 
@@ -61,8 +61,8 @@ npm run test:e2e
 - `src/app/` : `sitemap.ts`, `robots.ts` et l'icône du site.
 - `src/components/express/` : le CV en HTML (composant serveur réutilisable, il servira aussi de repli sans WebGL) et le bouton « Imprimer ».
 - `src/lib/` : fonctions pures testées par Vitest (choix de la langue, dates, données structurées JSON-LD, métadonnées, adresse du site).
-- `src/proxy.ts` : choix de la langue à la racine.
-- `next.config.ts` : en-têtes de sécurité (CSP, HSTS, anti-iframe) et redirection provisoire de `/fr` et `/en`.
+- `src/proxy.ts` : choix de la langue à la racine et redirection provisoire de `/fr` et `/en` vers la version express, en un seul saut.
+- `next.config.ts` : en-têtes de sécurité (CSP, HSTS, anti-iframe).
 - `tests/unit/` : vérifications sur tout le dépôt (aucun tiret cadratin), sitemap et robots.
 - `tests/e2e/` : parcours Playwright sur le build de production.
 - `prototype/` : le prototype validé du bureau en Three.js, référence visuelle du site.

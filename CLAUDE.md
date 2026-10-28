@@ -9,6 +9,7 @@ Dépôt GitHub public (sma-ali/CV-Desktop, à créer au premier push). Ce fichie
 `prototype/bureau-plateau.html` est le prototype validé (Three.js r128 en un seul fichier). Il fixe l'ambiance, la palette, les objets, l'arrivée et le comportement des gestes. Le vrai site le reproduit et l'améliore, il ne le recopie pas tel quel. Ouvrir le fichier dans un navigateur suffit. Paramètres de test du prototype : `?t=11000` (saute à 11 s), `&fige` (gèle l'horloge, et donc aussi les gestes), `?auto=0`, `?heure=14`, `?express`.
 
 Défauts connus du prototype, à corriger dans le vrai site :
+
 - en vue large, le code de l'écran est illisible (8 px) ;
 - sur téléphone, le bureau tient dans une bande et ses bords sont coupés ;
 - le micro sur son bras se lit mal vu de dessus, le coffret est petit et sombre ;

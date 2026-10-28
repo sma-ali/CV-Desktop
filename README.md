@@ -13,7 +13,16 @@ npm install
 npm run dev
 ```
 
-Le site répond sur http://localhost:3000 (la racine redirige vers `/fr`, la version anglaise est sur `/en`).
+Le site répond sur http://localhost:3000.
+
+| Adresse       | Ce qui s'affiche                                                                  |
+| ------------- | --------------------------------------------------------------------------------- |
+| `/`           | redirige vers `/fr` ou `/en` selon la langue du navigateur (`Accept-Language`)    |
+| `/fr`, `/en`  | redirigent vers la version express, en attendant le bureau en 3D (étape 3)        |
+| `/fr/express` | la version express : le CV en une page, en français, imprimable sur deux pages A4 |
+| `/en/express` | la même en anglais                                                                |
+
+Un navigateur sans langue reconnue, ou sans en-tête `Accept-Language`, arrive en français. Le site sert aussi `/sitemap.xml`, `/robots.txt` et une image de partage par langue (`/fr/express/opengraph-image`).
 
 ## Vérifier
 
@@ -23,7 +32,7 @@ npm run check
 
 Lance ESLint, Prettier, la vérification des types et les tests unitaires, comme la CI.
 
-Pour les tests de bout en bout, il faut le navigateur de Playwright, à installer une seule fois. `npm run test:e2e` construit ensuite le site et lance les parcours sur le build de production :
+Pour les tests de bout en bout, il faut le navigateur de Playwright, à installer une seule fois. `npm run test:e2e` construit ensuite le site et lance les parcours sur le build de production, sur ordinateur et sur téléphone, avec un audit d'accessibilité axe (WCAG 2.2 AA) en thème clair et sombre :
 
 ```bash
 npx playwright install chromium
@@ -47,13 +56,17 @@ npm run test:e2e
 
 ## Organisation
 
-- `src/content/` : le contenu du CV en français et en anglais, typé et validé par zod. C'est la seule source des textes : la scène 3D et la version express la lisent toutes les deux. Un contenu invalide fait échouer le build.
-- `src/app/[locale]/` : les pages, une par langue (`/fr`, `/en`).
-- `next.config.ts` : en-têtes de sécurité (CSP, HSTS, anti-iframe) et redirection de la racine.
-- `tests/unit/` : vérifications sur tout le dépôt (aucun tiret cadratin).
+- `src/content/` : le contenu du CV en français et en anglais, typé et validé par zod, avec les textes de l'interface. C'est la seule source des textes : la scène 3D et la version express la lisent toutes les deux. Un contenu invalide fait échouer le build.
+- `src/app/[locale]/express/` : la page de la version express, ses métadonnées et son image de partage, générées au build pour chaque langue.
+- `src/app/` : `sitemap.ts`, `robots.ts` et l'icône du site.
+- `src/components/express/` : le CV en HTML (composant serveur réutilisable, il servira aussi de repli sans WebGL) et le bouton « Imprimer ».
+- `src/lib/` : fonctions pures testées par Vitest (choix de la langue, dates, données structurées JSON-LD, métadonnées, adresse du site).
+- `src/proxy.ts` : choix de la langue à la racine.
+- `next.config.ts` : en-têtes de sécurité (CSP, HSTS, anti-iframe) et redirection provisoire de `/fr` et `/en`.
+- `tests/unit/` : vérifications sur tout le dépôt (aucun tiret cadratin), sitemap et robots.
 - `tests/e2e/` : parcours Playwright sur le build de production.
 - `prototype/` : le prototype validé du bureau en Three.js, référence visuelle du site.
 
 ## Pile
 
-Next.js (App Router), TypeScript strict, zod, Vitest, Playwright, ESLint, Prettier, GitHub Actions. La 3D (React Three Fiber) arrive à l'étape 3.
+Next.js 16 (App Router, `proxy.ts`), React 19, TypeScript strict, zod, CSS Modules, polices Fraunces et IBM Plex Mono auto-hébergées (`next/font`, et `@fontsource` pour l'image de partage), Vitest, Playwright avec axe (`@axe-core/playwright`), ESLint, Prettier, GitHub Actions. La 3D (React Three Fiber) arrive à l'étape 3.

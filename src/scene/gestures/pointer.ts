@@ -1,0 +1,31 @@
+import type { ThreeEvent } from '@react-three/fiber';
+import type { Object3D } from 'three';
+import type { BodyId } from '../core/ids';
+import type { SceneStore } from '../core/store';
+import { gestureHub } from './hub';
+
+/** Avant cet instant de l'arrivée, ni clic ni glisser (comme le prototype). */
+export const GESTURES_AFTER = 1.2;
+
+/** L'objet qui porte le gestionnaire est-il le plus proche sous le pointeur ? */
+export function isNearest(event: ThreeEvent<PointerEvent>): boolean {
+  const first = event.intersections[0]?.object;
+  for (let node: Object3D | null = first ?? null; node; node = node.parent) {
+    if (node === event.eventObject) return true;
+  }
+  return false;
+}
+
+/**
+ * onPointerDown d'un corps qui glisse : l'appui le désigne au glisser, s'il
+ * est le premier objet sous le pointeur (pas une lampe ou un objet tenu
+ * devant lui). Le glisser lui-même ne commence qu'au-delà du seuil (Gestures).
+ */
+export function claimBody(store: SceneStore, event: ThreeEvent<PointerEvent>, body: BodyId): void {
+  event.stopPropagation();
+  const scene = store.getState();
+  if (!scene.settings.reducedMotion && scene.frame.t < GESTURES_AFTER) return;
+  if (!isNearest(event)) return;
+  const { pointerId, pointerType, clientX, clientY } = event.nativeEvent;
+  gestureHub(store).claim(pointerId, pointerType, clientX, clientY, body);
+}

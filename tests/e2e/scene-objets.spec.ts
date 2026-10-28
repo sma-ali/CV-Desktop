@@ -82,8 +82,20 @@ test.describe('les objets du CV', () => {
     await expect(canvas).toHaveCSS('cursor', 'pointer');
     await page.mouse.click(point.x, point.y);
     await expect(hud(page)).toHaveAttribute('data-presented', 'book');
-    // Un clic sur l'objet tenu le repose.
-    await page.mouse.click(point.x, point.y + 1);
+    await expect(hud(page)).toHaveAttribute('data-flipped', 'true');
+    // Étape 4 : un clic sur l'objet tenu (à gauche du centre, HELD.landscape)
+    // le retourne au lieu de le reposer. Quelques images d'abord : le
+    // pointeur se teste contre le livre tel qu'il a été dessiné.
+    await page.evaluate(async () => {
+      for (let i = 0; i < 3; i++) await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
+    const viewport = page.viewportSize();
+    if (!viewport) throw new Error('pas de fenêtre');
+    await page.mouse.click(viewport.width * 0.35, viewport.height * 0.47);
+    await expect(hud(page)).toHaveAttribute('data-flipped', 'false');
+    await expect(hud(page)).toHaveAttribute('data-presented', 'book');
+    // Un clic hors des objets (le sol sous le bureau) le repose.
+    await page.mouse.click(Math.round(viewport.width * 0.66), viewport.height - 20);
     await expect(hud(page)).toHaveAttribute('data-presented', '');
   });
 

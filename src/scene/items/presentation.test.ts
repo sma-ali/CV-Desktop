@@ -4,8 +4,10 @@ import { HELD_MAX_DISTANCE, ITEM_POSES, MONITOR, POSTIT_ON_MONITOR } from '../co
 import {
   createPresentState,
   glowLevel,
+  HELD_FOLLOW,
   heldPose,
   postitRestPose,
+  presentQuaternion,
   RATES,
   stepPresentation,
   stepToward,
@@ -99,6 +101,82 @@ describe('heldPose', () => {
     );
     expect(scale).toBeLessThan(1);
     expect(position.distanceTo(camera.position)).toBeCloseTo(HELD_MAX_DISTANCE);
+  });
+
+  it('suit un peu le pointeur : décalé vers lui, et penché vers lui', () => {
+    const still = new Vector3();
+    const moved = new Vector3();
+    const q0 = new Quaternion();
+    const q1 = new Quaternion();
+    heldPose(camera, ITEM_POSES.card, false, 1, 0, input, still, q0);
+    heldPose(camera, ITEM_POSES.card, false, 1, 0, { t: 0, pointerX: 1, pointerY: 1 }, moved, q1);
+    const a = still.clone().project(camera);
+    const b = moved.clone().project(camera);
+    // Vers la droite et vers le haut de l'écran, mais seulement un peu.
+    expect(b.x).toBeGreaterThan(a.x);
+    expect(b.y).toBeGreaterThan(a.y);
+    expect(b.x - a.x).toBeLessThan(0.15);
+    expect(moved.distanceTo(still)).toBeCloseTo(
+      Math.SQRT2 * HELD_FOLLOW * still.distanceTo(camera.position),
+      1,
+    );
+    expect(q0.angleTo(q1)).toBeGreaterThan(0.1);
+  });
+});
+
+describe('le retournement de l’objet tenu', () => {
+  it('suit flipped : défait le geste, puis le refait', () => {
+    const state = createPresentState();
+    for (let i = 0; i < 40; i++) stepPresentation(state, true, false, 0.1, false, true);
+    expect(state.f).toBe(1);
+    // Remis à l'endroit (un clic sur l'objet tenu) : le geste se défait à la vitesse du prototype.
+    stepPresentation(state, true, false, 0.1, false, false);
+    expect(state.f).toBeCloseTo(1 - 0.1 * RATES.flip);
+    for (let i = 0; i < 20; i++) stepPresentation(state, true, false, 0.1, false, false);
+    expect(state).toMatchObject({ p: 1, f: 0 });
+    // Retourné de nouveau.
+    for (let i = 0; i < 20; i++) stepPresentation(state, true, false, 0.1, false, true);
+    expect(state.f).toBe(1);
+  });
+
+  it('est immédiat en mouvement réduit', () => {
+    const state = { p: 1, f: 1, hover: 0 };
+    stepPresentation(state, true, false, 0.016, true, false);
+    expect(state.f).toBe(0);
+    stepPresentation(state, true, false, 0.016, true, true);
+    expect(state.f).toBe(1);
+  });
+
+  it.each(['flip', 'open', 'laptop', 'turn', 'shake', 'spin'] as const)(
+    'change l’orientation de l’objet en mode %s',
+    (mode) => {
+      const front = presentQuaternion(
+        mode,
+        0,
+        0,
+        { t: 1, pointerX: 0, pointerY: 0 },
+        new Quaternion(),
+      );
+      const back = presentQuaternion(
+        mode,
+        1,
+        0,
+        { t: 1, pointerX: 0, pointerY: 0 },
+        new Quaternion(),
+      );
+      expect(front.angleTo(back)).toBeGreaterThan(0.01);
+    },
+  );
+
+  it('ne secoue le coffret que retourné', () => {
+    const at = (t: number, f: number) =>
+      presentQuaternion('shake', f, 0, { t, pointerX: 0, pointerY: 0 }, new Quaternion());
+    // Remis à l'endroit, il ne bouge que par son lent balancement.
+    expect(at(0.5, 0).angleTo(at(0.51, 0))).toBeLessThan(0.01);
+    let shaken = 0;
+    for (let t = 0.5; t < 1.5; t += 0.01)
+      shaken = Math.max(shaken, at(t, 1).angleTo(at(t + 0.01, 1)));
+    expect(shaken).toBeGreaterThan(0.01);
   });
 });
 

@@ -15,6 +15,8 @@ import { ITEM_POSES } from '../core/constants';
 import { isBodyId, type ItemId } from '../core/ids';
 import type { FrameState } from '../core/store';
 import { useSceneStoreApi } from '../core/store-context';
+import { gestureHub } from '../gestures/hub';
+import { claimBody, GESTURES_AFTER } from '../gestures/pointer';
 import {
   createPresentState,
   glowLevel,
@@ -28,14 +30,16 @@ import {
 } from './presentation';
 
 // Le comportement commun des objets du CV : survol (léger relèvement, lueur,
-// curseur main), clic (présenter ou reposer), présentation devant la caméra
-// et pose de l'étiquette (TagLayer). Chaque objet appelle ce hook et pose `ref` et `handlers` sur
-// son groupe racine.
+// curseur main), clic (présenter, puis retourner l'objet tenu), présentation
+// devant la caméra et pose de l'étiquette (TagLayer). Chaque objet appelle ce
+// hook et pose `ref` et `handlers` sur son groupe racine.
 //
-// Étape 4 (partie « gestes ») : un objet glissable (BODY_IDS) repose à sa
-// place du plateau, store.desk[id], que les gestes déplacent ; son
-// soulèvement, son inclinaison et son écrasement en viennent aussi. Le geste
-// de présentation suit store.flipped.
+// Étape 4 : un objet glissable (BODY_IDS) repose à sa place du plateau,
+// store.desk[id], que les gestes déplacent ; son soulèvement, son
+// inclinaison et son écrasement en viennent aussi. Un appui le désigne au
+// glisser (claimBody) ; un glisser n'arrive jamais jusqu'au clic (Gestures
+// avale le clic qui le termine). Le geste de présentation suit
+// store.flipped ; tenu, l'objet suit un peu le pointeur (lissé par les gestes).
 
 /** Avancement de la présentation de chaque objet, lu par CvItems pour frame.presentLevel. */
 export class PresentProgress {
@@ -60,7 +64,7 @@ export class PresentProgress {
 export const ProgressContext = createContext<PresentProgress | null>(null);
 
 /** Avant cet instant de l'arrivée, un clic sur un objet ne fait rien (comme le prototype). */
-const CLICK_AFTER = 1.2;
+const CLICK_AFTER = GESTURES_AFTER;
 
 /** Un matériau qui luit au survol et pendant la présentation. */
 type Glowing = Material & { emissiveIntensity: number };
@@ -120,18 +124,22 @@ export function usePresentation({
     const scene = store.getState();
     const { frame, settings } = scene;
     const reduced = settings.reducedMotion;
+    const hub = gestureHub(store);
     // Horloge gelée (?fige, captures et tests) : la présentation se pose
     // aussitôt dans son état final, comme en mouvement réduit, au lieu de
     // dépendre du nombre d'images que la machine arrive à dessiner.
     const current = stepPresentation(
       state.current,
       scene.presented === id,
-      scene.hovered === id,
+      // Pendant un glisser, rien ne se relève au survol (le corps glissé
+      // passe sous le pointeur et sous ses voisins).
+      scene.hovered === id && scene.dragging === null,
       frame.dt,
       reduced || scene.clock.frozen,
       scene.flipped,
     );
     progress?.set(id, current.p);
+    hub.progress.set(id, current.p);
 
     if (group && lift) {
       // Un objet glissable repose à sa place du plateau (store.desk), qui
@@ -154,8 +162,8 @@ export function usePresentation({
       } else {
         // Mouvement réduit : ni balancement ni suivi du pointeur.
         input.t = reduced ? 0 : frame.t;
-        input.pointerX = reduced ? 0 : three.pointer.x;
-        input.pointerY = reduced ? 0 : three.pointer.y;
+        input.pointerX = reduced ? 0 : hub.pointer.x;
+        input.pointerY = reduced ? 0 : hub.pointer.y;
         const scale = heldPose(
           three.camera as PerspectiveCamera,
           pose,
@@ -189,24 +197,36 @@ export function usePresentation({
         event.stopPropagation();
         const scene = store.getState();
         if (!scene.settings.reducedMotion && scene.frame.t < CLICK_AFTER) return;
-        if (scene.presented === id) {
+        if (scene.presented !== id) {
+          scene.present(id, 'click');
+        } else if (id === 'monitor') {
+          // L'écran ne se retourne pas : un clic quitte le gros plan.
           scene.markUser();
           scene.putBack();
         } else {
-          scene.present(id, 'click');
+          // Un clic sur l'objet tenu le retourne, un autre le remet à l'endroit.
+          scene.toggleFlip();
+        }
+      },
+      onPointerDown(event: ThreeEvent<PointerEvent>) {
+        const scene = store.getState();
+        // Seul un corps posé sur le plateau glisse (pas l'objet tenu, ni celui qui revient).
+        if (isBodyId(id) && scene.presented !== id && state.current.p < 0.05) {
+          claimBody(store, event, id);
         }
       },
       onPointerOver(event: ThreeEvent<PointerEvent>) {
         event.stopPropagation();
         // Au doigt, pas de survol : le toucher présente directement.
         if (event.pointerType === 'touch') return;
-        store.getState().setHovered(id);
-        setCursor('pointer');
+        const scene = store.getState();
+        scene.setHovered(id);
+        if (scene.dragging === null) setCursor('pointer');
       },
       onPointerOut() {
         const scene = store.getState();
         if (scene.hovered === id) scene.setHovered(null);
-        setCursor('');
+        if (scene.dragging === null) setCursor('');
       },
     };
   }, [get, id, store]);

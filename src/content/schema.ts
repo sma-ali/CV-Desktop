@@ -37,6 +37,7 @@ const contactSchema = z.strictObject({
 });
 
 const sectionsSchema = z.strictObject({
+  summary: text,
   experience: text,
   projects: text,
   education: text,
@@ -92,6 +93,21 @@ const spokenLanguageSchema = z.strictObject({
   level: text,
 });
 
+// Textes de l'interface (boutons, liens, libellés) : aucun fait du CV ici.
+const uiSchema = z.strictObject({
+  kicker: text,
+  kickerDetail: text,
+  skipToContent: text,
+  print: text,
+  languageNav: text,
+  emailLabel: text,
+  linkedinLabel: text,
+  githubLabel: text,
+  websiteLabel: text,
+  repositoryLabel: text,
+  backToTop: text,
+});
+
 export const contentSchema = z.strictObject({
   profile: profileSchema,
   contact: contactSchema,
@@ -103,9 +119,12 @@ export const contentSchema = z.strictObject({
   softSkills: texts,
   languages: z.array(spokenLanguageSchema).min(1),
   interests: texts,
+  ui: uiSchema,
 });
 
 export type Content = z.infer<typeof contentSchema>;
 export type Contact = Content['contact'];
 export type Experience = Content['experiences'][number];
 export type Project = Content['projects'][number];
+export type Education = Content['education'][number];
+export type Ui = Content['ui'];

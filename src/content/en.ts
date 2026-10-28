@@ -12,6 +12,7 @@ export const en = {
   },
   contact,
   sections: {
+    summary: 'Profile',
     experience: 'Professional experience',
     projects: 'Technical projects',
     education: 'Education',
@@ -161,4 +162,17 @@ export const en = {
     'Football / Grappling / Weight training',
     'Competitive esports (League of Legends, top 0.1%)',
   ],
+  ui: {
+    kicker: 'Express version',
+    kickerDetail: 'The CV on one page',
+    skipToContent: 'Skip to content',
+    print: 'Print',
+    languageNav: 'Language',
+    emailLabel: 'Email',
+    linkedinLabel: 'LinkedIn',
+    githubLabel: 'GitHub',
+    websiteLabel: 'Website',
+    repositoryLabel: 'Repository',
+    backToTop: 'Back to top',
+  },
 } satisfies Content;

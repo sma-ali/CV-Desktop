@@ -40,9 +40,13 @@ const nextConfig: NextConfig = {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
   async redirects() {
-    // Le français est la langue par défaut. Le choix selon la langue du
-    // navigateur viendra avec la version express.
-    return [{ source: '/', destination: '/fr', permanent: false }];
+    // Le français est la langue par défaut. En attendant le bureau en 3D,
+    // /fr et /en mènent à la version express : redirection temporaire (307),
+    // qui disparaît à l'étape 3 quand le bureau prend leur place.
+    return [
+      { source: '/', destination: '/fr', permanent: false },
+      { source: '/:locale(fr|en)', destination: '/:locale/express', permanent: false },
+    ];
   },
 };
 

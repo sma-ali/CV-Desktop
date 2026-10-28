@@ -69,8 +69,21 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
   // l'identité et les puces suivent l'arrivée.
   const brandHidden = ready && !hud.brand ? 'true' : undefined;
   const chipsHidden = ready && !hud.chips ? 'true' : undefined;
-  const showHint = ready && hud.hint && (!presented || autoOn);
-  const hint = autoOn ? texts.hint.auto : coarse ? texts.hint.touch : texts.hint.pointer;
+  // L'indication : la visite, l'objet tenu (comment le retourner), ou
+  // comment prendre et glisser. Au doigt, ses variantes tactiles.
+  const showHint = ready && hud.hint;
+  const held = presented !== null && !autoOn && !dragging;
+  const hint = autoOn
+    ? texts.hint.auto
+    : held
+      ? coarse
+        ? texts.hint.held.touch
+        : texts.hint.held.pointer
+      : coarse
+        ? texts.hint.touch
+        : texts.hint.pointer;
+  // Une phrase par ligne sur téléphone : l'indication n'y est plus coupée.
+  const hintSentences = hint.split(/(?<=[.!?])\s+/);
 
   const onStep = (event: MouseEvent<HTMLAnchorElement>, step: DeskStep) => {
     const state = store.getState();
@@ -236,13 +249,21 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
           className={styles.hint}
           data-on={showHint ? 'true' : undefined}
           data-auto={autoOn ? 'true' : undefined}
+          data-held={held ? 'true' : undefined}
         >
           <i aria-hidden="true" />
-          <span>{hint}</span>
+          <span>
+            {hintSentences.map((sentence, index) => (
+              <span key={index} className={styles.hintLine}>
+                {sentence}
+                {index < hintSentences.length - 1 ? ' ' : null}
+              </span>
+            ))}
+          </span>
         </p>
       </footer>
 
-      <Sheet texts={texts.sheets} />
+      <Sheet texts={texts.sheets} locale={texts.locale} onAnnounce={setAnnouncement} />
 
       <p className="visually-hidden" role="status">
         {announcement}

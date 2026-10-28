@@ -3,6 +3,7 @@ import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { getContent, isLocale, locales } from '@/content';
 import { SITE_ORIGIN } from '@/lib/site';
+import { pageTitle } from '@/lib/metadata';
 import './globals.css';
 
 // Polices téléchargées au build et servies par le site lui-même (CSP font-src 'self').
@@ -40,11 +41,11 @@ export const viewport: Viewport = {
 export async function generateMetadata({ params }: LayoutProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const { profile } = getContent(locale);
+  const content = getContent(locale);
   return {
     metadataBase: SITE_ORIGIN,
-    title: `${profile.name} | ${profile.headline}`,
-    description: profile.summary,
+    title: pageTitle(content),
+    description: content.profile.summary,
   };
 }
 

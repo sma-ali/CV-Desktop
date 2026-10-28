@@ -1,23 +1,41 @@
+import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ExpressCv } from '@/components/express/ExpressCv';
 import { PrintButton } from '@/components/express/PrintButton';
 import { getContent, isLocale, localeNames, type Locale } from '@/content';
+import { buildProfilePageJsonLd, serializeJsonLd } from '@/lib/json-ld';
+import { buildExpressMetadata } from '@/lib/metadata';
 import { expressPath } from '@/lib/site';
 import { displayUrl } from '@/lib/urls';
 import styles from './page.module.css';
 
 const otherLocale: Record<Locale, Locale> = { fr: 'en', en: 'fr' };
 
+export async function generateMetadata({
+  params,
+}: PageProps<'/[locale]/express'>): Promise<Metadata> {
+  const { locale } = await params;
+  if (!isLocale(locale)) notFound();
+  return buildExpressMetadata(getContent(locale), locale);
+}
+
 // La version express : le CV en une page, rendu au build pour chaque langue.
 export default async function ExpressPage({ params }: PageProps<'/[locale]/express'>) {
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
-  const { profile, contact, ui } = getContent(locale);
+  const content = getContent(locale);
+  const { profile, contact, ui } = content;
   const other = otherLocale[locale];
 
   return (
     <div className={styles.page}>
+      <script
+        type="application/ld+json"
+        dangerouslySetInnerHTML={{
+          __html: serializeJsonLd(buildProfilePageJsonLd(content, locale)),
+        }}
+      />
       <a href="#contenu" className={styles.skip}>
         {ui.skipToContent}
       </a>

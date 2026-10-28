@@ -18,8 +18,16 @@ import styles from './Desk.module.css';
 // le JavaScript initial).
 const Scene = dynamic(() => import('@/scene/Scene'), { ssr: false });
 
-/** Pourquoi la page montre la version express à la place du bureau. */
-export type FallbackReason = 'no-webgl' | 'crashed';
+/**
+ * Pourquoi la page montre la version express à la place du bureau : pas de
+ * WebGL, la scène n'a pas pu démarrer, ou elle a perdu son contexte en route
+ * (onglet longtemps en arrière-plan sur un téléphone).
+ */
+export type FallbackReason = 'no-webgl' | 'crashed' | 'context-lost';
+
+function isFallback(status: Status): status is FallbackReason {
+  return status === 'no-webgl' || status === 'crashed' || status === 'context-lost';
+}
 
 type Status = 'idle' | 'loading' | 'ready' | FallbackReason;
 
@@ -83,16 +91,18 @@ export function DeskShell({ hud, scene, children }: DeskShellProps) {
 
   const onReady = useCallback(() => setStatus('ready'), []);
   const onCrash = useCallback(() => setStatus('crashed'), []);
+  const onContextLost = useCallback(() => setStatus('context-lost'), []);
 
-  const fallback: FallbackReason | null =
-    status === 'no-webgl' || status === 'crashed' ? status : null;
+  const fallback = isFallback(status) ? status : null;
   const sceneMounted = status === 'loading' || status === 'ready';
   const reason =
     fallback === 'no-webgl'
       ? hud.fallback.noWebgl
       : fallback === 'crashed'
         ? hud.fallback.crashed
-        : hud.fallback.noScript;
+        : fallback === 'context-lost'
+          ? hud.fallback.contextLost
+          : hud.fallback.noScript;
 
   return (
     <SceneStoreProvider store={store}>
@@ -104,7 +114,7 @@ export function DeskShell({ hud, scene, children }: DeskShellProps) {
                 texts={scene}
                 className={styles.canvas}
                 onReady={onReady}
-                onContextLost={onCrash}
+                onContextLost={onContextLost}
               />
             </SceneBoundary>
           ) : null}

@@ -131,11 +131,12 @@ const deskSchema = z.strictObject({
     evening: moodTextSchema,
     night: moodTextSchema,
   }),
-  hint: z.strictObject({ pointer: text, touch: text, auto: text }),
+  hint: z.strictObject({ pointer: text, touch: text, auto: text, presented: text }),
   fallback: z.strictObject({
     noScript: text,
     noWebgl: text,
     crashed: text,
+    contextLost: text,
     expressLink: text,
   }),
 });

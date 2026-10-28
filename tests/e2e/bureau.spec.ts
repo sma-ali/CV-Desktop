@@ -181,7 +181,11 @@ test.describe('la scène', () => {
       'aria-pressed',
       'true',
     );
-    await expect(page.getByText('Lumière choisie.')).toBeVisible();
+    // L'heure du bas de page le dit, et la région d'état l'annonce.
+    await expect(page.getByRole('contentinfo').getByText('Lumière choisie.')).toBeVisible();
+    await expect(page.getByRole('status').filter({ hasText: 'Lumière' })).toHaveText(
+      'Lumière choisie. Lumière du matin.',
+    );
     await page.getByRole('button', { name: 'Après-midi' }).click();
     await expect(page.getByText('Chez vous, il est 14 h.')).toBeVisible();
   });

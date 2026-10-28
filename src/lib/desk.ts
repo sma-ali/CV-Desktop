@@ -44,8 +44,14 @@ export interface DeskHudTexts {
   clock: { visitorTime: string; pinned: string };
   moodsLabel: string;
   moods: Record<MoodId, { name: string; light: string }>;
-  hint: { pointer: string; touch: string; auto: string };
-  fallback: { noScript: string; noWebgl: string; crashed: string; expressLink: string };
+  hint: { pointer: string; touch: string; auto: string; presented: string };
+  fallback: {
+    noScript: string;
+    noWebgl: string;
+    crashed: string;
+    contextLost: string;
+    expressLink: string;
+  };
 }
 
 const otherLocale: Record<Locale, Locale> = { fr: 'en', en: 'fr' };

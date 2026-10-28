@@ -1,7 +1,7 @@
 'use client';
 
 import Link from 'next/link';
-import { useSyncExternalStore, type CSSProperties, type MouseEvent } from 'react';
+import { useState, useSyncExternalStore, type CSSProperties, type MouseEvent } from 'react';
 import type { DeskHudTexts, DeskStep } from '@/lib/desk';
 import { MOOD_SWATCHES } from '@/scene/core/constants';
 import { ITEM_STEP, MOOD_IDS, type MoodId } from '@/scene/core/ids';
@@ -51,6 +51,9 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
   const presented = useSceneStore((state) => state.presented);
   const settings = useSceneStore((state) => state.settings);
   const minute = useVisitorMinute(settings.hourOffsetMs);
+  // Ce que la région d'état annonce : seulement les gestes du visiteur
+  // (objet présenté par une puce, ambiance choisie), jamais l'heure qui passe.
+  const [announcement, setAnnouncement] = useState('');
 
   const presentedStep = presented ? ITEM_STEP[presented] : null;
   // Avant la première image de la scène, tout le HUD est visible. Ensuite,
@@ -70,6 +73,7 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
       state.putBack();
     } else {
       state.present(step.item, 'chip');
+      setAnnouncement(`${step.title} ${step.detail}. ${texts.hint.presented}`);
     }
   };
 
@@ -78,6 +82,7 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
     const hourMood = moodOfHour(visitorNow(state.settings.hourOffsetMs).getHours());
     state.markUser();
     state.setMood(next, next !== hourMood);
+    setAnnouncement(`${texts.clock.pinned} ${texts.moods[next].light}`);
   };
 
   const [before, after] = texts.clock.visitorTime.split('{time}');
@@ -144,15 +149,6 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
         </p>
       ) : null}
 
-      <p
-        className={styles.hint}
-        data-on={showHint ? 'true' : undefined}
-        data-auto={autoOn ? 'true' : undefined}
-      >
-        <i aria-hidden="true" />
-        <span>{hint}</span>
-      </p>
-
       <footer className={styles.bottom} data-arrival-hidden={chipsHidden}>
         <nav aria-label={texts.glance}>
           <ul className={styles.steps}>
@@ -164,6 +160,7 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
                   data-step={step.id}
                   data-contact={step.contact ? 'true' : undefined}
                   data-on={presentedStep === step.id ? 'true' : undefined}
+                  aria-current={presentedStep === step.id ? 'true' : undefined}
                   onClick={(event) => onStep(event, step)}
                 >
                   <span className={styles.chipTitle}>
@@ -177,7 +174,7 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
           </ul>
         </nav>
         <div className={styles.corner}>
-          <p className={styles.clock} aria-live="polite">
+          <p className={styles.clock}>
             {initialized && time !== null ? (
               moodPinned ? (
                 <>
@@ -209,7 +206,20 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
             ))}
           </div>
         </div>
+        {/* Dans le footer : sous 1300 px, elle se pose juste au-dessus. */}
+        <p
+          className={styles.hint}
+          data-on={showHint ? 'true' : undefined}
+          data-auto={autoOn ? 'true' : undefined}
+        >
+          <i aria-hidden="true" />
+          <span>{hint}</span>
+        </p>
       </footer>
+
+      <p className="visually-hidden" role="status">
+        {announcement}
+      </p>
     </div>
   );
 }

@@ -34,11 +34,17 @@ test.describe('au clavier', () => {
     await page.keyboard.press('Enter');
     await expect(hud(page)).toHaveAttribute('data-presented', 'postit');
     await expect(chip).toHaveAttribute('data-on', 'true');
+    // L'état se dit aussi aux lecteurs d'écran : puce courante et annonce.
+    await expect(chip).toHaveAttribute('aria-current', 'true');
+    await expect(page.locator('#hud [role="status"]')).toHaveText(
+      /2024 DARES\. Objet vu de près\. Échap pour le reposer\./,
+    );
     // La page n'a pas suivi le lien vers la version express.
     await expect(page).toHaveURL(/\/fr\?/);
     await page.keyboard.press('Escape');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     await expect(chip).not.toHaveAttribute('data-on', 'true');
+    await expect(chip).not.toHaveAttribute('aria-current', 'true');
     // Le focus reste sur la puce : on peut enchaîner.
     await expect(chip).toBeFocused();
   });
@@ -61,8 +67,8 @@ test.describe('l’écran', () => {
     expect(target).toBe('CANVAS');
     await page.mouse.click(point.x, point.y);
     await expect(hud(page)).toHaveAttribute('data-presented', 'monitor');
-    // Le chip des projets 2026 s'allume avec l'écran.
-    await expect(page.locator('a[data-step="projects"]')).toHaveAttribute('data-on', 'true');
+    // L'écran montre tout le parcours : aucune puce ne s'allume avec lui.
+    await expect(page.locator('a[data-step][data-on]')).toHaveCount(0);
     await page.keyboard.press('Escape');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     expect(errors).toEqual([]);
@@ -110,6 +116,11 @@ test.describe('Rejouer', () => {
     await waitForScene(page);
     await page.getByRole('button', { name: 'Nuit' }).click();
     await expect(hud(page)).toHaveAttribute('data-mood', 'night');
+    // Le choix s'annonce une fois ; l'heure qui passe, jamais.
+    await expect(page.locator('#hud [role="status"]')).toHaveText(
+      'Lumière choisie. Nuit. La lampe veille.',
+    );
+    await expect(page.locator('#hud [aria-live]')).toHaveCount(0);
     await page.getByRole('button', { name: 'Rejouer' }).click();
     await expect(hud(page)).not.toHaveAttribute('data-phase', 'settled');
     await expect(hud(page)).toHaveAttribute('data-mood', 'night');
@@ -150,4 +161,64 @@ test.describe('la langue et la version express', () => {
     await expect(page.locator('canvas')).toHaveCount(1);
     expect(errors).toEqual([]);
   });
+});
+
+test.describe('la perte du contexte WebGL', () => {
+  test('passe à la version express avec son propre avis', async ({ page }) => {
+    await page.goto(SETTLED);
+    await waitForScene(page);
+    await page.locator('a[data-step="defi-metiers"]').click();
+    await expect(hud(page)).toHaveAttribute('data-presented', 'book');
+    // Ce que fait un téléphone qui reprend un onglet resté en arrière-plan.
+    await page.evaluate(() => {
+      const canvas = document.querySelector('canvas');
+      const gl = canvas?.getContext('webgl2') ?? canvas?.getContext('webgl');
+      gl?.getExtension('WEBGL_lose_context')?.loseContext();
+    });
+    await expect(page.locator('[data-fallback]')).toHaveAttribute('data-fallback', 'context-lost');
+    await expect(page.getByText("Le bureau en 3D s'est interrompu.")).toBeVisible();
+    await expect(page.locator('h1:visible')).toHaveCount(1);
+  });
+});
+
+test.describe('le HUD sur tablette et téléphone à l’horizontale', () => {
+  const overlap = (
+    a: { x: number; y: number; width: number; height: number },
+    b: { x: number; y: number; width: number; height: number },
+  ) => a.x < b.x + b.width && b.x < a.x + a.width && a.y < b.y + b.height && b.y < a.y + a.height;
+
+  for (const size of [
+    { width: 844, height: 390 },
+    { width: 1024, height: 768 },
+    { width: 768, height: 1024 },
+  ]) {
+    test(`tient dans ${size.width}x${size.height}, sans chevauchement`, async ({ page }) => {
+      await page.setViewportSize(size);
+      await page.goto(SETTLED);
+      await waitForScene(page);
+      await expect(page.locator('#hud p[data-on]')).toBeVisible();
+      // Les quatre ambiances restent dans la fenêtre, donc à portée de doigt.
+      const moods = page.getByRole('group', { name: 'Changer la lumière' }).getByRole('button');
+      await expect(moods).toHaveCount(4);
+      for (const mood of await moods.all()) {
+        const box = await mood.boundingBox();
+        expect(box).not.toBeNull();
+        expect(box!.x).toBeGreaterThanOrEqual(0);
+        expect(box!.x + box!.width).toBeLessThanOrEqual(size.width);
+        expect(box!.y + box!.height).toBeLessThanOrEqual(size.height);
+      }
+      // L'indication ne passe ni sous les commandes, ni sous l'identité, ni sur le bas de page.
+      const hint = await page.locator('#hud p[data-on]').boundingBox();
+      const others = [
+        page.getByRole('navigation', { name: 'Commandes' }),
+        page.locator('#hud header > div'),
+        page.getByRole('navigation', { name: "Le CV en un coup d'œil" }),
+      ];
+      for (const other of others) {
+        const box = await other.boundingBox();
+        expect(overlap(hint!, box!)).toBe(false);
+      }
+      expect(await page.evaluate(() => document.documentElement.scrollWidth)).toBe(size.width);
+    });
+  }
 });

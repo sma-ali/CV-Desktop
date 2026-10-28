@@ -201,12 +201,14 @@ export const fr = {
       pointer: 'Cliquez sur un objet pour le voir de près.',
       touch: 'Touchez un objet pour le voir de près.',
       auto: 'Visite automatique. Touchez un objet pour prendre la main.',
+      presented: 'Objet vu de près. Échap pour le reposer.',
     },
     fallback: {
       noScript: 'Le bureau en 3D a besoin de JavaScript. Voici le CV en version express.',
       noWebgl:
         'Votre navigateur ne peut pas afficher le bureau en 3D. Voici le CV en version express.',
       crashed: "Le bureau en 3D n'a pas pu démarrer. Voici le CV en version express.",
+      contextLost: "Le bureau en 3D s'est interrompu. Voici le CV en version express.",
       expressLink: 'Ouvrir la version express',
     },
   },

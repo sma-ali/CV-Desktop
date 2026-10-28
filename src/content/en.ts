@@ -200,11 +200,13 @@ export const en = {
       pointer: 'Click an object to take a closer look.',
       touch: 'Tap an object to take a closer look.',
       auto: 'Guided tour. Tap an object to take over.',
+      presented: 'Object shown up close. Press Escape to put it back.',
     },
     fallback: {
       noScript: 'The 3D desk needs JavaScript. Here is the CV in its express version.',
       noWebgl: 'Your browser cannot display the 3D desk. Here is the CV in its express version.',
       crashed: 'The 3D desk could not start. Here is the CV in its express version.',
+      contextLost: 'The 3D desk stopped. Here is the CV in its express version.',
       expressLink: 'Open the express version',
     },
   },

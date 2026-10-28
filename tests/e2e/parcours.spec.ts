@@ -135,6 +135,8 @@ test.describe('Rejouer', () => {
 
 test.describe('la langue et la version express', () => {
   test('le bureau passe en anglais, scène comprise', async ({ page }) => {
+    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
+    test.slow();
     const errors = collectErrors(page);
     await page.goto('/fr?auto=0&heure=14');
     await waitForScene(page);
@@ -149,6 +151,8 @@ test.describe('la langue et la version express', () => {
   });
 
   test('l’aller-retour avec la version express relance la scène', async ({ page }) => {
+    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
+    test.slow();
     const errors = collectErrors(page);
     await page.goto('/fr?auto=0&heure=14');
     await waitForScene(page);

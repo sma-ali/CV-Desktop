@@ -148,6 +148,8 @@ test.describe('la fiche', () => {
   });
 
   test('Retourner : le bouton et la touche R', async ({ page }) => {
+    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
+    test.slow();
     await page.goto(at('fr', 'prendre=badge'));
     await waitForScene(page);
     const flip = sheet(page).getByRole('button', { name: "Retourner l'objet" });

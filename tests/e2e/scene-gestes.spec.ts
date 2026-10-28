@@ -145,6 +145,8 @@ test.describe('les gestes', () => {
   });
 
   test('présentent un objet retourné, sauf avec ?recto', async ({ page }) => {
+    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
+    test.slow();
     await page.goto(`${SETTLED}&prendre=card`);
     await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-flipped', 'true');
@@ -271,16 +273,33 @@ test.describe('les gestes', () => {
 
   test('coupent la visite automatique', async ({ page, isMobile }) => {
     test.setTimeout(90_000);
-    // Avant la visite (AUTO_START = 12.6 s), on repère le portable sous son étiquette.
+    // Avant la visite (AUTO_START = 12.6 s), on repère les corps sous leur étiquette.
     await page.goto('/fr?t=10000&heure=14');
     await waitForScene(page);
-    const laptop = await pointOnItem(page, 'laptop');
+    const candidates = ['card', 'laptop', 'chest', 'netherbrain', 'homelab'] as const;
+    const points = new Map<string, Point>();
+    for (const id of candidates) points.set(id, await pointOnItem(page, id));
     await expect(hud(page)).toHaveAttribute('data-auto', 'true', { timeout: 20_000 });
     await expect(hud(page)).toHaveAttribute('data-presented', 'book');
-    await drag(page, laptop, { x: laptop.x - 40, y: laptop.y + 10 }, { touch: isMobile });
+    // La fiche du livre couvre une partie du bureau (à droite, ou en bas sur
+    // téléphone) : on prend le premier corps que le pointeur atteint.
+    let target: { id: string; point: Point } | null = null;
+    for (const [id, point] of points) {
+      const onCanvas = await page.evaluate(
+        ({ x, y }) => document.elementFromPoint(x, y)?.tagName === 'CANVAS',
+        point,
+      );
+      if (onCanvas) {
+        target = { id, point };
+        break;
+      }
+    }
+    if (!target) throw new Error('aucun corps hors de la fiche');
+    const { id, point } = target;
+    await drag(page, point, { x: point.x - 40, y: point.y + 10 }, { touch: isMobile });
     await expect(hud(page)).toHaveAttribute('data-auto', 'false');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
-    await expect(hud(page)).toHaveAttribute('data-places', /laptop:/);
+    await expect(hud(page)).toHaveAttribute('data-places', new RegExp(`${id}:`));
   });
 
   test('ne font pas défiler la page au doigt', async ({ page, isMobile }) => {

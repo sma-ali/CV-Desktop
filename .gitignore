@@ -1,0 +1,29 @@
+# Contexte privé
+CLAUDE.local.md
+
+# Dépendances et builds
+node_modules/
+.next/
+out/
+build/
+*.tsbuildinfo
+next-env.d.ts
+
+# Secrets
+.env
+.env.*
+!.env.example
+
+# Vercel
+.vercel/
+
+# Tests
+coverage/
+test-results/
+playwright-report/
+blob-report/
+playwright/.cache/
+
+# Système
+.DS_Store
+Thumbs.db

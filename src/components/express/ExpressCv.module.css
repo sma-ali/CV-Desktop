@@ -343,7 +343,7 @@
       'main side';
     grid-template-rows: auto auto 1fr;
     column-gap: 7mm;
-    row-gap: 4mm;
+    row-gap: 3mm;
   }
 
   .identity {
@@ -374,15 +374,20 @@
 
   .main,
   .side {
-    gap: 4mm;
+    gap: 3mm;
   }
 
   .name {
-    font-size: 26pt;
+    font-size: 24pt;
   }
 
   .headline {
-    font-size: 13pt;
+    margin-top: 1mm;
+    font-size: 12pt;
+  }
+
+  .location {
+    margin-top: 1mm;
   }
 
   .location,
@@ -390,7 +395,11 @@
   .period,
   .level,
   .organizationName {
-    font-size: 8.5pt;
+    font-size: 8pt;
+  }
+
+  .contactList {
+    gap: 0.6mm;
   }
 
   .heading,
@@ -405,7 +414,7 @@
   .skillLabel,
   .educationTitle,
   .educationSchool {
-    font-size: 9.5pt;
+    font-size: 9pt;
   }
 
   .skillLabel {
@@ -418,34 +427,64 @@
 
   .summaryText {
     max-width: none;
-    font-size: 10pt;
+    font-size: 9.5pt;
+    line-height: 1.35;
   }
 
   .entry {
-    padding: 2.2mm 0 2.4mm;
+    padding: 1.6mm 0 1.8mm;
     break-inside: avoid;
   }
 
   .entryTitle {
-    font-size: 11pt;
+    font-size: 10.5pt;
+  }
+
+  .organization,
+  .tagline {
+    margin-top: 0.5mm;
   }
 
   .highlights {
-    margin-top: 1.2mm;
+    max-width: none;
+    margin-top: 1mm;
   }
 
   .highlights li + li {
-    margin-top: 0.8mm;
+    margin-top: 0.5mm;
+  }
+
+  .chips {
+    gap: 1mm;
   }
 
   .chips li {
-    padding: 0.2mm 1.4mm 0;
-    font-size: 8pt;
+    padding: 0 1.2mm;
+    font-size: 7.5pt;
+  }
+
+  /* Une petite liste n'est jamais coupée entre deux pages. */
+  .chips,
+  .rows,
+  .interests {
+    break-inside: avoid;
   }
 
   .education li {
-    padding: 1.6mm 0;
+    padding: 1.2mm 0;
     break-inside: avoid;
+  }
+
+  .educationSchool {
+    margin: 0;
+  }
+
+  .rows li {
+    padding: 0;
+  }
+
+  .interests li + li {
+    margin-top: 0.5mm;
   }
 
   .skillGroup {

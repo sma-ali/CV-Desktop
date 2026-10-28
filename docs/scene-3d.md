@@ -115,9 +115,11 @@ Objets : `book`, `badge`, `postit`, `headset`, `laptop`, `card`, `chest`, `monit
 | -------------- | ------------------- | ---------------------------- | ---------------------------- |
 | `defi-metiers` | `book`, `badge`     | `book`                       | 2020, DEFI-METIERS           |
 | `dares`        | `postit`, `headset` | `postit`                     | 2024, DARES                  |
-| `projects`     | `laptop`, `monitor` | `laptop`                     | 2026, Netherbrain et Homelab |
+| `projects`     | `laptop`            | `laptop`                     | 2026, Netherbrain et Homelab |
 | `perso`        | `chest`             | `chest`                      | Projets perso                |
 | `contact`      | `card`              | `card`                       | Contact                      |
+
+L'écran (`monitor`) n'appartient à aucune étape : il montre tout le parcours, et son gros plan n'allume aucune puce.
 
 Visite automatique (`AUTO_SEQ`) : `book`, `postit`, `laptop`, `card`, `chest`. Chaque puce est un lien vers la section de la version express (`#defi-metiers`, `#dares`, `#projects`, `#contact`) ; quand la scène tourne, le HUD l'intercepte et présente l'objet.
 
@@ -127,7 +129,7 @@ Visite automatique (`AUTO_SEQ`) : `book`, `postit`, `laptop`, `card`, `chest`. C
 - Pas de tone mapping (`flat`) : l'étalonnage chaud du prototype (vignette, courbe, assombrissement autour de l'objet tenu) revient au post-traitement de la mise en scène. La page pose déjà un grain et une légère vignette en CSS : le post-traitement ne double pas la vignette sans le décider.
 - Intensités : `legacyIntensity(i)` (facteur π des lumières physiques) est le point de départ. Le spot de la lampe garde `decay: 0` (sans atténuation, comme dans le prototype). Les lumières ponctuelles (écran, objet tenu, panneau, lueur du coffret) prennent `decay: POINT_DECAY` (1) et `legacyPointIntensity(i, D)` : la courbe 1 / d coupée à D suit à quelques pour cent près le (1 - d / D)² du prototype, alors qu'avec `decay: 0` la lueur de l'écran éclairait tout le bureau. Les facteurs de calage sont dans `src/scene/stage/lighting.ts` (`CALIBRATION`, `MOOD_REFERENCE`, `SPOT_BOOST`).
 - Ombres PCF, densité de pixels bornée à 2, rendu suspendu quand l'onglet est caché.
-- Outils : `rng` (graine), `grainy`, `roundRect`, `fitFont` (canvas 2D), `useCanvasTexture` (redessinée quand les polices arrivent, avec les vrais noms de famille de next/font : `fonts.serif`, `fonts.mono`, `fonts.hand`), `paintCanvasTexture` (pour l'écran qui se tape), `standardMaterial` (cache, ne jamais modifier un matériau du cache), `brass()`, `iron()`, `texturedMaterial` (texture qui luit au survol), `applyRgb`, et les briques `Box`, `Cyl`, `Sph`, `Rod`, `Cable`, `flatPlaneGeometry`.
+- Outils : `rng` (graine), `grainy`, `roundRect`, `fitFont` (canvas 2D), `useCanvasTexture` (redessinée quand les polices arrivent, sauf avec `usesFonts: false` pour une texture sans texte, avec les vrais noms de famille de next/font : `fonts.serif`, `fonts.mono`, `fonts.hand`), `paintCanvasTexture` (pour l'écran qui se tape), `standardMaterial` (cache, ne jamais modifier un matériau du cache), `brass()`, `texturedMaterial` (texture qui luit au survol), `applyRgb`, et les briques `Box`, `Cyl`, `Sph`, `Cable`, `flatPlaneGeometry`.
 - Règle `react-hooks/immutability` : ne pas modifier un objet renvoyé par un hook (`useThree((s) => s.camera)`). Le lire avec `get()` dans un effet, ou le recevoir dans `useFrame((state) => ...)`, ou passer par une ref.
 
 ## Interdits (CSP)
@@ -137,9 +139,9 @@ La CSP du site n'a ni `unsafe-eval`, ni workers en `blob:`, ni d'autre origine q
 - pas de `<Text>` ni de `<Text3D>` de drei (troika passe par des workers en `blob:`) : le texte se peint dans une texture de canvas ;
 - pas de `useGLTF` avec Draco ou Meshopt (décodeurs en worker ou chargés d'un CDN), pas d'`<Environment preset>` (fichiers HDR sur un CDN), pas de `<Stats>` ;
 - aucun fichier chargé d'une autre origine : tout modèle ou image vit dans le dépôt ;
-- `<Html>` de drei (étiquettes) et `@react-three/postprocessing` sont permis.
+- `<Html>` de drei et `@react-three/postprocessing` sont permis. Les étiquettes n'utilisent pas `<Html>` : c'est une couche DOM maison (`TagLayer`). À la fin de l'étape 3, drei est installé mais aucun fichier ne l'importe.
 
-Un test E2E vérifie la CSP du bureau et l'absence d'erreur dans la console.
+Un test E2E vérifie la CSP du bureau et l'absence d'erreur dans la console. La console garde un avertissement qui ne vient pas du dépôt : « THREE.Clock: This module has been deprecated », émis par React Three Fiber 9 (son store crée un `THREE.Clock`) avec three 0.186 ; il partira avec une version de R3F qui passe à `THREE.Timer`.
 
 ## Textes
 
@@ -166,7 +168,7 @@ Ceux du prototype, lus par `parseTestParams` (`src/scene/core/params.ts`) :
 | `?ambiance=night`      | force une ambiance                                                  |
 | `?noshadow`, `?nopost` | sans ombres, sans post-traitement (mesures)                         |
 
-État exposé aux tests sur `#hud` (attributs, rien en global) : `data-ready`, `data-phase`, `data-mood`, `data-presented`, `data-auto`, `data-reduced`, `data-frozen`. La racine porte `data-fallback` (`no-webgl` ou `crashed`) quand le repli s'affiche.
+État exposé aux tests sur `#hud` (attributs, rien en global) : `data-ready`, `data-phase`, `data-mood`, `data-presented`, `data-auto`, `data-reduced`, `data-frozen`. La racine porte `data-fallback` (`no-webgl`, `crashed` ou `context-lost`) quand le repli s'affiche.
 
 ## Captures
 
@@ -221,7 +223,7 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
 
 - `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre.
 - `npm run test:e2e` : build de production puis Playwright sur ordinateur et téléphone.
-  - `bureau.spec.ts` (socle) : HUD visible sans la 3D, pixels du canvas, repli sans WebGL et sans JavaScript, mouvement réduit, nuit à 23 h, sélecteur d'ambiance, langues, liens bureau et version express, axe sur le HUD, console propre, en-têtes et CSP, scène hors du JavaScript initial, puce qui présente un objet, Rejouer.
+  - `bureau.spec.ts` (socle) : HUD visible sans la 3D, pixels du canvas, repli sans WebGL et sans JavaScript, mouvement réduit, nuit à 23 h, sélecteur d'ambiance, langues, liens bureau et version express, axe sur le HUD, aucune erreur en console, en-têtes et CSP, scène hors du JavaScript initial, puce qui présente un objet, Rejouer.
   - `scene-decor.spec.ts` : décor immobile sous `&fige`, vivant sinon, nuit sans erreur.
   - `scene-objets.spec.ts` : étiquettes FR et EN, cachées pendant l'arrivée et la présentation, puce, étiquette, survol et clic, clic hors des objets, mouvement réduit.
   - `scene-scene.spec.ts` : arrivée du noir à `settled`, Rejouer trois fois sans fuite WebGL, visite dans l'ordre, arrêt et reprise, `?auto=0`, puce qui reprend la main, mouvement réduit, changement d'ambiance.
@@ -271,3 +273,20 @@ Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (`DEC
 - L'horloge ne part qu'à la deuxième image : la première compile les shaders et peut prendre des secondes sur une machine lente, et le visiteur manquait alors le début de l'arrivée.
 - Les tests de bout en bout tournent sur 4 pages à la fois en local (`workers` dans `playwright.config.ts`) : au-delà, SwiftShader sature le processeur et les scènes mettent plus de 45 s à démarrer.
 - Le test du coffret attrape « chaîne » comme mot entier (`\bcha[iî]nes?\b`) : « prochaine étape » revient à l'écran.
+
+## Décisions de la relecture
+
+- Le verso du badge passe sous la pochette (`y = 0.001`, pochette de 0.003 à 0.033) : à l'intérieur, la face du dessous de la pochette le cachait quand le badge se retourne. Un test E2E mesure le contraste du verso présenté.
+- Le coffret recule (`ITEM_POSES.chest.z` de -0.12 à -0.7) : agrandi, il passait derrière le livre en vue large et sa plaque ne se lisait plus.
+- L'écran ne repeint plus toute sa texture (2048 x 1152) en continu : une fois le code tapé, la ligne finale et le curseur vivent dans une bande à part (`closingBand`, 150 px de haut), posée sur la dalle. La grande texture ne change plus que pour le numéro de ligne de la barre d'état, deux fois par boucle.
+- La barre d'état de l'écran commence à `STATUS_LEFT` (104 px) : le post-it rose du cadre cachait le T de TypeScript.
+- Les textures sans texte (bois, plâtre, feutre, point, touches du portable) ne sont plus redessinées à l'arrivée des polices (`usesFonts: false`).
+- Le canvas n'a plus d'anticrénelage quand le post-traitement est branché : celui-ci dessine dans ses propres cibles (`multisampling`).
+- L'écran n'allume plus aucune puce (`ITEM_STEP.monitor = null`) : il montre tout le parcours, pas les projets.
+- La perte du contexte WebGL a son propre avis (`data-fallback="context-lost"`, « Le bureau en 3D s'est interrompu. »).
+- L'heure n'est plus une région `aria-live` (elle se relisait chaque minute). Une région `role="status"` masquée annonce seulement les gestes du visiteur : objet présenté par une puce, ambiance choisie. La puce de l'objet présenté porte `aria-current`.
+- HUD : sous 1300 px, l'indication se pose juste au-dessus du bas de page (elle est dans le footer) au lieu de toucher les commandes ; sous 1000 px, l'heure et les ambiances passent au-dessus des cinq puces ; téléphone à l'horizontale (hauteur de 500 px au plus), les puces perdent leur détail et partagent la ligne de l'heure. Un test E2E vérifie 844x390, 1024x768 et 768x1024.
+- L'identité du HUD a un voile sombre local et une ombre serrée : le titre et le statut dépassent 4.5 de contraste sur la fenêtre claire du matin et de l'après-midi.
+- Le carton d'arrivée a un voile plus dense : le code de l'écran, devenu lisible, se brouillait avec « Bienvenue chez ».
+- Le soir, la tache du soleil sous la fenêtre est plus forte (`patchOpacity` de 0.6 à 1.1) : passée en linéaire, elle se perdait et le soir tirait vers la nuit.
+- La CI lance les tests de bout en bout en deux jobs parallèles (ordinateur, téléphone), 30 minutes au plus chacun.

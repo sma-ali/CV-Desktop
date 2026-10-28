@@ -23,8 +23,16 @@ describe('le portable porte la pile', () => {
     expect(laptopSkills(scene)).toEqual(['TypeScript', 'React', 'Node.js', 'Next.js', 'Proxmox']);
   });
 
-  it('son écran montre la pile puis les technologies des projets, sans doublon', () => {
-    const chips = laptopChips(scene);
+  it('son écran montre la pile puis les technologies des projets qui sont des compétences', () => {
+    const skills = [
+      'TypeScript',
+      'React',
+      'Next.js',
+      'Node.js',
+      'FastAPI',
+      'PostgreSQL / pgvector',
+    ];
+    const chips = laptopChips(scene, [...skills, 'Proxmox']);
     expect(chips).toEqual([
       'TypeScript',
       'React',
@@ -33,8 +41,8 @@ describe('le portable porte la pile', () => {
       'Proxmox',
       'FastAPI',
       'pgvector',
-      'WireGuard',
     ]);
+    expect(chips).not.toContain('WireGuard');
     expect(chips).not.toContain('Netherbrain');
     expect(chips).not.toContain('Homelab');
   });

@@ -181,5 +181,10 @@ export function buildDeskTexts(content: Content, locale: Locale): DeskHudTexts {
 }
 
 export function buildSceneTexts(content: Content, locale: Locale): SceneTexts {
-  return { locale, canvasLabel: content.desk.canvasLabel, content: content.scene };
+  return {
+    locale,
+    canvasLabel: content.desk.canvasLabel,
+    content: content.scene,
+    skills: content.skills.flatMap((group) => group.items),
+  };
 }

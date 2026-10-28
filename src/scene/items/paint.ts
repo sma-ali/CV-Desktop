@@ -482,10 +482,19 @@ export function laptopSkills(scene: SceneContent): string[] {
   return [...new Set(skills.filter((skill) => !projects.has(skill)))];
 }
 
-/** Les pastilles de l'écran du portable : la pile, puis les technologies des projets. */
-export function laptopChips(scene: SceneContent): string[] {
+/**
+ * Les pastilles de l'écran du portable : la pile, puis les technologies des
+ * projets qui figurent dans la section compétences du CV (skills, à plat ;
+ * « PostgreSQL / pgvector » compte pour pgvector). Une technologie propre à
+ * un projet, absente des compétences (WireGuard), reste sur son objet.
+ */
+export function laptopChips(scene: SceneContent, skills: readonly string[]): string[] {
   const projects = new Set(scene.facts.projects.items.map((item) => item.name));
-  const chips = [...laptopSkills(scene), ...scene.facts.projects.chips];
+  const known = new Set(skills.flatMap((skill) => [skill, ...skill.split(/\s*\/\s*/)]));
+  const chips = [
+    ...laptopSkills(scene),
+    ...scene.facts.projects.chips.filter((chip) => known.has(chip)),
+  ];
   return [...new Set(chips.filter((chip) => !projects.has(chip)))];
 }
 
@@ -554,11 +563,11 @@ export function paintLaptopStickers(scene: SceneContent): Painter {
  * L'écran du portable, vu quand il s'ouvre devant la caméra : la pile en
  * code (« const pile = [ ... ] »), en pastilles.
  */
-export function paintLaptopScreen(scene: SceneContent): Painter {
+export function paintLaptopScreen(scene: SceneContent, skills: readonly string[]): Painter {
   const { path } = scene.laptop;
   const { mark, text } = scene.labels.laptop;
   const { stack } = scene.screen.words;
-  const chips = laptopChips(scene);
+  const chips = laptopChips(scene, skills);
   return scaled(800, (c, w, h, F) => {
     c.fillStyle = '#1a1512';
     c.fillRect(0, 0, w, h);

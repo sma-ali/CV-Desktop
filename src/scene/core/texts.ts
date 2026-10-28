@@ -10,4 +10,9 @@ export interface SceneTexts {
   canvasLabel: string;
   /** Textes peints dans la scène (src/content/scene). */
   content: SceneContent;
+  /**
+   * Les compétences du CV (section compétences), à plat, dans l'ordre du CV :
+   * le portable, qui porte la pile, n'affiche que ce qui en fait partie.
+   */
+  skills: readonly string[];
 }

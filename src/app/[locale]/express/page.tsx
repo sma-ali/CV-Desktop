@@ -6,7 +6,7 @@ import { PrintButton } from '@/components/express/PrintButton';
 import { getContent, isLocale, localeNames, type Locale } from '@/content';
 import { buildProfilePageJsonLd, serializeJsonLd } from '@/lib/json-ld';
 import { buildExpressMetadata } from '@/lib/metadata';
-import { expressPath } from '@/lib/site';
+import { deskPath, expressPath } from '@/lib/site';
 import { displayUrl } from '@/lib/urls';
 import styles from './page.module.css';
 
@@ -48,6 +48,9 @@ export default async function ExpressPage({ params }: PageProps<'/[locale]/expre
             <span className={styles.kickerDetail}>{ui.kickerDetail}</span>
           </p>
           <div className={styles.tools}>
+            <Link href={deskPath(locale)} className={styles.tool}>
+              {ui.backToDesk}
+            </Link>
             <nav aria-label={ui.languageNav}>
               <Link href={expressPath(other)} hrefLang={other} lang={other} className={styles.tool}>
                 {localeNames[other]}

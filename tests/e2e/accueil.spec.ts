@@ -1,34 +1,33 @@
 import { expect, test } from '@playwright/test';
 
-// La racine choisit la langue du navigateur et mène à la version express en un
-// seul saut, comme /fr et /en, jusqu'à l'arrivée du bureau en 3D.
+// La racine choisit la langue du navigateur et mène au bureau en un seul saut.
 test.describe('la racine', () => {
-  test('envoie un navigateur anglais vers la version anglaise', async ({ browser }) => {
+  test('envoie un navigateur anglais vers le bureau anglais', async ({ browser }) => {
     const context = await browser.newContext({ locale: 'en-GB' });
     const page = await context.newPage();
     await page.goto('/');
-    await expect(page).toHaveURL(/\/en\/express$/);
+    await expect(page).toHaveURL(/\/en$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     await expect(page).toHaveTitle('Ali Smaani | Full-Stack Developer');
     await context.close();
   });
 
-  test('envoie un navigateur français vers la version française', async ({ browser }) => {
+  test('envoie un navigateur français vers le bureau français', async ({ browser }) => {
     const context = await browser.newContext({ locale: 'fr-FR' });
     const page = await context.newPage();
     await page.goto('/');
-    await expect(page).toHaveURL(/\/fr\/express$/);
+    await expect(page).toHaveURL(/\/fr$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
     await expect(page).toHaveTitle('Ali Smaani | Développeur Full-Stack');
     await context.close();
   });
 
   for (const [header, location] of [
-    ['en-US,en;q=0.9', '/en/express'],
-    ['de-DE,de;q=0.9,en;q=0.8', '/en/express'],
-    ['fr-FR,fr;q=0.9,en;q=0.8', '/fr/express'],
-    ['de', '/fr/express'],
-    ['', '/fr/express'],
+    ['en-US,en;q=0.9', '/en'],
+    ['de-DE,de;q=0.9,en;q=0.8', '/en'],
+    ['fr-FR,fr;q=0.9,en;q=0.8', '/fr'],
+    ['de', '/fr'],
+    ['', '/fr'],
   ] as const) {
     test(`répond 307 vers ${location} pour « ${header} »`, async ({ request }) => {
       const response = await request.get('/', {
@@ -46,7 +45,7 @@ test.describe('la racine', () => {
     const request = await playwright.request.newContext({ baseURL });
     const response = await request.get('/', { maxRedirects: 0 });
     expect(response.status()).toBe(307);
-    expect(response.headers()['location']).toBe('/fr/express');
+    expect(response.headers()['location']).toBe('/fr');
     await request.dispose();
   });
 
@@ -55,15 +54,15 @@ test.describe('la racine', () => {
       headers: { 'Accept-Language': 'en' },
       maxRedirects: 0,
     });
-    expect(response.headers()['location']).toBe('/en/express?source=cv');
+    expect(response.headers()['location']).toBe('/en?source=cv');
   });
 });
 
 for (const locale of ['fr', 'en']) {
-  test(`/${locale} mène à la version express (307)`, async ({ request }) => {
+  test(`/${locale} sert le bureau sans redirection`, async ({ request }) => {
     const response = await request.get(`/${locale}`, { maxRedirects: 0 });
-    expect(response.status()).toBe(307);
-    expect(response.headers()['location']).toBe(`/${locale}/express`);
+    expect(response.status()).toBe(200);
+    expect(response.headers()['content-type']).toContain('text/html');
   });
 }
 

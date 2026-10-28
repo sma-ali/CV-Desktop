@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Fraunces, IBM_Plex_Mono } from 'next/font/google';
+import { Caveat, Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { getContent, isLocale, locales } from '@/content';
 import { SITE_ORIGIN } from '@/lib/site';
@@ -20,6 +20,16 @@ const plexMono = IBM_Plex_Mono({
   weight: ['400', '500', '600'],
   display: 'swap',
   variable: '--font-plex-mono',
+});
+
+// L'écriture à la main des textures du bureau (post-it, notes). Pas de
+// préchargement : seule la scène 3D s'en sert, après le premier affichage.
+const caveat = Caveat({
+  subsets: ['latin'],
+  weight: ['500', '700'],
+  display: 'swap',
+  preload: false,
+  variable: '--font-caveat',
 });
 
 // Seules les langues connues existent : /de répond 404 sans passer par le rendu.
@@ -53,7 +63,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   return (
-    <html lang={locale} className={`${fraunces.variable} ${plexMono.variable}`}>
+    <html lang={locale} className={`${fraunces.variable} ${plexMono.variable} ${caveat.variable}`}>
       <body>{children}</body>
     </html>
   );

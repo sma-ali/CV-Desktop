@@ -1,12 +1,6 @@
 import { z } from 'zod';
-
-// Texte affiché : jamais vide, sans espace parasite au début ni à la fin.
-const text = z
-  .string()
-  .min(1)
-  .refine((value) => value.trim() === value, 'espace en trop au début ou à la fin');
-
-const texts = z.array(text).min(1);
+import { sceneContentSchema } from './scene/schema';
+import { text, texts } from './text';
 
 const id = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'identifiant attendu en kebab-case');
 
@@ -27,6 +21,8 @@ const profileSchema = z.strictObject({
   headline: text,
   summary: text,
   location: text,
+  // Validé par Ali le 28/10/2026 : affiché dans la version express et sur le bureau.
+  availability: text,
 });
 
 const contactSchema = z.strictObject({
@@ -106,6 +102,43 @@ const uiSchema = z.strictObject({
   websiteLabel: text,
   repositoryLabel: text,
   backToTop: text,
+  backToDesk: text,
+});
+
+// Une ambiance de lumière : son nom (bouton) et sa phrase (coin de l'heure).
+const moodTextSchema = z.strictObject({ name: text, light: text });
+
+// Textes de l'interface du bureau en 3D. Aucun fait du CV ici : le nom, le
+// titre, les dates et les organisations viennent du reste du contenu.
+const deskSchema = z.strictObject({
+  canvasLabel: text,
+  controlsLabel: text,
+  expressLink: text,
+  replay: text,
+  loading: text,
+  arrivalKicker: text,
+  glance: text,
+  perso: z.strictObject({ title: text, detail: text }),
+  contactDetail: text,
+  clock: z.strictObject({
+    visitorTime: text.refine((value) => value.includes('{time}'), 'il manque {time}'),
+    pinned: text,
+  }),
+  moodsLabel: text,
+  moods: z.strictObject({
+    morning: moodTextSchema,
+    afternoon: moodTextSchema,
+    evening: moodTextSchema,
+    night: moodTextSchema,
+  }),
+  hint: z.strictObject({ pointer: text, touch: text, auto: text, presented: text }),
+  fallback: z.strictObject({
+    noScript: text,
+    noWebgl: text,
+    crashed: text,
+    contextLost: text,
+    expressLink: text,
+  }),
 });
 
 export const contentSchema = z.strictObject({
@@ -120,6 +153,8 @@ export const contentSchema = z.strictObject({
   languages: z.array(spokenLanguageSchema).min(1),
   interests: texts,
   ui: uiSchema,
+  desk: deskSchema,
+  scene: sceneContentSchema,
 });
 
 export type Content = z.infer<typeof contentSchema>;
@@ -128,3 +163,4 @@ export type Experience = Content['experiences'][number];
 export type Project = Content['projects'][number];
 export type Education = Content['education'][number];
 export type Ui = Content['ui'];
+export type DeskUi = Content['desk'];

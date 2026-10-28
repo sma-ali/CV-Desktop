@@ -1,4 +1,11 @@
+import { dirname } from 'node:path';
+import { fileURLToPath } from 'node:url';
 import type { NextConfig } from 'next';
+
+// Le dossier de ce fichier est la racine du projet, même dans un worktree
+// imbriqué (.claude/worktrees/<nom>) : sans cela, Turbopack et le traçage des
+// fichiers remontent au package-lock.json du dépôt parent.
+const projectRoot = dirname(fileURLToPath(import.meta.url));
 
 const isDev = process.env.NODE_ENV === 'development';
 
@@ -34,6 +41,8 @@ const securityHeaders = [
 
 const nextConfig: NextConfig = {
   poweredByHeader: false,
+  turbopack: { root: projectRoot },
+  outputFileTracingRoot: projectRoot,
   // Pas d'AGENTS.md généré par `next dev` dans le dépôt.
   agentRules: false,
   async headers() {

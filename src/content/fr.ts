@@ -1,4 +1,5 @@
 import type { Content } from './schema';
+import { sceneFr } from './scene/fr';
 import { contact } from './shared';
 
 // Source : le CV d'Ali en français (septembre 2026). Ne rien reformuler ici
@@ -10,6 +11,7 @@ export const fr = {
     summary:
       "Développeur full-stack (React, Node.js, TypeScript), doublé d'une expérience du support applicatif et de la gestion de données en environnement à forte criticité. Curieux, je fais le lien entre le code, l'infrastructure et la sécurité, de la conception au déploiement.",
     location: 'Île-de-France ou remote',
+    availability: 'Disponible',
   },
   contact,
   sections: {
@@ -175,5 +177,40 @@ export const fr = {
     websiteLabel: 'Site',
     repositoryLabel: 'Dépôt',
     backToTop: 'Haut de page',
+    backToDesk: 'Revenir au bureau',
   },
+  desk: {
+    canvasLabel: "Le bureau d'Ali vu d'en haut. Chaque objet est une étape du CV.",
+    controlsLabel: 'Commandes',
+    expressLink: 'Version express',
+    replay: 'Rejouer',
+    loading: "Le bureau s'installe",
+    arrivalKicker: 'Bienvenue chez',
+    glance: "Le CV en un coup d'œil",
+    perso: { title: 'Projets perso', detail: 'Scellés, mais vivants' },
+    contactDetail: 'Carte de visite',
+    clock: { visitorTime: 'Chez vous, il est {time}.', pinned: 'Lumière choisie.' },
+    moodsLabel: 'Changer la lumière',
+    moods: {
+      morning: { name: 'Matin', light: 'Lumière du matin.' },
+      afternoon: { name: 'Après-midi', light: "Lumière d'après-midi." },
+      evening: { name: 'Soir', light: 'Lumière du soir.' },
+      night: { name: 'Nuit', light: 'Nuit. La lampe veille.' },
+    },
+    hint: {
+      pointer: 'Cliquez sur un objet pour le voir de près.',
+      touch: 'Touchez un objet pour le voir de près.',
+      auto: 'Visite automatique. Touchez un objet pour prendre la main.',
+      presented: 'Objet vu de près. Échap pour le reposer.',
+    },
+    fallback: {
+      noScript: 'Le bureau en 3D a besoin de JavaScript. Voici le CV en version express.',
+      noWebgl:
+        'Votre navigateur ne peut pas afficher le bureau en 3D. Voici le CV en version express.',
+      crashed: "Le bureau en 3D n'a pas pu démarrer. Voici le CV en version express.",
+      contextLost: "Le bureau en 3D s'est interrompu. Voici le CV en version express.",
+      expressLink: 'Ouvrir la version express',
+    },
+  },
+  scene: sceneFr,
 } satisfies Content;

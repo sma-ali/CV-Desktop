@@ -1,0 +1,912 @@
+/* Le bureau : la scène plein écran et son HUD, d'après le prototype
+   (prototype/bureau-plateau.html, styles du haut de page, du bas de page, du
+   carton et de l'indication). Toujours sombre, quel que soit le thème : c'est
+   un bureau la nuit, éclairé par sa lampe. Le repli (version express) reprend
+   les couleurs du site. */
+
+.desk {
+  --nuit: #0e0a08;
+  --laiton: #c9973f;
+  --ambre: #ffb45e;
+  --creme: #f3e9d4;
+  --clair: #f7ecd6;
+  --vert: #62d18e;
+
+  position: fixed;
+  inset: 0;
+  overflow: hidden;
+  background: var(--nuit);
+  color: var(--creme);
+  font-family: var(--mono);
+  -webkit-tap-highlight-color: transparent;
+}
+
+.desk :focus-visible {
+  outline-color: var(--ambre);
+}
+
+/* Derrière le bureau, la page reste sombre (rebonds du défilement, barres du navigateur). */
+:global(html):has(.desk:not([data-fallback])) :global(body) {
+  background: #0e0a08;
+}
+
+/* La scène : invisible tant qu'elle n'a pas dessiné, puis un fondu. */
+.stage {
+  position: absolute;
+  inset: 0;
+  opacity: 0;
+  transition: opacity 1.2s ease;
+}
+
+.stage[data-visible] {
+  opacity: 1;
+}
+
+.canvas {
+  touch-action: none;
+  outline: none;
+}
+
+/* Vignette légère et grain de pellicule par-dessus la 3D. */
+.vignette {
+  position: fixed;
+  inset: 0;
+  z-index: 2;
+  pointer-events: none;
+  background: radial-gradient(ellipse at 50% 46%, transparent 58%, rgb(8 5 3 / 0.42) 100%);
+}
+
+.grain {
+  position: fixed;
+  inset: -60px;
+  z-index: 3;
+  pointer-events: none;
+  opacity: 0.07;
+  mix-blend-mode: overlay;
+  animation: grain 1s steps(5) infinite;
+}
+
+@keyframes grain {
+  0% {
+    transform: translate(0, 0);
+  }
+  20% {
+    transform: translate(-22px, 14px);
+  }
+  40% {
+    transform: translate(18px, -26px);
+  }
+  60% {
+    transform: translate(-30px, -8px);
+  }
+  80% {
+    transform: translate(12px, 28px);
+  }
+  100% {
+    transform: translate(0, 0);
+  }
+}
+
+/* ?fige gèle aussi les animations CSS, pour des captures stables. */
+.desk:has(.hud[data-frozen='true']) *,
+.desk:has(.hud[data-frozen='true']) *::before,
+.desk:has(.hud[data-frozen='true']) *::after {
+  animation-play-state: paused !important;
+  transition: none !important;
+}
+
+/* Pendant l'arrivée (scène prête, avant 7.4 s et 8.1 s), l'identité et les
+   puces s'effacent ; elles restent hors du parcours au clavier. */
+.brand,
+.bottom {
+  transition:
+    opacity 1s ease,
+    transform 1.2s cubic-bezier(0.16, 0.84, 0.24, 1),
+    visibility 0s;
+}
+
+.brand[data-arrival-hidden],
+.bottom[data-arrival-hidden] {
+  visibility: hidden;
+  opacity: 0;
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease,
+    visibility 0s linear 0.6s;
+}
+
+.brand[data-arrival-hidden] {
+  transform: translateY(-6px);
+}
+
+.bottom[data-arrival-hidden] {
+  transform: translateY(10px);
+}
+
+/* ------------------------------------------------------------------
+   Carton d'arrivée
+   ------------------------------------------------------------------ */
+
+.carton {
+  position: fixed;
+  top: 11vh;
+  right: 16px;
+  left: 16px;
+  z-index: 5;
+  isolation: isolate;
+  margin: 0;
+  text-align: center;
+  pointer-events: none;
+  opacity: 0;
+  transform: translateY(14px);
+  transition:
+    opacity 1.1s ease,
+    transform 1.6s cubic-bezier(0.16, 0.84, 0.24, 1);
+  text-shadow:
+    0 3px 40px rgb(0 0 0 / 0.85),
+    0 0 2px rgb(0 0 0 / 0.6);
+}
+
+.carton[data-on] {
+  opacity: 1;
+  transform: none;
+}
+
+.carton::before {
+  content: '';
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  z-index: -1;
+  width: min(900px, 120%);
+  height: calc(100% + 120px);
+  transform: translate(-50%, -50%);
+  /* Le code de l'écran, devenu lisible, passe derrière le carton pendant la
+     frappe : le voile doit l'éteindre jusque sous « Bienvenue chez ». */
+  background: radial-gradient(
+    closest-side,
+    rgb(8 5 3 / 0.82),
+    rgb(8 5 3 / 0.66) 60%,
+    rgb(8 5 3 / 0.3) 85%,
+    rgb(8 5 3 / 0)
+  );
+}
+
+.cartonKicker {
+  display: block;
+  margin-right: -0.5em;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: clamp(10px, 1.05vw, 13px);
+  letter-spacing: 0.5em;
+  text-transform: uppercase;
+  color: var(--ambre);
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.95),
+    0 0 8px rgb(0 0 0 / 0.8);
+}
+
+.cartonName {
+  display: block;
+  margin: 0.12em 0 0.06em;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-variation-settings: 'opsz' 144;
+  font-size: clamp(64px, 10vw, 150px);
+  line-height: 0.9;
+  letter-spacing: -0.03em;
+  color: var(--clair);
+}
+
+.cartonRole {
+  display: block;
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 400;
+  font-size: clamp(18px, 2.2vw, 30px);
+  color: #efe2c8;
+}
+
+/* ------------------------------------------------------------------
+   Haut de page : identité et commandes
+   ------------------------------------------------------------------ */
+
+.hud {
+  display: contents;
+}
+
+.top {
+  position: fixed;
+  top: 0;
+  right: 0;
+  left: 0;
+  z-index: 7;
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 12px;
+  padding: max(16px, env(safe-area-inset-top)) max(18px, env(safe-area-inset-right)) 0
+    max(18px, env(safe-area-inset-left));
+  pointer-events: none;
+}
+
+/* L'identité se pose sur la fenêtre, très claire le matin et l'après-midi :
+   un voile sombre local et une ombre serrée gardent le titre et le statut
+   lisibles (contraste d'au moins 4.5 aux quatre heures). */
+.brand {
+  position: relative;
+  isolation: isolate;
+  line-height: 1;
+  text-shadow:
+    0 1px 2px rgb(0 0 0 / 0.9),
+    0 0 6px rgb(0 0 0 / 0.55),
+    0 2px 18px rgb(0 0 0 / 0.7);
+}
+
+.brand::before {
+  content: '';
+  position: absolute;
+  inset: -40px -70px -34px -60px;
+  z-index: -1;
+  pointer-events: none;
+  background: radial-gradient(
+    closest-side,
+    rgb(14 9 6 / 0.72),
+    rgb(14 9 6 / 0.55) 55%,
+    rgb(14 9 6 / 0.25) 80%,
+    rgb(14 9 6 / 0)
+  );
+}
+
+.name {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-variation-settings: 'opsz' 144;
+  font-size: 46px;
+  line-height: 1;
+  letter-spacing: -0.025em;
+  color: var(--clair);
+}
+
+.role {
+  margin: 6px 0 0;
+  font-size: 11px;
+  font-weight: 600;
+  letter-spacing: 0.28em;
+  text-transform: uppercase;
+  color: var(--ambre);
+}
+
+.status {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px;
+  margin: 10px 0 0;
+  font-size: 11px;
+  letter-spacing: 0.06em;
+  color: rgb(243 233 212 / 0.86);
+}
+
+.pulse {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--vert);
+  box-shadow:
+    0 0 0 3px rgb(98 209 142 / 0.18),
+    0 0 10px var(--vert);
+  animation: pulse 2.4s ease-in-out infinite;
+}
+
+@keyframes pulse {
+  50% {
+    box-shadow:
+      0 0 0 6px rgb(98 209 142 / 0),
+      0 0 4px var(--vert);
+  }
+}
+
+.controls {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 8px;
+  pointer-events: auto;
+}
+
+.button {
+  display: inline-flex;
+  align-items: center;
+  min-height: 30px;
+  padding: 9px 11px 8px;
+  border: 1px solid rgb(243 233 212 / 0.22);
+  border-radius: 3px;
+  background: rgb(18 12 8 / 0.5);
+  color: rgb(243 233 212 / 0.9);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 10.5px;
+  line-height: 1;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  text-decoration: none;
+  cursor: pointer;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.button:hover,
+.button:focus-visible {
+  border-color: rgb(255 180 94 / 0.7);
+  color: var(--ambre);
+}
+
+.buttonGold,
+.buttonGold:hover,
+.buttonGold:focus-visible {
+  border-color: #e9c98a;
+  background: linear-gradient(#e6c27a, #c9973f);
+  color: #1f1710;
+  box-shadow:
+    0 2px 14px rgb(0 0 0 / 0.35),
+    inset 0 1px 0 rgb(255 255 255 / 0.45);
+}
+
+.buttonGold:hover,
+.buttonGold:focus-visible {
+  background: linear-gradient(#f2d394, #d8a84d);
+}
+
+/* Le bureau s'installe : visible jusqu'à la première image de la scène. */
+.loading {
+  position: fixed;
+  top: 50%;
+  left: 50%;
+  z-index: 4;
+  margin: 0;
+  transform: translate(-50%, -50%);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgb(243 233 212 / 0.78);
+  animation: blink 1.6s ease-in-out infinite;
+}
+
+/* ------------------------------------------------------------------
+   Indication
+   ------------------------------------------------------------------ */
+
+.hint {
+  position: fixed;
+  top: max(18px, env(safe-area-inset-top));
+  left: 50%;
+  z-index: 6;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0;
+  padding: 7px 14px 6px;
+  border-radius: 3px;
+  background: rgb(14 9 6 / 0.55);
+  color: rgb(243 233 212 / 0.86);
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  width: max-content;
+  white-space: nowrap;
+  text-shadow: 0 1px 10px rgb(0 0 0 / 0.8);
+  pointer-events: none;
+  opacity: 0;
+  transform: translateX(-50%);
+  transition: opacity 0.8s;
+  backdrop-filter: blur(4px);
+  -webkit-backdrop-filter: blur(4px);
+}
+
+.hint[data-on] {
+  opacity: 1;
+}
+
+.hint i {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ambre);
+  box-shadow: 0 0 10px var(--ambre);
+  animation: blink 1.6s ease-in-out infinite;
+}
+
+.hint[data-auto] i {
+  background: var(--vert);
+  box-shadow: 0 0 10px var(--vert);
+}
+
+@keyframes blink {
+  50% {
+    opacity: 0.25;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Bas de page : le CV d'un coup d'œil, l'heure et les ambiances
+   ------------------------------------------------------------------ */
+
+.bottom {
+  position: fixed;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 7;
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: 16px;
+  padding: 0 max(18px, env(safe-area-inset-right)) max(14px, env(safe-area-inset-bottom))
+    max(18px, env(safe-area-inset-left));
+  pointer-events: none;
+}
+
+.steps {
+  display: flex;
+  gap: 8px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+  pointer-events: auto;
+}
+
+.chip {
+  position: relative;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-start;
+  gap: 4px;
+  min-width: 0;
+  height: 100%;
+  padding: 9px 12px 9px 13px;
+  border: 1px solid rgb(201 151 63 / 0.45);
+  border-radius: 3px;
+  background: rgb(20 13 8 / 0.62);
+  box-shadow: 0 6px 20px rgb(0 0 0 / 0.35);
+  color: var(--creme);
+  text-align: left;
+  text-decoration: none;
+  backdrop-filter: blur(6px);
+  -webkit-backdrop-filter: blur(6px);
+}
+
+.chip:hover,
+.chip:focus-visible,
+.chip[data-on] {
+  border-color: #e9c98a;
+  background: rgb(48 30 14 / 0.78);
+  color: var(--creme);
+  transform: translateY(-3px);
+}
+
+.chipTitle {
+  font-family: var(--serif);
+  font-style: italic;
+  font-weight: 500;
+  font-size: 19px;
+  line-height: 1;
+  color: var(--ambre);
+}
+
+.chip[data-on] .chipTitle {
+  color: #ffd59a;
+}
+
+.chip[data-contact] {
+  border-color: rgb(243 233 212 / 0.35);
+}
+
+.chip[data-contact] .chipTitle {
+  color: var(--clair);
+}
+
+.chipDetail {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(243 233 212 / 0.92);
+}
+
+.live {
+  display: inline-block;
+  width: 6px;
+  height: 6px;
+  margin-left: 6px;
+  border-radius: 50%;
+  background: var(--vert);
+  box-shadow: 0 0 8px var(--vert);
+  vertical-align: 1px;
+  animation: pulse 1.6s ease-in-out infinite;
+}
+
+.corner {
+  text-align: right;
+  pointer-events: auto;
+}
+
+.clock {
+  min-height: 1.4em;
+  margin: 0;
+  font-size: 11px;
+  line-height: 1.4;
+  color: rgb(243 233 212 / 0.8);
+  text-shadow: 0 1px 8px rgb(0 0 0 / 0.85);
+}
+
+.clock b {
+  font-weight: 600;
+  color: var(--clair);
+}
+
+.clock em {
+  font-family: var(--serif);
+  font-style: italic;
+  font-size: 14px;
+  color: var(--ambre);
+}
+
+.moods {
+  display: flex;
+  justify-content: flex-end;
+  gap: 6px;
+  margin-top: 7px;
+}
+
+.mood {
+  display: grid;
+  place-items: center;
+  width: 24px;
+  height: 24px;
+  padding: 0;
+  border: 1px solid rgb(243 233 212 / 0.3);
+  border-radius: 50%;
+  background: rgb(18 12 8 / 0.5);
+  cursor: pointer;
+}
+
+.mood i {
+  width: 10px;
+  height: 10px;
+  border-radius: 50%;
+  background: var(--swatch);
+}
+
+.mood[aria-pressed='true'],
+.mood:hover,
+.mood:focus-visible {
+  border-color: var(--ambre);
+}
+
+@media (prefers-reduced-motion: no-preference) {
+  .button,
+  .mood {
+    transition:
+      color 0.2s,
+      border-color 0.2s,
+      background 0.2s;
+  }
+
+  .chip {
+    transition:
+      border-color 0.2s,
+      background 0.2s,
+      transform 0.25s;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Tablette et petits écrans
+   ------------------------------------------------------------------ */
+
+/* Sous 1300 px, l'indication centrée en haut touchait les commandes : elle
+   se pose juste au-dessus du bas de page (elle est dans le footer), quelle
+   que soit sa hauteur. */
+@media (max-width: 1300px) {
+  .hint {
+    position: absolute;
+    top: auto;
+    bottom: calc(100% + 10px);
+  }
+}
+
+/* Sous 1000 px, puces et ambiances ne tiennent plus sur une ligne : l'heure
+   et les ambiances passent au-dessus, les cinq puces se partagent la largeur. */
+@media (max-width: 1000px) {
+  .bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .corner {
+    display: flex;
+    order: -1;
+    align-items: center;
+    justify-content: space-between;
+    gap: 12px;
+    text-align: left;
+  }
+
+  .moods {
+    flex: none;
+    margin-top: 0;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+    gap: 6px;
+  }
+
+  .chip {
+    padding: 8px 9px 8px 10px;
+  }
+
+  .chipDetail {
+    line-height: 1.25;
+    letter-spacing: 0.08em;
+    white-space: normal;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Téléphone
+   ------------------------------------------------------------------ */
+
+@media (max-width: 760px) {
+  .name {
+    font-size: 36px;
+  }
+
+  .role {
+    font-size: 10px;
+    letter-spacing: 0.22em;
+  }
+
+  .status {
+    margin-top: 8px;
+    font-size: 10.5px;
+  }
+
+  .controls {
+    flex-direction: column;
+    align-items: flex-end;
+    gap: 6px;
+  }
+
+  .button {
+    padding: 8px 9px 7px;
+    font-size: 9.5px;
+    letter-spacing: 0.16em;
+  }
+
+  .bottom {
+    flex-direction: column;
+    align-items: stretch;
+    gap: 8px;
+  }
+
+  .corner {
+    display: flex;
+    order: -1;
+    align-items: center;
+    justify-content: space-between;
+    text-align: left;
+  }
+
+  .moods {
+    margin-top: 0;
+  }
+
+  .status {
+    row-gap: 4px;
+  }
+
+  .separator {
+    display: none;
+  }
+
+  .steps {
+    display: grid;
+    grid-template-columns: repeat(6, 1fr);
+    gap: 6px;
+  }
+
+  .steps li {
+    grid-column: span 2;
+  }
+
+  .steps li:nth-child(4),
+  .steps li:nth-child(5) {
+    grid-column: span 3;
+  }
+
+  .chip {
+    gap: 3px;
+    padding: 7px 8px 7px 9px;
+  }
+
+  .chipTitle {
+    font-size: 16px;
+  }
+
+  .chipDetail {
+    font-size: 8.5px;
+    line-height: 1.25;
+    letter-spacing: 0.06em;
+    white-space: normal;
+  }
+
+  .hint {
+    font-size: 9px;
+    letter-spacing: 0.14em;
+  }
+
+  .carton {
+    top: 14vh;
+  }
+}
+
+/* Téléphone à l'horizontale : peu de hauteur. Les puces perdent leur détail
+   (il reste dans leur nom accessible) et l'identité se resserre, pour
+   laisser le bureau visible entre le haut et le bas de page. */
+@media (max-height: 500px) and (orientation: landscape) {
+  .name {
+    font-size: 30px;
+  }
+
+  .role {
+    margin-top: 4px;
+  }
+
+  .status {
+    margin-top: 6px;
+  }
+
+  .chip {
+    padding: 6px 9px 6px 10px;
+  }
+
+  .chipTitle {
+    font-size: 15px;
+  }
+
+  .chipDetail {
+    display: none;
+  }
+
+  /* Sans leur détail, les puces laissent la place à l'heure sur la même ligne. */
+  .bottom {
+    flex-direction: row;
+    align-items: flex-end;
+  }
+
+  .steps {
+    display: flex;
+    gap: 6px;
+  }
+
+  .corner {
+    display: block;
+    flex: 0 1 auto;
+    order: 0;
+    min-width: 0;
+    text-align: right;
+  }
+
+  .moods {
+    margin-top: 6px;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .grain,
+  .pulse,
+  .live,
+  .hint i,
+  .loading {
+    animation: none;
+  }
+
+  .stage,
+  .carton,
+  .brand,
+  .bottom {
+    transition: none;
+  }
+}
+
+/* ------------------------------------------------------------------
+   Repli : la version express à la place du bureau
+   Sans JavaScript (scripting: none), sans WebGL ou si la scène plante
+   (data-fallback). Le HUD et le canvas disparaissent : un seul h1.
+   ------------------------------------------------------------------ */
+
+.fallback {
+  display: none;
+}
+
+.desk[data-fallback] {
+  position: static;
+  overflow: visible;
+  background: var(--page);
+  color: var(--ink);
+  font-family: var(--serif);
+}
+
+.desk[data-fallback] .stage,
+.desk[data-fallback] .vignette,
+.desk[data-fallback] .grain,
+.desk[data-fallback] .hud {
+  display: none;
+}
+
+.desk[data-fallback] .fallback {
+  display: block;
+}
+
+@media (scripting: none) {
+  .desk {
+    position: static;
+    overflow: visible;
+    background: var(--page);
+    color: var(--ink);
+    font-family: var(--serif);
+  }
+
+  .stage,
+  .vignette,
+  .grain,
+  .hud {
+    display: none;
+  }
+
+  .fallback {
+    display: block;
+  }
+}
+
+.fallback {
+  padding: clamp(1rem, 3vw, 2.5rem) 1rem;
+}
+
+.fallbackNotice {
+  max-width: 68rem;
+  margin: 0 auto 1rem;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.fallbackLink {
+  font-weight: 600;
+  color: var(--accent);
+}
+
+.sheet {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 1.5rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+@media (min-width: 40rem) {
+  .sheet {
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: 3px;
+    box-shadow: var(--shadow);
+  }
+}

@@ -4,7 +4,8 @@ import { locales, type Locale } from './locales';
 import { contentSchema, type Content } from './schema';
 
 export * from './locales';
-export type { Content, Education, Experience, Project, Ui } from './schema';
+export type { Content, DeskUi, Education, Experience, Project, Ui } from './schema';
+export type { SceneContent } from './scene/schema';
 
 // Validation au chargement du module : un contenu invalide fait échouer le
 // build, pas la visite d'un recruteur.

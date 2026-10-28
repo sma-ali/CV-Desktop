@@ -3,3 +3,6 @@ prototype/
 
 package-lock.json
 next-env.d.ts
+
+# Worktrees imbriqués : chacun se vérifie depuis son propre dossier.
+.claude/

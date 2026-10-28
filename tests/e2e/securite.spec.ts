@@ -1,10 +1,19 @@
 import { expect, test } from '@playwright/test';
 
-// Une page et la page 404. La redirection de la racine n'a pas de contenu à
-// protéger : Next.js n'y ajoute pas ces en-têtes.
+// Toutes les sortes de réponses du site : les pages, les fichiers générés,
+// l'image de partage, les redirections du proxy et la page 404.
 const responses = [
-  { path: '/fr', status: 200 },
+  { path: '/fr/express', status: 200 },
+  { path: '/en/express', status: 200 },
+  { path: '/sitemap.xml', status: 200 },
+  { path: '/robots.txt', status: 200 },
+  { path: '/icon.svg', status: 200 },
+  { path: '/fr/express/opengraph-image', status: 200 },
+  { path: '/', status: 307 },
+  { path: '/fr', status: 307 },
+  { path: '/en', status: 307 },
   { path: '/de', status: 404 },
+  { path: '/de/express', status: 404 },
 ];
 
 for (const { path, status } of responses) {
@@ -25,14 +34,26 @@ for (const { path, status } of responses) {
   });
 }
 
-test('la racine redirige vers /fr sans dire sur quoi tourne le serveur', async ({ request }) => {
-  const response = await request.get('/', { maxRedirects: 0 });
-  expect(response.status()).toBe(307);
-  expect(response.headers()['location']).toBe('/fr');
-  expect(response.headers()['x-powered-by']).toBeUndefined();
+test('la racine choisit la langue sans dire sur quoi tourne le serveur', async ({ request }) => {
+  const english = await request.get('/', {
+    headers: { 'Accept-Language': 'en-GB,en;q=0.9' },
+    maxRedirects: 0,
+  });
+  expect(english.status()).toBe(307);
+  expect(english.headers()['location']).toBe('/en/express');
+  expect(english.headers()['vary']).toContain('Accept-Language');
+  expect(english.headers()['x-powered-by']).toBeUndefined();
+
+  const french = await request.get('/', {
+    headers: { 'Accept-Language': 'fr-FR,fr;q=0.9' },
+    maxRedirects: 0,
+  });
+  expect(french.headers()['location']).toBe('/fr/express');
 });
 
 test("aucune origine étrangère n'est autorisée (pas de CORS ouvert)", async ({ request }) => {
-  const response = await request.get('/fr', { headers: { Origin: 'https://exemple.invalid' } });
+  const response = await request.get('/fr/express', {
+    headers: { Origin: 'https://exemple.invalid' },
+  });
   expect(response.headers()['access-control-allow-origin']).toBeUndefined();
 });

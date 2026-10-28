@@ -39,11 +39,6 @@ const nextConfig: NextConfig = {
   async headers() {
     return [{ source: '/:path*', headers: securityHeaders }];
   },
-  async redirects() {
-    // Le français est la langue par défaut. Le choix selon la langue du
-    // navigateur viendra avec la version express.
-    return [{ source: '/', destination: '/fr', permanent: false }];
-  },
 };
 
 export default nextConfig;

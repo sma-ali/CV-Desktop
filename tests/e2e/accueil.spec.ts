@@ -1,7 +1,7 @@
 import { expect, test } from '@playwright/test';
 
-// La racine choisit la langue du navigateur, puis /fr et /en mènent à la
-// version express jusqu'à l'arrivée du bureau en 3D.
+// La racine choisit la langue du navigateur et mène à la version express en un
+// seul saut, comme /fr et /en, jusqu'à l'arrivée du bureau en 3D.
 test.describe('la racine', () => {
   test('envoie un navigateur anglais vers la version anglaise', async ({ browser }) => {
     const context = await browser.newContext({ locale: 'en-GB' });
@@ -24,11 +24,11 @@ test.describe('la racine', () => {
   });
 
   for (const [header, location] of [
-    ['en-US,en;q=0.9', '/en'],
-    ['de-DE,de;q=0.9,en;q=0.8', '/en'],
-    ['fr-FR,fr;q=0.9,en;q=0.8', '/fr'],
-    ['de', '/fr'],
-    ['', '/fr'],
+    ['en-US,en;q=0.9', '/en/express'],
+    ['de-DE,de;q=0.9,en;q=0.8', '/en/express'],
+    ['fr-FR,fr;q=0.9,en;q=0.8', '/fr/express'],
+    ['de', '/fr/express'],
+    ['', '/fr/express'],
   ] as const) {
     test(`répond 307 vers ${location} pour « ${header} »`, async ({ request }) => {
       const response = await request.get('/', {
@@ -38,6 +38,7 @@ test.describe('la racine', () => {
       expect(response.status()).toBe(307);
       expect(response.headers()['location']).toBe(location);
       expect(response.headers()['vary']).toContain('Accept-Language');
+      expect(response.headers()['cache-control']).toBe('private, no-store');
     });
   }
 
@@ -45,7 +46,7 @@ test.describe('la racine', () => {
     const request = await playwright.request.newContext({ baseURL });
     const response = await request.get('/', { maxRedirects: 0 });
     expect(response.status()).toBe(307);
-    expect(response.headers()['location']).toBe('/fr');
+    expect(response.headers()['location']).toBe('/fr/express');
     await request.dispose();
   });
 
@@ -54,7 +55,7 @@ test.describe('la racine', () => {
       headers: { 'Accept-Language': 'en' },
       maxRedirects: 0,
     });
-    expect(response.headers()['location']).toBe('/en?source=cv');
+    expect(response.headers()['location']).toBe('/en/express?source=cv');
   });
 });
 

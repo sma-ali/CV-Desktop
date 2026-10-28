@@ -2,9 +2,11 @@ import type { SceneContent } from '@/content/scene/schema';
 import { fitFont, grainy, roundRect } from '../core/canvas2d';
 import type { SceneFonts } from '../core/fonts';
 import { rng } from '../core/rng';
+import { FACE, FIREWALL_PORTS, homelabLeds, SWITCH_PORTS, UNITS, type UnitId } from './homelab';
 
 // Les textures peintes des objets du CV (couvertures, pages, badge, post-it,
-// carte, portable, plaque du coffret), portées du prototype. Les mises en page
+// carte, portable, plaque du coffret, bocal de Netherbrain, baie du
+// Homelab), portées du prototype. Les mises en page
 // gardent les coordonnées du prototype ; les textures plus fines sont
 // dessinées à l'échelle (ctx.scale). Tous les mots viennent de SceneContent :
 // faits du CV, ou décor qui n'affirme rien.
@@ -446,7 +448,7 @@ export function paintCardBack(scene: SceneContent): Painter {
 }
 
 // ------------------------------------------------------------------
-// Le portable (projets 2026)
+// Le portable (la pile : les compétences)
 // ------------------------------------------------------------------
 
 export const LAPTOP_TEXTURE = { width: 1200, height: 840 } as const;
@@ -468,9 +470,28 @@ const STICKER_STYLES: {
   { x: 630, y: 450, r: 0.12, bg: '#c2492f', fg: '#f6efe2', shape: 'rect', fs: 48 },
 ];
 
-/** Le couvercle fermé du portable, couvert d'autocollants. */
+/**
+ * La pile du portable : les compétences du CV que porte le contenu de la
+ * scène (la pile de l'écran, les autocollants), sans les noms des projets,
+ * qui ont désormais leurs objets (le bocal et la baie). Sans doublon, dans
+ * l'ordre du contenu.
+ */
+export function laptopSkills(scene: SceneContent): string[] {
+  const projects = new Set(scene.facts.projects.items.map((item) => item.name));
+  const skills = [...scene.screen.words.stackItems, ...scene.facts.projects.stickers];
+  return [...new Set(skills.filter((skill) => !projects.has(skill)))];
+}
+
+/** Les pastilles de l'écran du portable : la pile, puis les technologies des projets. */
+export function laptopChips(scene: SceneContent): string[] {
+  const projects = new Set(scene.facts.projects.items.map((item) => item.name));
+  const chips = [...laptopSkills(scene), ...scene.facts.projects.chips];
+  return [...new Set(chips.filter((chip) => !projects.has(chip)))];
+}
+
+/** Le couvercle fermé du portable, couvert d'autocollants : la pile. */
 export function paintLaptopStickers(scene: SceneContent): Painter {
-  const { stickers } = scene.facts.projects;
+  const stickers = laptopSkills(scene);
   return scaled(800, (c, w, h, F) => {
     c.fillStyle = '#8f8a82';
     c.fillRect(0, 0, w, h);
@@ -529,10 +550,15 @@ export function paintLaptopStickers(scene: SceneContent): Painter {
   });
 }
 
-/** L'écran du portable, vu quand il s'ouvre devant la caméra. */
+/**
+ * L'écran du portable, vu quand il s'ouvre devant la caméra : la pile en
+ * code (« const pile = [ ... ] »), en pastilles.
+ */
 export function paintLaptopScreen(scene: SceneContent): Painter {
-  const { projects } = scene.facts;
   const { path } = scene.laptop;
+  const { mark, text } = scene.labels.laptop;
+  const { stack } = scene.screen.words;
+  const chips = laptopChips(scene);
   return scaled(800, (c, w, h, F) => {
     c.fillStyle = '#1a1512';
     c.fillRect(0, 0, w, h);
@@ -544,25 +570,25 @@ export function paintLaptopScreen(scene: SceneContent): Painter {
     c.font = `500 15px ${F.mono}`;
     c.fillText(path, 20, 23);
     c.fillStyle = '#f2a94e';
-    c.font = `700 112px ${F.serif}`;
-    c.fillText(projects.year, 48, 150);
-    projects.items.slice(0, 2).forEach((item, i) => {
-      const y = 214 + i * 70;
-      c.fillStyle = '#f3e9d4';
-      c.font = `600 40px ${F.serif}`;
-      c.fillText(item.name, 52, y);
-      const nameWidth = c.measureText(item.name).width;
-      c.fillStyle = '#a8977f';
-      fitFont(c, item.tagline, w - nameWidth - 120, 24, 'italic 400', F.serif);
-      c.fillText(item.tagline, 52 + nameWidth + 18, y);
-    });
-    let x = 52;
-    let y = 362;
+    fitFont(c, mark, w - 100, 96, 700, F.serif);
+    c.fillText(mark, 48, 140);
+    const markWidth = c.measureText(mark).width;
+    c.fillStyle = '#a8977f';
+    fitFont(c, text, w - markWidth - 120, 34, 'italic 400', F.serif);
+    c.fillText(text, 48 + markWidth + 22, 140);
+    c.font = `500 26px ${F.mono}`;
+    c.fillStyle = '#c792ea';
+    c.fillText('const', 52, 206);
+    const constWidth = c.measureText('const ').width;
+    c.fillStyle = '#f3e9d4';
+    c.fillText(`${stack} = [`, 52 + constWidth, 206);
+    let x = 80;
+    let y = 236;
     c.font = `600 24px ${F.mono}`;
-    for (const chip of projects.chips) {
+    for (const chip of chips) {
       const tw = c.measureText(chip).width + 30;
       if (x + tw > w - 40) {
-        x = 52;
+        x = 80;
         y += 56;
       }
       c.strokeStyle = '#7fc4bb';
@@ -573,12 +599,11 @@ export function paintLaptopScreen(scene: SceneContent): Painter {
       c.fillText(chip, x + 15, y + 29);
       x += tw + 12;
     }
-    const comment = `// ${projects.tests}`;
-    c.fillStyle = '#8a7a66';
-    c.font = `400 22px ${F.mono}`;
-    c.fillText(comment, 52, h - 52);
+    c.font = `500 26px ${F.mono}`;
+    c.fillStyle = '#f3e9d4';
+    c.fillText('];', 52, y + 90);
     c.fillStyle = '#ffcf8a';
-    c.fillRect(52 + c.measureText(comment).width + 6, h - 72, 12, 24);
+    c.fillRect(52 + c.measureText('];').width + 8, y + 70, 12, 24);
   });
 }
 
@@ -635,4 +660,317 @@ export function paintPlaque(scene: SceneContent): Painter {
       c.fill();
     }
   });
+}
+
+// ------------------------------------------------------------------
+// Netherbrain : l'étiquette du bocal et son couvercle
+// ------------------------------------------------------------------
+
+/** L'étiquette collée au dos du bocal (enroulée sur le verre) : nom, accroche, année, pile, tests. */
+export const NETHERBRAIN_LABEL = { width: 768, height: 512 } as const;
+
+export function paintNetherbrainLabel(scene: SceneContent): Painter {
+  const { name, tagline, year, stack, tests } = scene.netherbrain.label;
+  return (c, w, h, F) => {
+    c.fillStyle = '#efe4cc';
+    c.fillRect(0, 0, w, h);
+    grainy(c, w, h, 47, 5000, 0.06);
+    // L'étiquette s'enroule sur le verre : les bords fuient, le texte reste au milieu.
+    const x0 = 120;
+    const x1 = w - 120;
+    const cx = w / 2;
+    c.strokeStyle = '#5a3d2b';
+    c.lineWidth = 4;
+    c.strokeRect(84, 20, w - 168, h - 40);
+    c.lineWidth = 1.5;
+    c.strokeRect(96, 32, w - 192, h - 64);
+    c.textAlign = 'center';
+    c.textBaseline = 'alphabetic';
+    c.fillStyle = '#8c3b2a';
+    fitFont(c, year, 200, 28, 600, F.mono);
+    c.fillText(year, cx, 76);
+    c.fillStyle = '#2a1c14';
+    fitFont(c, name, x1 - x0, 88, 700, F.serif);
+    c.fillText(name, cx, 156);
+    c.fillStyle = '#6b4c38';
+    fitFont(c, tagline, x1 - x0, 32, 'italic 400', F.serif);
+    c.fillText(tagline, cx, 198);
+    c.fillStyle = '#8c3b2a';
+    c.fillRect(cx - 110, 218, 220, 2);
+    c.fillStyle = '#2a1c14';
+    const step = Math.min(42, 190 / Math.max(1, stack.length));
+    stack.forEach((line, i) => {
+      fitFont(c, line, x1 - x0, 28, 500, F.mono);
+      c.fillText(line, cx, 262 + i * step);
+    });
+    c.fillStyle = '#4f6b3a';
+    fitFont(c, tests, x1 - x0 - 50, 24, 500, F.mono);
+    const testsWidth = c.measureText(tests).width;
+    c.fillText(tests, cx + 20, h - 56);
+    checkMark(c, cx - testsWidth / 2 - 12, h - 64, 26, '#4f6b3a', 4);
+  };
+}
+
+/** Le dessus du couvercle, lu d'en haut : le nom et l'année, gravés dans le laiton. */
+export const NETHERBRAIN_LID = { width: 512, height: 512 } as const;
+
+export function paintNetherbrainLid(scene: SceneContent): Painter {
+  const { name, year } = scene.netherbrain.label;
+  return (c, w, h, F) => {
+    const g = c.createRadialGradient(w * 0.4, h * 0.35, w * 0.05, w / 2, h / 2, w / 2);
+    g.addColorStop(0, '#e9c983');
+    g.addColorStop(0.6, '#c99a45');
+    g.addColorStop(1, '#8a6224');
+    c.fillStyle = g;
+    c.fillRect(0, 0, w, h);
+    c.strokeStyle = 'rgba(60,35,10,.55)';
+    c.lineWidth = 6;
+    c.beginPath();
+    c.arc(w / 2, h / 2, w / 2 - 26, 0, 7);
+    c.stroke();
+    c.lineWidth = 2;
+    c.beginPath();
+    c.arc(w / 2, h / 2, w / 2 - 44, 0, 7);
+    c.stroke();
+    c.fillStyle = '#3a2410';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    fitFont(c, name, w - 150, 74, 700, F.serif);
+    c.fillText(name, w / 2, h / 2 - 8);
+    fitFont(c, year, w - 200, 34, 600, F.mono);
+    c.fillText(year, w / 2, h / 2 + 62);
+  };
+}
+
+// ------------------------------------------------------------------
+// Homelab : la façade de la baie, son dessus et son dos
+// ------------------------------------------------------------------
+
+/** La façade des équipements (FACE de homelab.ts), aux proportions du plan. */
+export const HOMELAB_FACE = { width: 640, height: 556 } as const;
+
+/** Passe d'un point de la façade (repère de l'objet) aux pixels de la texture. */
+function facePx(x: number, y: number, w: number, h: number): [number, number] {
+  return [((x - FACE.x0) / (FACE.x1 - FACE.x0)) * w, ((FACE.y1 - y) / (FACE.y1 - FACE.y0)) * h];
+}
+
+/** Une prise RJ45 vue de face, centrée en (x, y) (pixels), large de size. */
+function rj45(c: Ctx, x: number, y: number, size: number) {
+  c.fillStyle = '#0b0c0d';
+  c.fillRect(x - size / 2, y - size * 0.38, size, size * 0.76);
+  c.fillRect(x - size * 0.22, y + size * 0.38, size * 0.44, size * 0.14);
+  c.fillStyle = '#c9a54a';
+  for (let k = 0; k < 4; k++) c.fillRect(x - size * 0.3 + k * size * 0.18, y - size * 0.3, 2, 5);
+}
+
+export function paintHomelabFront(scene: SceneContent): Painter {
+  const { units } = scene.homelab;
+  const names: Partial<Record<UnitId, string>> = {
+    server: units.server,
+    firewall: units.firewall,
+  };
+  const leds = homelabLeds();
+  return (c, w, h, F) => {
+    c.fillStyle = '#101113';
+    c.fillRect(0, 0, w, h);
+    for (const unit of UNITS) {
+      const [, top] = facePx(0, unit.y1, w, h);
+      const [, bottom] = facePx(0, unit.y0, w, h);
+      const uh = bottom - top;
+      const face = c.createLinearGradient(0, top, 0, bottom);
+      face.addColorStop(0, unit.id === 'patch' ? '#2c2f33' : '#4a4e55');
+      face.addColorStop(1, unit.id === 'patch' ? '#1e2023' : '#33363b');
+      c.fillStyle = face;
+      c.fillRect(4, top, w - 8, uh);
+      c.fillStyle = 'rgba(255,255,255,.12)';
+      c.fillRect(4, top, w - 8, 2);
+      // Les vis des oreilles de fixation.
+      c.fillStyle = '#8d9197';
+      for (const sx of [14, w - 14]) {
+        c.beginPath();
+        c.arc(sx, top + uh / 2, 4, 0, 7);
+        c.fill();
+      }
+      const cy = top + uh / 2;
+      if (unit.id === 'server') {
+        // Quatre baies de disques, puis des ouïes d'aération.
+        for (let k = 0; k < 4; k++) {
+          const bx = 92 + k * 88;
+          c.fillStyle = '#1d1f22';
+          c.fillRect(bx, top + 22, 78, uh - 44);
+          c.fillStyle = '#5a5e65';
+          c.fillRect(bx + 6, top + 30, 66, 10);
+          c.fillStyle = '#2a2c30';
+          for (let r = 0; r < 6; r++) c.fillRect(bx + 10, top + 56 + r * 20, 58, 6);
+        }
+        c.fillStyle = '#16181a';
+        for (let r = 0; r < 7; r++) {
+          for (let k = 0; k < 5; k++) c.fillRect(470 + k * 30, top + 30 + r * 22, 20, 9);
+        }
+      } else if (unit.id === 'firewall') {
+        for (const x of FIREWALL_PORTS) {
+          const [px] = facePx(x, 0, w, h);
+          rj45(c, px, cy, 34);
+        }
+      } else if (unit.id === 'switch') {
+        for (const x of SWITCH_PORTS) {
+          const [px] = facePx(x, 0, w, h);
+          rj45(c, px, cy + 8, 30);
+        }
+      } else {
+        // Le panneau de brassage : douze prises numérotées.
+        c.textAlign = 'center';
+        c.textBaseline = 'middle';
+        c.font = `500 11px ${F.mono}`;
+        for (let k = 0; k < 12; k++) {
+          const px = 70 + k * 44;
+          c.fillStyle = '#0b0c0d';
+          c.fillRect(px - 13, cy - 6, 26, 20);
+          c.fillStyle = '#9aa0a6';
+          c.fillText(String(k + 1), px, cy - 18);
+        }
+      }
+      const name = names[unit.id];
+      if (name) {
+        c.fillStyle = '#e8e2d4';
+        c.textAlign = 'left';
+        c.textBaseline = 'alphabetic';
+        const x = unit.id === 'server' ? 92 : 64;
+        const y = unit.id === 'server' ? bottom - 6 : cy + 8;
+        fitFont(
+          c,
+          name,
+          unit.id === 'server' ? 340 : 150,
+          unit.id === 'server' ? 18 : 22,
+          600,
+          F.mono,
+        );
+        if (unit.id === 'server') c.fillText(name, x, y);
+        else c.fillText(name, x + 20, y);
+      }
+    }
+    // Les logements des LED (les LED elles-mêmes sont des maillages qui luisent).
+    for (const led of leds) {
+      const [px, py] = facePx(led.x, led.y, w, h);
+      c.fillStyle = '#060606';
+      c.beginPath();
+      c.arc(px, py, 7, 0, 7);
+      c.fill();
+    }
+  };
+}
+
+/** Le dessus de la baie, vu d'en haut : tôle perforée et le nom gravé à l'avant. */
+export const HOMELAB_TOP = { width: 640, height: 508 } as const;
+
+export function paintHomelabTop(scene: SceneContent): Painter {
+  const { name } = scene.homelab;
+  return (c, w, h, F) => {
+    c.fillStyle = '#3d4046';
+    c.fillRect(0, 0, w, h);
+    grainy(c, w, h, 63, 3000, 0.05);
+    c.fillStyle = '#1b1c1f';
+    for (let r = 0; r < 9; r++) {
+      for (let k = 0; k < 16; k++) {
+        c.beginPath();
+        c.arc(96 + k * 30, 54 + r * 26, 6, 0, 7);
+        c.fill();
+      }
+    }
+    // Le haut de la texture regarde le mur : le nom est en bas, côté visiteur.
+    c.fillStyle = '#d9d2c3';
+    roundRect(c, 120, h - 170, w - 240, 120, 10);
+    c.fill();
+    c.strokeStyle = '#7d6c58';
+    c.lineWidth = 3;
+    roundRect(c, 132, h - 158, w - 264, 96, 6);
+    c.stroke();
+    c.fillStyle = '#2a2724';
+    c.textAlign = 'center';
+    c.textBaseline = 'middle';
+    fitFont(c, name, w - 300, 64, 700, F.serif);
+    c.fillText(name, w / 2, h - 108);
+  };
+}
+
+/** Le dos de la baie (retournée) : le nom, puis trois étiquettes à pictogramme. */
+export const HOMELAB_BACK = { width: 640, height: 556 } as const;
+
+type Pictogram = 'server' | 'firewall' | 'access';
+
+function pictogram(c: Ctx, kind: Pictogram, x: number, y: number, size: number) {
+  c.strokeStyle = '#2a2724';
+  c.fillStyle = '#2a2724';
+  c.lineWidth = 4;
+  c.lineJoin = 'round';
+  const s = size;
+  if (kind === 'server') {
+    for (let k = 0; k < 3; k++) {
+      roundRect(c, x - s / 2, y - s / 2 + k * (s / 3), s, s / 3 - 5, 4);
+      c.stroke();
+      c.beginPath();
+      c.arc(x + s / 2 - 10, y - s / 2 + k * (s / 3) + s / 6 - 2, 3, 0, 7);
+      c.fill();
+    }
+  } else if (kind === 'firewall') {
+    // Un mur de briques.
+    const rows = 3;
+    const bh = s / rows;
+    for (let r = 0; r < rows; r++) {
+      const offset = r % 2 ? s / 4 : 0;
+      for (let k = -1; k < 2; k++) {
+        const bx = x - s / 2 + offset + k * (s / 2);
+        const left = Math.max(x - s / 2, bx);
+        const right = Math.min(x + s / 2, bx + s / 2);
+        if (right - left > 4) c.strokeRect(left, y - s / 2 + r * bh, right - left, bh);
+      }
+    }
+  } else {
+    // Un cadenas : l'accès.
+    c.beginPath();
+    c.arc(x, y - s * 0.12, s * 0.24, Math.PI, 0);
+    c.stroke();
+    roundRect(c, x - s * 0.36, y - s * 0.12, s * 0.72, s * 0.56, 6);
+    c.fill();
+    c.fillStyle = '#efe4cc';
+    c.beginPath();
+    c.arc(x, y + s * 0.12, 5, 0, 7);
+    c.fill();
+  }
+}
+
+export function paintHomelabBack(scene: SceneContent): Painter {
+  const { name, units, access } = scene.homelab;
+  const rows: [Pictogram, string][] = [
+    ['server', units.server],
+    ['firewall', units.firewall],
+    ['access', access],
+  ];
+  return (c, w, h, F) => {
+    c.fillStyle = '#2b2e33';
+    c.fillRect(0, 0, w, h);
+    grainy(c, w, h, 71, 2500, 0.05);
+    // Les ouïes du dos.
+    c.fillStyle = '#17181b';
+    for (let r = 0; r < 4; r++) c.fillRect(40, 40 + r * 20, w - 80, 8);
+    c.fillStyle = '#e8e2d4';
+    c.textAlign = 'left';
+    c.textBaseline = 'alphabetic';
+    fitFont(c, name, w - 120, 64, 700, F.serif);
+    c.fillText(name, 60, 182);
+    rows.forEach(([kind, label], i) => {
+      const y = 214 + i * 104;
+      c.save();
+      c.translate(60, y);
+      c.rotate((i - 1) * 0.012);
+      c.fillStyle = '#efe4cc';
+      roundRect(c, 0, 0, w - 120, 86, 6);
+      c.fill();
+      c.restore();
+      pictogram(c, kind, 112, y + 43, 52);
+      c.fillStyle = '#2a2724';
+      fitFont(c, label, w - 300, 40, 600, F.mono);
+      c.fillText(label, 170, y + 57);
+    });
+  };
 }

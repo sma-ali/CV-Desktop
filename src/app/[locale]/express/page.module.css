@@ -118,6 +118,7 @@
   color: var(--on-accent);
 }
 
+.bar:focus,
 .main:focus {
   outline: none;
 }

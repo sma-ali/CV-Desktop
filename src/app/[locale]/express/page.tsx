@@ -40,7 +40,8 @@ export default async function ExpressPage({ params }: PageProps<'/[locale]/expre
         {ui.skipToContent}
       </a>
       <div className={styles.sheet}>
-        <header className={styles.bar}>
+        {/* Cible du lien « Haut de page » : le focus revient avant les outils. */}
+        <header id="haut" tabIndex={-1} className={styles.bar}>
           <p className={styles.kicker}>
             {ui.kicker}
             <span className={styles.kickerSeparator}> | </span>
@@ -64,7 +65,7 @@ export default async function ExpressPage({ params }: PageProps<'/[locale]/expre
           <p className={styles.footerText}>
             {profile.name} | <a href={contact.website}>{displayUrl(contact.website)}</a>
           </p>
-          <a href="#contenu" className={styles.footerLink}>
+          <a href="#haut" className={styles.footerLink}>
             {ui.backToTop}
           </a>
         </footer>

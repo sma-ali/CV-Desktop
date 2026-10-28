@@ -1,0 +1,17 @@
+import { en } from './en';
+import { fr } from './fr';
+import { locales, type Locale } from './locales';
+import { contentSchema, type Content } from './schema';
+
+export * from './locales';
+export type { Content, Experience, Project } from './schema';
+
+// Validation au chargement du module : un contenu invalide fait échouer le
+// build, pas la visite d'un recruteur.
+const contentByLocale = Object.fromEntries(
+  locales.map((locale) => [locale, contentSchema.parse({ fr, en }[locale])]),
+) as Record<Locale, Content>;
+
+export function getContent(locale: Locale): Content {
+  return contentByLocale[locale];
+}

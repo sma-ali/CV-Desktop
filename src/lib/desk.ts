@@ -1,6 +1,6 @@
-import type { Content } from '@/content';
+import type { Content, SheetContent, SheetsContent } from '@/content';
 import { localeNames, type Locale } from '@/content/locales';
-import { STEP_ITEM, type ItemId, type MoodId, type StepId } from '@/scene/core/ids';
+import { SHEET_ORDER, STEP_ITEM, type ItemId, type MoodId, type StepId } from '@/scene/core/ids';
 import type { SceneTexts } from '@/scene/core/texts';
 import { deskPath, expressPath } from './site';
 
@@ -25,6 +25,21 @@ export interface DeskStep {
   contact: boolean;
 }
 
+/** Une fiche telle que le HUD l'affiche : celle du contenu, plus le lien du dépôt s'il est public. */
+export interface DeskSheet extends SheetContent {
+  /** Le dépôt GitHub du projet, seulement s'il est public (repository.public). */
+  repository: { label: string; href: string } | null;
+}
+
+/** Les fiches du bureau et leurs textes d'interface. */
+export interface DeskSheets {
+  ui: SheetsContent['ui'];
+  /** L'appel au contact : la section contact de la version express. */
+  contactHref: string;
+  /** Une fiche par objet, dans l'ordre de SHEET_ORDER. */
+  items: Record<ItemId, DeskSheet>;
+}
+
 /** Les textes du HUD et du repli. */
 export interface DeskHudTexts {
   locale: Locale;
@@ -44,7 +59,15 @@ export interface DeskHudTexts {
   clock: { visitorTime: string; pinned: string };
   moodsLabel: string;
   moods: Record<MoodId, { name: string; light: string }>;
-  hint: { pointer: string; touch: string; auto: string; presented: string };
+  hint: {
+    pointer: string;
+    touch: string;
+    auto: string;
+    presented: string;
+    held: { pointer: string; touch: string };
+  };
+  /** Les fiches (le bristol), le bouton « Son » et les signes de vie du coffret. */
+  sheets: DeskSheets;
   fallback: {
     noScript: string;
     noWebgl: string;
@@ -109,6 +132,27 @@ export function buildDeskSteps(content: Content, locale: Locale): DeskStep[] {
   ];
 }
 
+/**
+ * Les fiches du HUD. Le lien d'un dépôt n'y entre que si le dépôt est public :
+ * le contenu le marque (repository.public), à vérifier sur GitHub avant.
+ */
+export function buildDeskSheets(content: Content, locale: Locale): DeskSheets {
+  const { ui, items } = content.sheets;
+  const repositoryOf = (id: ItemId): DeskSheet['repository'] => {
+    const project = content.projects.find((entry) => entry.id === id);
+    return project?.repository.public
+      ? { label: ui.repository, href: project.repository.url }
+      : null;
+  };
+  return {
+    ui,
+    contactHref: `${expressPath(locale)}#contact`,
+    items: Object.fromEntries(
+      SHEET_ORDER.map((id) => [id, { ...items[id], repository: repositoryOf(id) }]),
+    ) as Record<ItemId, DeskSheet>,
+  };
+}
+
 export function buildDeskTexts(content: Content, locale: Locale): DeskHudTexts {
   const { profile, desk } = content;
   const other = otherLocale[locale];
@@ -131,6 +175,7 @@ export function buildDeskTexts(content: Content, locale: Locale): DeskHudTexts {
     moodsLabel: desk.moodsLabel,
     moods: desk.moods,
     hint: desk.hint,
+    sheets: buildDeskSheets(content, locale),
     fallback: desk.fallback,
   };
 }

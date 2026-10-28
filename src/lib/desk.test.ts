@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getContent } from '@/content';
-import { buildDeskSteps, buildDeskTexts, buildSceneTexts } from './desk';
+import { SHEET_ORDER } from '@/scene/core/ids';
+import { buildDeskSheets, buildDeskSteps, buildDeskTexts, buildSceneTexts } from './desk';
 
 describe('les étapes du bureau', () => {
   it('suivent le CV en français', () => {
@@ -18,7 +19,7 @@ describe('les étapes du bureau', () => {
       { id: 'dares', item: 'postit', title: '2024', detail: 'DARES', href: '/fr/express#dares' },
       {
         id: 'projects',
-        item: 'laptop',
+        item: 'netherbrain',
         title: '2026',
         detail: 'Netherbrain | Homelab',
         href: '/fr/express#projects',
@@ -73,5 +74,39 @@ describe('les textes du bureau', () => {
     const texts = buildSceneTexts(getContent('en'), 'en');
     expect(Object.keys(texts)).toEqual(['locale', 'canvasLabel', 'content']);
     expect(texts.content).toEqual(getContent('en').scene);
+  });
+});
+
+describe('les fiches du bureau', () => {
+  it('couvrent chaque objet et mènent au contact de la version express', () => {
+    const sheets = buildDeskSheets(getContent('fr'), 'fr');
+    expect(Object.keys(sheets.items)).toEqual([...SHEET_ORDER]);
+    expect(sheets.contactHref).toBe('/fr/express#contact');
+    expect(buildDeskSheets(getContent('en'), 'en').contactHref).toBe('/en/express#contact');
+  });
+
+  it('ne lient pas un dépôt privé', () => {
+    const content = getContent('fr');
+    expect(content.projects.every((project) => !project.repository.public)).toBe(true);
+    const sheets = buildDeskSheets(content, 'fr');
+    for (const id of SHEET_ORDER) expect(sheets.items[id].repository, id).toBeNull();
+  });
+
+  it('lient le dépôt d’un projet public', () => {
+    const content = getContent('fr');
+    const opened = {
+      ...content,
+      projects: content.projects.map((project) =>
+        project.id === 'homelab'
+          ? { ...project, repository: { ...project.repository, public: true } }
+          : project,
+      ),
+    };
+    const sheets = buildDeskSheets(opened, 'fr');
+    expect(sheets.items.homelab.repository).toEqual({
+      label: 'Voir le dépôt',
+      href: 'https://github.com/sma-ali/Homelab',
+    });
+    expect(sheets.items.netherbrain.repository).toBeNull();
   });
 });

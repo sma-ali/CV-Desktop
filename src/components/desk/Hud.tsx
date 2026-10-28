@@ -3,10 +3,12 @@
 import Link from 'next/link';
 import { useState, useSyncExternalStore, type CSSProperties, type MouseEvent } from 'react';
 import type { DeskHudTexts, DeskStep } from '@/lib/desk';
+import { formatPlaces } from '@/scene/core/bodies';
 import { MOOD_SWATCHES } from '@/scene/core/constants';
 import { ITEM_STEP, MOOD_IDS, type MoodId } from '@/scene/core/ids';
 import { formatVisitorTime, moodOfHour, visitorNow } from '@/scene/core/mood';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
+import { Sheet } from './Sheet';
 import styles from './Desk.module.css';
 
 /** L'heure du visiteur à la minute près (null avant l'hydratation : le serveur ne la connaît pas). */
@@ -34,10 +36,12 @@ function useCoarsePointer(): boolean {
   );
 }
 
-// Le HUD du bureau, d'après le prototype : identité, commandes, puces du CV,
-// heure du visiteur et ambiances, carton d'arrivée, indication. Rendu par le
-// serveur, visible avant la 3D. Expose l'état de la scène aux tests par des
-// attributs data-* (phase, ambiance, objet présenté, mode auto...).
+// Le HUD du bureau, d'après le prototype : identité, commandes (dont le
+// bouton « Son »), puces du CV, heure du visiteur et ambiances, carton
+// d'arrivée, indication, fiche de l'objet présenté. Rendu par le serveur,
+// visible avant la 3D. Expose l'état de la scène aux tests par des attributs
+// data-* (phase, ambiance, objet présenté, mode auto, objet retourné, glisser,
+// son, places des objets déplacés, ce qui sort du cadre...).
 export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean }) {
   const store = useSceneStoreApi();
   const coarse = useCoarsePointer();
@@ -49,6 +53,11 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
   const moodPinned = useSceneStore((state) => state.moodPinned);
   const autoOn = useSceneStore((state) => state.autoOn);
   const presented = useSceneStore((state) => state.presented);
+  const flipped = useSceneStore((state) => state.flipped);
+  const dragging = useSceneStore((state) => state.dragging);
+  const places = useSceneStore((state) => state.places);
+  const soundOn = useSceneStore((state) => state.soundOn);
+  const offscreen = useSceneStore((state) => state.offscreen);
   const settings = useSceneStore((state) => state.settings);
   const minute = useVisitorMinute(settings.hourOffsetMs);
   // Ce que la région d'état annonce : seulement les gestes du visiteur
@@ -99,6 +108,11 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
       data-auto={autoOn ? 'true' : 'false'}
       data-reduced={settings.reducedMotion ? 'true' : 'false'}
       data-frozen={settings.frozen ? 'true' : 'false'}
+      data-flipped={presented && flipped ? 'true' : 'false'}
+      data-dragging={dragging ?? ''}
+      data-sound={soundOn ? 'on' : 'off'}
+      data-places={formatPlaces(places)}
+      data-offscreen={offscreen.join(' ')}
     >
       <p className={styles.carton} data-on={hud.carton ? 'true' : undefined} aria-hidden="true">
         <span className={styles.cartonKicker}>{texts.arrivalKicker}</span>
@@ -131,6 +145,17 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
           >
             {texts.language.label}
           </Link>
+          {ready ? (
+            <button
+              type="button"
+              className={styles.button}
+              aria-pressed={soundOn}
+              data-sound-toggle=""
+              onClick={() => store.getState().toggleSound()}
+            >
+              {texts.sheets.ui.sound}
+            </button>
+          ) : null}
           {ready && !settings.reducedMotion ? (
             <button
               type="button"
@@ -216,6 +241,8 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
           <span>{hint}</span>
         </p>
       </footer>
+
+      <Sheet texts={texts.sheets} />
 
       <p className="visually-hidden" role="status">
         {announcement}

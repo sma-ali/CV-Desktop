@@ -9,6 +9,7 @@ import { Dust } from './Dust';
 import { Effects } from './Effects';
 import { LampCone } from './LampCone';
 import { Lights } from './Lights';
+import { OffscreenProbe } from './OffscreenProbe';
 import { STAGE_PRIORITY } from './priorities';
 import { createQualityMonitor, qualitySettings, sampleQuality, type QualityLevel } from './quality';
 import { createStageShared } from './shared';
@@ -37,6 +38,7 @@ export function Stage() {
       <Sky />
       <CameraRig sharedRef={sharedRef} />
       <AutoTour />
+      <OffscreenProbe />
       <AdaptiveQuality onChange={setLevel} />
       {noPost ? null : <Effects sharedRef={sharedRef} bloom={quality.bloom} />}
     </>

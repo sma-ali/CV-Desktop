@@ -2,10 +2,17 @@
 
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { createContext, useContext, useMemo, useRef } from 'react';
-import { Quaternion, Vector3, type Group, type Material, type PerspectiveCamera } from 'three';
+import {
+  Euler,
+  Quaternion,
+  Vector3,
+  type Group,
+  type Material,
+  type PerspectiveCamera,
+} from 'three';
 import { ease, easeOut, lerp } from '../core/arrival';
 import { ITEM_POSES } from '../core/constants';
-import type { ItemId } from '../core/ids';
+import { isBodyId, type ItemId } from '../core/ids';
 import type { FrameState } from '../core/store';
 import { useSceneStoreApi } from '../core/store-context';
 import {
@@ -24,6 +31,11 @@ import {
 // curseur main), clic (présenter ou reposer), présentation devant la caméra
 // et pose de l'étiquette (TagLayer). Chaque objet appelle ce hook et pose `ref` et `handlers` sur
 // son groupe racine.
+//
+// Étape 4 (partie « gestes ») : un objet glissable (BODY_IDS) repose à sa
+// place du plateau, store.desk[id], que les gestes déplacent ; son
+// soulèvement, son inclinaison et son écrasement en viennent aussi. Le geste
+// de présentation suit store.flipped.
 
 /** Avancement de la présentation de chaque objet, lu par CvItems pour frame.presentLevel. */
 export class PresentProgress {
@@ -55,10 +67,11 @@ type Glowing = Material & { emissiveIntensity: number };
 
 export interface PresentationOptions {
   id: ItemId;
-  /** Pose de repos sur le bureau. */
+  /**
+   * Pose de repos sur le bureau. Pour un objet glissable, seule sa hauteur
+   * (rest.position.y) compte : x, z et la rotation viennent de store.desk.
+   */
   rest: RestPose;
-  /** Position de repos en portrait, si elle diffère (même orientation). */
-  portraitRest?: Vector3;
   /** false : l'objet ne se soulève pas (l'écran, que la caméra vient regarder). */
   lift?: boolean;
   /** Hauteur de l'arc du soulèvement (1 ; 0.4 pour un objet collé). */
@@ -79,6 +92,8 @@ function setGlow(materials: readonly Glowing[], level: number): void {
 }
 
 const restPosition = new Vector3();
+const restQuaternion = new Quaternion();
+const restEuler = new Euler();
 const heldPosition = new Vector3();
 const heldQuaternion = new Quaternion();
 const input: PresentInput = { t: 0, pointerX: 0, pointerY: 0 };
@@ -86,7 +101,6 @@ const input: PresentInput = { t: 0, pointerX: 0, pointerY: 0 };
 export function usePresentation({
   id,
   rest,
-  portraitRest,
   lift = true,
   arc = 1,
   seed = 0,
@@ -115,17 +129,28 @@ export function usePresentation({
       scene.hovered === id,
       frame.dt,
       reduced || scene.clock.frozen,
+      scene.flipped,
     );
     progress?.set(id, current.p);
 
     if (group && lift) {
-      // En portrait, certains objets changent de place (le coffret).
-      restPosition.copy(frame.portrait && portraitRest ? portraitRest : rest.position);
+      // Un objet glissable repose à sa place du plateau (store.desk), qui
+      // suit le format (le coffret change de place en portrait).
+      const body = isBodyId(id) ? scene.desk[id] : null;
+      let squash = 1;
+      if (body) {
+        restPosition.set(body.x, rest.position.y + body.lift, body.z);
+        restQuaternion.setFromEuler(restEuler.set(body.tiltX, body.ry, body.tiltZ));
+        squash = 1 + Math.sin(body.squash * Math.PI) * 0.06;
+      } else {
+        restPosition.copy(rest.position);
+        restQuaternion.copy(rest.quaternion);
+      }
       restPosition.y += current.hover * HOVER_LIFT;
       if (current.p <= 0) {
         group.position.copy(restPosition);
-        group.quaternion.copy(rest.quaternion);
-        group.scale.setScalar(1);
+        group.quaternion.copy(restQuaternion);
+        group.scale.set(squash, 1 / squash, squash);
       } else {
         // Mouvement réduit : ni balancement ni suivi du pointeur.
         input.t = reduced ? 0 : frame.t;
@@ -145,7 +170,7 @@ export function usePresentation({
         group.position.lerpVectors(restPosition, heldPosition, k);
         group.position.y += Math.sin(Math.PI * k) * 1.2 * arc;
         group.quaternion
-          .copy(rest.quaternion)
+          .copy(restQuaternion)
           .slerp(heldQuaternion, easeOut(Math.min(1, current.p * 1.15)));
         group.scale.setScalar(lerp(1, scale, k));
       }

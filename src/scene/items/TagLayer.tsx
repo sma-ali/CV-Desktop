@@ -4,7 +4,7 @@ import { useFrame, useThree } from '@react-three/fiber';
 import { createContext, useContext, useEffect, useRef, useState } from 'react';
 import { Vector3, type Camera, type Object3D } from 'three';
 import { ITEM_POSES } from '../core/constants';
-import type { ItemId } from '../core/ids';
+import { ITEM_IDS, type ItemId } from '../core/ids';
 import type { SceneStore } from '../core/store';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
@@ -43,7 +43,13 @@ export function TagAnchor({ id }: { id: ItemId }) {
   return anchor ? <object3D ref={ref} position={[0, anchor.y, anchor.z]} /> : null;
 }
 
-const TAGGED = ['book', 'postit', 'laptop', 'card', 'chest'] as const satisfies ItemId[];
+/** Un objet étiqueté : sa pose a un point d'accroche, et le contenu une étiquette (scene.test.ts). */
+type TaggedId = ItemId & keyof SceneTexts['content']['labels'];
+
+const isTagged = (id: ItemId): id is TaggedId => ITEM_POSES[id].tag !== null;
+
+/** Les objets étiquetés, dans l'ordre de ITEM_IDS : les nouveaux objets en ont une d'office. */
+const TAGGED = ITEM_IDS.filter(isTagged);
 
 interface TagElement {
   id: ItemId;
@@ -67,15 +73,16 @@ class TagOverlay {
     layer.setAttribute('aria-hidden', 'true');
     const stop = (event: Event) => event.stopPropagation();
     this.tags = TAGGED.map((id): TagElement => {
+      const label = labels[id];
       const element = document.createElement('div');
       element.className = styles.tag ?? '';
       element.dataset.item = id;
       element.dataset.shown = 'false';
       if (id === 'chest') element.dataset.live = 'true';
       const mark = document.createElement('b');
-      mark.textContent = labels[id].mark;
+      mark.textContent = label.mark;
       const word = document.createElement('span');
-      word.textContent = labels[id].text;
+      word.textContent = label.text;
       element.append(mark, word);
       element.addEventListener('pointerdown', stop);
       element.addEventListener('pointerup', stop);

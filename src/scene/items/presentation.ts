@@ -46,7 +46,8 @@ export function createPresentState(): PresentState {
 
 /**
  * Fait avancer la présentation d'une image. held : l'objet est-il présenté ;
- * hovered : est-il sous le pointeur. En mouvement réduit, tout est immédiat.
+ * hovered : est-il sous le pointeur ; flipped : son geste est-il demandé
+ * (store.flipped, vrai par défaut). En mouvement réduit, tout est immédiat.
  */
 export function stepPresentation(
   state: PresentState,
@@ -54,13 +55,14 @@ export function stepPresentation(
   hovered: boolean,
   dt: number,
   reduced: boolean,
+  flipped = true,
 ): PresentState {
   const target = held ? 1 : 0;
   state.p = reduced
     ? target
     : stepToward(state.p, target, dt * (held ? RATES.lift : RATES.putBack));
   // Le geste commence quand l'objet est à mi-chemin, et se défait aussitôt reposé.
-  const gesture = held && state.p > 0.55 ? 1 : 0;
+  const gesture = held && flipped && state.p > 0.55 ? 1 : 0;
   state.f = reduced ? gesture : stepToward(state.f, gesture, dt * RATES.flip);
   const hover = hovered && !held ? 1 : 0;
   state.hover = reduced ? hover : lerp(state.hover, hover, 1 - Math.pow(0.002, dt));
@@ -115,6 +117,14 @@ export function presentQuaternion(
       euler.set(0.5 - py * 0.12, -0.35 + Math.sin(t * 0.6) * 0.25 + px * 0.3 + shake, shake * 0.5);
       return out.setFromEuler(euler);
     }
+    case 'spin':
+      // Un objet debout, penché vers la caméra, qui fait un demi-tour pour montrer son dos.
+      euler.set(
+        0.35 - py * 0.12 + wob * 0.4,
+        Math.PI * smooth(f) + px * 0.3 + wob,
+        Math.sin(t * 0.9) * 0.02,
+      );
+      return out.setFromEuler(euler);
     case 'screen':
       return out.identity();
   }

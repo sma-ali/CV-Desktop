@@ -2,14 +2,8 @@
 
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
-import { MeshBasicMaterial, PlaneGeometry, Vector3, type PointLight } from 'three';
-import {
-  ARRIVAL,
-  CHEST_PORTRAIT,
-  ITEM_POSES,
-  legacyPointIntensity,
-  POINT_DECAY,
-} from '../core/constants';
+import { MeshBasicMaterial, PlaneGeometry, type PointLight } from 'three';
+import { ARRIVAL, ITEM_POSES, legacyPointIntensity, POINT_DECAY } from '../core/constants';
 import { Box, Cyl } from '../core/geometry';
 import { brass, standardMaterial } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
@@ -73,12 +67,10 @@ export function Chest({ texts }: { texts: SceneTexts }) {
   );
 
   const rest = useMemo(() => deskRestPose(ITEM_POSES.chest), []);
-  const portraitRest = useMemo(() => new Vector3(CHEST_PORTRAIT.x, 0, CHEST_PORTRAIT.z), []);
   const glow = useMemo(() => [plaque], [plaque]);
   const { ref, handlers } = usePresentation({
     id: 'chest',
     rest,
-    portraitRest,
     seed: 0.78,
     glow,
     glowBase: 0.1,

@@ -9,16 +9,19 @@ import { Book } from './Book';
 import { Card } from './Card';
 import { Chest } from './Chest';
 import { Headset } from './Headset';
+import { Homelab } from './Homelab';
 import { Laptop } from './Laptop';
 import { Monitor } from './Monitor';
+import { Netherbrain } from './Netherbrain';
 import { PostIt } from './PostIt';
 import { ITEMS_PRIORITY } from './presentation';
 import { TagAnchorsContext, TagLayer, type TagAnchors } from './TagLayer';
 import { PresentProgress, ProgressContext } from './usePresentation';
 
 // Les objets du CV posés sur le bureau : l'écran et son code, le livre et le
-// badge (DEFI-METIERS), le post-it et le casque (DARES), le portable
-// (projets 2026), la carte de visite (contact) et le coffret scellé (projets
+// badge (DEFI-METIERS), le post-it et le casque (DARES), le bocal de
+// Netherbrain et la baie du Homelab (projets 2026), le portable (la pile
+// technique), la carte de visite (contact) et le coffret scellé (projets
 // perso). Chacun se survole, se présente au clic et porte son étiquette.
 // Un clic hors des objets repose celui qui est présenté.
 
@@ -57,6 +60,8 @@ export function CvItems({ texts }: { texts: SceneTexts }) {
           <Laptop texts={texts} />
           <Card texts={texts} />
           <Chest texts={texts} />
+          <Netherbrain texts={texts} />
+          <Homelab texts={texts} />
         </group>
         <TagLayer texts={texts} progress={progress} />
       </TagAnchorsContext>

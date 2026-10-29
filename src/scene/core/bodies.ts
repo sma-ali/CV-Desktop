@@ -51,7 +51,8 @@ export const BODY_FOOTPRINTS = {
   book: { cx: 0, cz: 0, hw: 0.95, hd: 1.25 },
   badge: { cx: 0, cz: 0, hw: 0.43, hd: 0.62 },
   laptop: { cx: 0, cz: 0, hw: 1.35, hd: 0.93 },
-  card: { cx: 0, cz: 0, hw: 0.85, hd: 0.5 },
+  // La carte et la pile de cartes qui la porte (items/cardPile.ts).
+  card: { cx: 0, cz: 0, hw: 0.91, hd: 0.575 },
   chest: { cx: 0, cz: -0.2, hw: 0.83, hd: 0.54 },
   netherbrain: { cx: 0, cz: 0, hw: 0.42, hd: 0.42 },
   homelab: { cx: 0, cz: 0, hw: 0.5, hd: 0.4 },

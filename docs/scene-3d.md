@@ -230,7 +230,7 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
   - `parcours.spec.ts` (assemblage) : puce au clavier puis Échap, gros plan sur l'écran au clic et par `?prendre=monitor`, visite arrêtée par une touche, Rejouer qui repose l'objet et garde l'ambiance, passage en anglais scène comprise, aller-retour avec la version express.
   - `scene-gestes.spec.ts` (étape 4, gestes) : bureau au repos, objet présenté retourné sauf avec `?recto`, portable glissé contre la carte sans la chevaucher, objet tiré vers le bord qui reste sur le plateau, `?glisse=mug`, appui de moins de 7 px qui reste un clic, retourner puis remettre d'un clic, objet déplacé présenté puis reposé à sa nouvelle place jusqu'à Rejouer, `?glisse` sous `&fige` et sans, mouvement réduit (Rejouer compris), objet glissé puis présenté au clavier qui reste présenté, visite coupée par un glisser, pas de défilement au doigt. Les recouvrements se vérifient avec le solveur, à partir de `data-places`.
   - `scene-fiches.spec.ts` (étape 4, fiches et son) : chaque puce ouvre la bonne fiche en FR et en EN (comparée au contenu), Préc. / Suiv. et flèches sur tout `SHEET_ORDER`, focus au clavier rendu par Échap et Reposer, visite qui ne vole pas le focus, Retourner au bouton et à `R`, aucun lien vers un dépôt privé, axe fiche ouverte, boutons et liens de 44 px sans `aria-label`, signes de vie FR et EN sans mot interdit, son coupé jusqu'au clic (aucun AudioContext avant), indication de l'objet tenu, feuille du bas en 390x844, 360x740 et 412x915, fiche à droite en 844x390.
-  - `scene-projets.spec.ts` (étape 4, objets et cadrage) : étiquettes de Netherbrain, Homelab et de la pile, présentation par la puce, l'étiquette, un clic ou un tap, dos peint des deux objets retournés, coffret qui bat au rythme de ses signes de vie, `data-offscreen` vide sur ordinateur, en trois portraits et en paysage, bord avant du bureau sur le HUD du bas.
+  - `scene-projets.spec.ts` (étape 4, objets et cadrage) : étiquettes de Netherbrain, Homelab et de la pile, présentation par la puce, l'étiquette, un clic ou un tap, dos peint des deux objets retournés, coffret qui bat au rythme de ses signes de vie, `data-offscreen` vide sur ordinateur, en trois portraits et en paysage, bureau resserré qui remplit la hauteur libre en portrait (`data-desk-share` au-dessus de 0.65), bord avant du bureau sur le HUD du bas.
   - La CI découpe chaque profil en trois parts (`--shard`), six jobs en parallèle : voir « Décisions de l'assemblage de l'étape 4 ».
 
 ## État à la fin de l'étape 3
@@ -306,14 +306,13 @@ Tout le périmètre de [`docs/gestes.md`](gestes.md) est en place, fusionné sur
 - Netherbrain (bocal au cerveau qui luit) et Homelab (mini baie aux LED qui clignotent), sans lien vers leurs dépôts, encore privés ;
 - coffret : signes de vie (données d'exemple signalées comme telles) et battement de sa LED et de son liseré ;
 - son : synthèse WebAudio, coupé par défaut, AudioContext créé au clic sur « Son » ;
-- téléphone : tout le bureau utile à l'écran en portrait et en paysage (`data-offscreen` vide), glisser au doigt sans défiler ;
+- téléphone : tout le bureau utile à l'écran en portrait et en paysage (`data-offscreen` vide), glisser au doigt sans défiler ; en portrait, le bureau se resserre (voir « Le bureau resserré du téléphone ») ;
 - mouvement réduit : glisser sans retard, inclinaison ni rebond ; retournement et présentation immédiats.
 
 Vérifié à la main, hors du dépôt, avec de vrais gestes : chaque corps glissé vers chacun des autres, vers les trois obstacles du décor les plus proches et vers les quatre bords, sur ordinateur (1440x900, 135 glissers) et sur téléphone (Pixel 7, au doigt, 93 glissers) : aucun recouvrement, rien hors du plateau, aucun objet présenté par un glisser, aucune erreur dans la console. Les fiches parcourues au clavier (puce, Entrée, flèches, `R`, Échap) : focus sur le titre puis rendu à la puce, chaque objet retourné puis remis, l'écran sans bouton ; aucun AudioContext avant le clic sur « Son ». Le rendu au repos des quatre ambiances, sur ordinateur, comparé au prototype avec les mêmes paramètres, ne montre pas de régression par rapport à l'étape 3 ; les deux nouveaux objets s'y ajoutent.
 
 Ce qui reste ouvert (après la relecture, voir plus bas) :
 
-- en portrait, tenir tout le bureau (micro et manette compris, x de -6.42 à 5.91) dans la largeur laisse au repos une bande de mur vide au-dessus du bureau (environ 140 px en 360x740, 245 px en 390x844 et 412x915) ; elle sert de scène à l'objet tenu. Le calcul le montre : c'est la largeur qui fixe l'échelle, et une vue plus plongeante ne grandit le plateau que de 10 à 20 % sans réduire la bande. La réduire demande de rapprocher le décor en portrait ou d'accepter des bords coupés : à trancher avec Ali ;
 - en portrait, la feuille du bas couvre le bureau quand un objet est tenu : on glisse après l'avoir reposé, ou pendant les pauses de la visite ;
 - à valider avec Ali : ce qu'affichent les signes de vie, les étiquettes réduites à leur mot sur téléphone, l'allure des deux nouveaux objets et le son ;
 - en 412x915 seulement, sous SwiftShader, un triangle du plan des autocollants du portable se dessine en rayures (texture de 1200 x 840, anisotropie 8). Ni en 390x844, ni en 360x740, ni sur ordinateur ; jamais vu sur un vrai processeur graphique : à vérifier sur un vrai téléphone avant d'y toucher ;
@@ -350,4 +349,21 @@ Ce qui reste ouvert (après la relecture, voir plus bas) :
 
 - Le sens du retournement reste celui du prototype : l'objet présenté fait son geste d'office (badge retourné, livre ouvert, dos du bocal), le premier clic le remet à l'endroit.
 - La fiche du coffret ne garde qu'une note, « Le contenu se raconte en entretien. » : la note des signes de vie (« Le contenu, lui, reste scellé. ») disparaît, avec son champ `live.note`.
-- Sur téléphone en portrait, le bureau se resserre au lieu de laisser une bande de mur vide (voir « État à la fin de l'étape 4 »).
+- Sur téléphone en portrait, le bureau se resserre au lieu de laisser une bande de mur vide (voir « Le bureau resserré du téléphone »).
+
+## Le bureau resserré du téléphone
+
+En portrait (largeur / hauteur sous 0.9), et seulement là, les objets et le décor se rangent sur une zone plus étroite et plus profonde (détail et places : [`docs/gestes.md`](gestes.md), « Le bureau resserré du portrait »). C'est la largeur qui fixait l'échelle : tenir tout le bureau (x de -6.42 à 5.91) laissait une bande de mur vide au-dessus de l'écran. Les corps tiennent maintenant dans `BOUNDS_PORTRAIT` (x de -3.75 à 3.95), le plateau s'allonge vers le visiteur (`DESK_PORTRAIT_Z1`), le casque passe à droite de l'écran, la lampe et la plante reculent au fond à gauche, le pavé de boutons passe derrière le clavier, les mangas et le robot devant. Le micro sur son bras, la corde à sauter, les bandes, le renard et le voyageur sont cachés en portrait : ils n'avaient plus de place, et le micro sortait du cadre. Aucun objet du CV n'est caché.
+
+Mesures au repos (bande : de 112 px, bas de l'identité du HUD, au haut du bureau utile ; part : hauteur du bureau utile sur la hauteur libre entre les bandes du HUD, `data-desk-share`) :
+
+| Fenêtre  | Bureau avant | Bande avant | Part avant | Bureau après | Bande après | Part après |
+| -------- | ------------ | ----------- | ---------- | ------------ | ----------- | ---------- |
+| 390x844  | 214 px       | 313 px      | 0.41       | 375 px       | 134 px      | 0.74       |
+| 360x740  | 197 px       | 226 px      | 0.47       | 343 px       | 62 px       | 0.84       |
+| 412x915  | 227 px       | 371 px      | 0.38       | 398 px       | 182 px      | 0.69       |
+| 768x1024 |              |             | 0.59       | 677 px       | 12 px       | 0.98       |
+
+La tablette en portrait (768x1024) en profite aussi. Le paysage ne change pas : comparées pixel à pixel, avant et après, les captures en 1440x900 (14 h) et en 844x390 ne diffèrent que du bruit d'une capture à l'autre (moins de 0.07 % des pixels, au plus 10 sur 255) et de l'anneau animé du HUD. Le grain du HUD avance en cinq pas par seconde : pour comparer deux captures, il faut le même hasard (graine fixe) et la même phase.
+
+`PORTRAIT_HUD.bottom` passe de 205 à 222 px : la rangée avant du bureau resserré passait sous l'indication du HUD.

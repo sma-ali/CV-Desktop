@@ -78,6 +78,8 @@ test.describe('l’écran', () => {
     await page.goto('/fr?t=11000&fige&heure=14&prendre=monitor');
     await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-presented', 'monitor');
+    // L'écran n'a pas de geste : il n'est jamais retourné.
+    await expect(hud(page)).toHaveAttribute('data-flipped', 'false');
     // Un objet présenté d'office ne laisse jamais partir la visite.
     await expect(hud(page)).toHaveAttribute('data-auto', 'false');
     await page.keyboard.press('Escape');

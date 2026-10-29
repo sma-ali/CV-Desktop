@@ -333,7 +333,8 @@ export function createSceneStore(
         autoOn: false,
         presented: initialPresent,
         presentedBy: initialPresent ? 'test' : null,
-        flipped: initialPresent !== null && !recto,
+        // L'écran n'a pas de geste : il n'est jamais retourné.
+        flipped: initialPresent !== null && initialPresent !== 'monitor' && !recto,
         // Un objet présenté d'office ou un glisser demandé (capture, test) ne
         // laisse jamais démarrer le mode auto.
         lastUserAt: initialPresent || settings.initialDrag ? Infinity : -Infinity,
@@ -359,7 +360,11 @@ export function createSceneStore(
       if (source !== 'auto') get().markUser();
       const same = get().presented === item;
       if (!same) sound.play(item === 'monitor' ? 'hum' : 'pick');
-      set({ presented: item, presentedBy: source, flipped: same ? get().flipped : true });
+      set({
+        presented: item,
+        presentedBy: source,
+        flipped: same ? get().flipped : item !== 'monitor',
+      });
     },
 
     putBack() {

@@ -157,9 +157,11 @@ describe('les gestes dans le store (étape 4)', () => {
     store.getState().toggleFlip();
     store.getState().present('badge', 'keyboard');
     expect(store.getState().flipped).toBe(false);
+    // L'écran n'a pas de geste : jamais retourné, même après toggleFlip.
     store.getState().present('monitor', 'click');
+    expect(store.getState().flipped).toBe(false);
     store.getState().toggleFlip();
-    expect(store.getState().flipped).toBe(true);
+    expect(store.getState().flipped).toBe(false);
   });
 
   it('garde l’objet de la visite quand le visiteur le retourne', () => {

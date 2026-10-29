@@ -1209,14 +1209,6 @@
   color: var(--gris);
 }
 
-.liveNote {
-  margin: 8px 0 0;
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 13.5px;
-  color: #5b4b39;
-}
-
 /* Retourner, l'appel au contact, le dépôt (s'il est public). */
 .sheetActions {
   display: flex;

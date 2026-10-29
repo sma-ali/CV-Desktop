@@ -49,7 +49,6 @@ const liveSchema = z.strictObject({
   chart: template('days', 'values'),
   axisStart: template('days'),
   axisEnd: text,
-  note: text,
   ago: z.strictObject({
     now: text,
     minutes: template('n'),

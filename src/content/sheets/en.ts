@@ -23,7 +23,6 @@ export const sheetsEn = {
       chart: 'Activity over the last {days} days, oldest to today: {values}',
       axisStart: '{days} days ago',
       axisEnd: 'Today',
-      note: 'What is inside stays sealed.',
       ago: {
         now: 'just now',
         minutes: '{n} min ago',

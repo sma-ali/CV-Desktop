@@ -24,7 +24,6 @@ export interface LifeSignsTexts {
   /** Bornes de l'axe : {days}. */
   axisStart: string;
   axisEnd: string;
-  note: string;
   /** « il y a ... » : à l'instant, minutes ({n}), heures ({h}, {mm} sur deux chiffres), jours ({n}). */
   ago: {
     now: string;

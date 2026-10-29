@@ -262,7 +262,6 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
                 <span>{live.axisStart}</span>
                 <span>{live.axisEnd}</span>
               </p>
-              <p className={styles.liveNote}>{ui.live.note}</p>
             </section>
           ) : null}
 

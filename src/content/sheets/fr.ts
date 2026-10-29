@@ -24,7 +24,6 @@ export const sheetsFr = {
       chart: "Activité des {days} derniers jours, du plus ancien à aujourd'hui : {values}",
       axisStart: 'Il y a {days} jours',
       axisEnd: "Aujourd'hui",
-      note: 'Le contenu, lui, reste scellé.',
       ago: {
         now: "à l'instant",
         minutes: 'il y a {n} min',

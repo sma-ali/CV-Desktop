@@ -315,7 +315,7 @@ Ce qui reste ouvert (après la relecture, voir plus bas) :
 
 - en portrait, tenir tout le bureau (micro et manette compris, x de -6.42 à 5.91) dans la largeur laisse au repos une bande de mur vide au-dessus du bureau (environ 140 px en 360x740, 245 px en 390x844 et 412x915) ; elle sert de scène à l'objet tenu. Le calcul le montre : c'est la largeur qui fixe l'échelle, et une vue plus plongeante ne grandit le plateau que de 10 à 20 % sans réduire la bande. La réduire demande de rapprocher le décor en portrait ou d'accepter des bords coupés : à trancher avec Ali ;
 - en portrait, la feuille du bas couvre le bureau quand un objet est tenu : on glisse après l'avoir reposé, ou pendant les pauses de la visite ;
-- à valider avec Ali : le sens du retournement (l'objet présenté fait son geste d'office), ce qu'affichent les signes de vie, les deux notes de la fiche du coffret (« Le contenu se raconte en entretien. » et « Le contenu, lui, reste scellé. »), les étiquettes réduites à leur mot sur téléphone, l'allure des deux nouveaux objets et le son ;
+- à valider avec Ali : ce qu'affichent les signes de vie, les étiquettes réduites à leur mot sur téléphone, l'allure des deux nouveaux objets et le son ;
 - en 412x915 seulement, sous SwiftShader, un triangle du plan des autocollants du portable se dessine en rayures (texture de 1200 x 840, anisotropie 8). Ni en 390x844, ni en 360x740, ni sur ordinateur ; jamais vu sur un vrai processeur graphique : à vérifier sur un vrai téléphone avant d'y toucher ;
 - la CI découpe chaque profil en trois parts dans l'ordre des fichiers : les parts sont déséquilibrées (la plus longue tient dans le temps imparti). Les équilibrer demanderait `PWTEST_SHARD_WEIGHTS`, une variable interne de Playwright, non documentée ;
 - étape 5 : `getLifeSigns()` lira le JSON public derrière `/api/signes-de-vie`.
@@ -345,3 +345,9 @@ Ce qui reste ouvert (après la relecture, voir plus bas) :
 - Les étiquettes ne se chevauchent plus (`items/tagSpread.ts`, pur et testé) : celles qui se touchent s'écartent du moins qu'il faut, le plus souvent en hauteur, et restent dans la fenêtre. Sur téléphone, Homelab et DEFI-METIERS, Netherbrain et Compétences se couvraient. Leur taille se remesure quand la fenêtre change.
 - L'écran n'est jamais retourné : `present('monitor')` laisse `flipped` à faux, et `data-flipped` aussi.
 - Constat rejeté : élever la vue portrait (`elev` 1.1 à 1.2) pour remplir la bande de mur. Mesuré sur les trois portraits : le plateau grandit de 10 à 20 %, mais la hauteur du bureau utile reste la même (environ 220 px en 390x844) et la bande ne rétrécit pas, alors que l'écran se lit moins bien de plus haut.
+
+## Décisions d'Ali sur l'étape 4 (29/10)
+
+- Le sens du retournement reste celui du prototype : l'objet présenté fait son geste d'office (badge retourné, livre ouvert, dos du bocal), le premier clic le remet à l'endroit.
+- La fiche du coffret ne garde qu'une note, « Le contenu se raconte en entretien. » : la note des signes de vie (« Le contenu, lui, reste scellé. ») disparaît, avec son champ `live.note`.
+- Sur téléphone en portrait, le bureau se resserre au lieu de laisser une bande de mur vide (voir « État à la fin de l'étape 4 »).

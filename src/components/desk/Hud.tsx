@@ -169,7 +169,9 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
               {texts.sheets.ui.sound}
             </button>
           ) : null}
-          {ready && !settings.reducedMotion ? (
+          {/* En mouvement réduit aussi : l'arrivée ne se rejoue pas, mais les
+              objets déplacés reprennent leur place. */}
+          {ready ? (
             <button
               type="button"
               className={styles.button}

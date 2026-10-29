@@ -194,12 +194,13 @@ test.describe('la scène', () => {
 test.describe('en mouvement réduit', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('arrive posé, sans visite automatique ni Rejouer', async ({ page }) => {
+  test('arrive posé, sans visite automatique, Rejouer compris', async ({ page }) => {
     await page.goto('/fr');
     await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-reduced', 'true');
     await expect(hud(page)).toHaveAttribute('data-phase', 'settled');
-    await expect(page.getByRole('button', { name: 'Rejouer' })).toHaveCount(0);
+    // Rejouer remet les objets déplacés en place, sans rejouer l'arrivée.
+    await expect(page.getByRole('button', { name: 'Rejouer' })).toBeVisible();
     // L'horloge part de REDUCED_START (11 s) : sans le mouvement réduit, la
     // visite démarrerait 1.6 s plus tard (AUTO_START). On laisse passer ce
     // moment, avec de la marge pour SwiftShader.

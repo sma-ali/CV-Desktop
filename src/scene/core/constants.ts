@@ -191,7 +191,8 @@ export const ITEM_POSES = {
     ry: -0.15,
     hold: { w: 1.4, h: 1.85, oy: 0.55 },
     mode: 'spin',
-    tag: { y: 1.15, z: 0 },
+    // En arrière du bocal, comme les autres : au-dessus, elle cachait son couvercle.
+    tag: { y: 1.15, z: -0.55 },
   },
   homelab: {
     x: -5.35,
@@ -200,7 +201,7 @@ export const ITEM_POSES = {
     ry: 0.25,
     hold: { w: 1.9, h: 1.85, oy: 0.46 },
     mode: 'spin',
-    tag: { y: 1.05, z: 0 },
+    tag: { y: 1.05, z: -0.6 },
   },
 } as const satisfies Record<ItemId, ItemPose>;
 

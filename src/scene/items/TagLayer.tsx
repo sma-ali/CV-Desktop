@@ -9,6 +9,7 @@ import type { SceneStore } from '../core/store';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
 import { ITEMS_PRIORITY } from './presentation';
+import { spreadTags, type TagBox } from './tagSpread';
 import type { PresentProgress } from './usePresentation';
 import styles from './TagLayer.module.css';
 
@@ -54,7 +55,9 @@ const TAGGED = ITEM_IDS.filter(isTagged);
 interface TagElement {
   id: ItemId;
   element: HTMLDivElement;
-  width: number;
+  /** Place à l'écran (pixels), avant puis après l'écartement des voisines. */
+  box: TagBox;
+  measured: boolean;
   shown: boolean;
   transform: string;
 }
@@ -96,7 +99,14 @@ class TagOverlay {
         if (scene.hovered === id) scene.setHovered(null);
       });
       layer.append(element);
-      return { id, element, width: 0, shown: false, transform: '' };
+      return {
+        id,
+        element,
+        box: { x: 0, y: 0, w: 0, h: 0 },
+        measured: false,
+        shown: false,
+        transform: '',
+      };
     });
     host.append(layer);
     this.layer = layer;
@@ -113,7 +123,15 @@ class TagOverlay {
     this.layer?.toggleAttribute('data-still', still);
   }
 
-  /** Place chaque étiquette sous son objet ; ne touche au DOM que si quelque chose change. */
+  /** Les étiquettes visibles de l'image, réutilisé d'une image à l'autre. */
+  private readonly visibleBoxes: TagBox[] = [];
+  private lastWidth = 0;
+  private lastHeight = 0;
+
+  /**
+   * Place chaque étiquette sous son objet, écarte celles qui se chevauchent,
+   * et ne touche au DOM que si quelque chose change.
+   */
   update(
     camera: Camera,
     size: { width: number; height: number },
@@ -121,6 +139,14 @@ class TagOverlay {
     anchors: TagAnchors,
     progress: PresentProgress,
   ): void {
+    const boxes = this.visibleBoxes;
+    boxes.length = 0;
+    // Le format change (téléphone tourné) : les étiquettes changent de taille.
+    if (size.width !== this.lastWidth || size.height !== this.lastHeight) {
+      this.lastWidth = size.width;
+      this.lastHeight = size.height;
+      for (const tag of this.tags) tag.measured = false;
+    }
     for (const tag of this.tags) {
       const anchor = anchors.get(tag.id);
       let shown = false;
@@ -128,24 +154,30 @@ class TagOverlay {
         anchor.getWorldPosition(projected).project(camera);
         shown = projected.z < 1;
         if (shown) {
-          // Mesurée une fois, quand elle se montre : l'étiquette ne sort pas de la fenêtre.
-          if (!tag.width) tag.width = tag.element.offsetWidth;
-          const half = tag.width / 2 + 6;
-          const x = Math.min(
-            Math.max((projected.x * 0.5 + 0.5) * size.width, half),
-            size.width - half,
-          );
-          const y = (-projected.y * 0.5 + 0.5) * size.height;
-          const transform = `translate(${Math.round(x)}px, ${Math.round(y)}px) translate(-50%, -100%)`;
-          if (transform !== tag.transform) {
-            tag.transform = transform;
-            tag.element.style.transform = transform;
+          // Mesurée une fois, quand elle se montre.
+          if (!tag.measured) {
+            tag.box.w = tag.element.offsetWidth;
+            tag.box.h = tag.element.offsetHeight;
+            tag.measured = tag.box.w > 0;
           }
+          tag.box.x = (projected.x * 0.5 + 0.5) * size.width;
+          tag.box.y = (-projected.y * 0.5 + 0.5) * size.height;
+          boxes.push(tag.box);
         }
       }
       if (shown !== tag.shown) {
         tag.shown = shown;
         tag.element.dataset.shown = shown ? 'true' : 'false';
+      }
+    }
+    // Dans la fenêtre, et sans chevauchement (le bureau est petit sur téléphone).
+    spreadTags(boxes, size.width);
+    for (const tag of this.tags) {
+      if (!tag.shown) continue;
+      const transform = `translate(${Math.round(tag.box.x)}px, ${Math.round(tag.box.y)}px) translate(-50%, -100%)`;
+      if (transform !== tag.transform) {
+        tag.transform = transform;
+        tag.element.style.transform = transform;
       }
     }
   }

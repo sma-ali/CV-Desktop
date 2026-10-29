@@ -183,6 +183,8 @@ test.describe('les gestes', () => {
   });
 
   test('gardent sur le plateau un objet glissé vers le bord', async ({ page, isMobile }) => {
+    // Au doigt, 41 à 45 s seul sous SwiftShader : au-delà de 60 s avec 4 pages.
+    test.slow(isMobile, 'glisser au doigt en 16 pas, lent sous SwiftShader');
     await page.goto(SETTLED);
     await waitForScene(page);
     const viewport = page.viewportSize()!;
@@ -320,8 +322,12 @@ test.describe('les gestes', () => {
     await expect(hud(page)).toHaveAttribute('data-presented', 'book');
     // La fiche du livre couvre une partie du bureau (à droite sur
     // ordinateur) : on prend le premier corps que le pointeur atteint. En
-    // portrait, la feuille du bas couvre tout le bureau : on glisse pendant
-    // la pause de la visite entre deux objets (AUTO_TIMING.gap).
+    // portrait, la feuille du bas couvre le bas du bureau et l'objet tenu le
+    // haut (le bureau resserré dépasse entre les deux, mais le livre qui
+    // s'ouvre finit par le couvrir) : on glisse pendant la pause de la
+    // visite qui suit le livre (AUTO_TIMING.gap, puis le post-it, qui ne
+    // glisse pas). La baie, à droite, est loin du livre qui revient à
+    // gauche ; son point se mesure au début de la pause.
     const reachable = async () => {
       for (const [id, point] of points) {
         const onCanvas = await page.evaluate(
@@ -332,11 +338,13 @@ test.describe('les gestes', () => {
       }
       return null;
     };
-    let target = await reachable();
+    let target = isPortraitPage(page) ? null : await reachable();
     if (!target) {
       await expect(hud(page)).toHaveAttribute('data-presented', '', { timeout: 20_000 });
       await expect(hud(page)).toHaveAttribute('data-auto', 'true');
-      target = await reachable();
+      target = isPortraitPage(page)
+        ? { id: 'homelab', point: await pointOnItem(page, 'homelab') }
+        : await reachable();
     }
     if (!target) throw new Error('aucun corps hors de la fiche');
     const { id, point } = target;

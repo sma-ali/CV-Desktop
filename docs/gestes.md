@@ -39,14 +39,14 @@ Le portable porte désormais la pile technique (section compétences du CV), dan
 
 Réactif (`useSceneStore`) :
 
-| Champ       | Sens                                                                                    | Écrit par                                    | Lu par                       |
-| ----------- | --------------------------------------------------------------------------------------- | -------------------------------------------- | ---------------------------- |
-| `flipped`   | l'objet présenté a fait son geste ; vrai à chaque `present()`, faux avec `?recto`       | `present`, `toggleFlip` (gestes, fiches)     | présentation, HUD, fiche     |
-| `dragging`  | le corps qu'on fait glisser, ou `null`                                                  | gestes (`startDrag`, `endDrag`)              | HUD, visite, cadrage         |
-| `places`    | places des corps déplacés (`{ x, z, ry }`), copiées en fin de glisser                   | gestes (`endDrag`, `commitPlaces`), `replay` | HUD (`data-places`)          |
-| `soundOn`   | le son est ouvert                                                                       | HUD (`toggleSound`)                          | HUD                          |
-| `offscreen` | identifiants qui sortent du cadre au repos (corps, `monitor`, `headset`, `mic`, `lamp`) | cadrage (`setOffscreen`, partie objets)      | HUD (`data-offscreen`)       |
-| `lifeSigns` | signes de vie du coffret (`LifeSigns`), recalés sur l'heure du visiteur                 | `DeskShell` (`setLifeSigns`)                 | fiche du coffret, coffret 3D |
+| Champ       | Sens                                                                                             | Écrit par                                    | Lu par                       |
+| ----------- | ------------------------------------------------------------------------------------------------ | -------------------------------------------- | ---------------------------- |
+| `flipped`   | l'objet présenté a fait son geste ; vrai à chaque `present()` (sauf l'écran), faux avec `?recto` | `present`, `toggleFlip` (gestes, fiches)     | présentation, HUD, fiche     |
+| `dragging`  | le corps qu'on fait glisser, ou `null`                                                           | gestes (`startDrag`, `endDrag`)              | HUD, visite, cadrage         |
+| `places`    | places des corps déplacés (`{ x, z, ry }`), copiées en fin de glisser                            | gestes (`endDrag`, `commitPlaces`), `replay` | HUD (`data-places`)          |
+| `soundOn`   | le son est ouvert                                                                                | HUD (`toggleSound`)                          | HUD                          |
+| `offscreen` | identifiants qui sortent du cadre au repos (corps, `monitor`, `headset`, `mic`, `lamp`)          | cadrage (`setOffscreen`, partie objets)      | HUD (`data-offscreen`)       |
+| `lifeSigns` | signes de vie du coffret (`LifeSigns`), recalés sur l'heure du visiteur                          | `DeskShell` (`setLifeSigns`)                 | fiche du coffret, coffret 3D |
 
 Actions : `toggleFlip()` (sans effet sur l'écran ; l'objet de la visite passe au visiteur), `startDrag(body)` (compte comme une action du visiteur, joue `slide`), `endDrag()`, `commitPlaces()`, `toggleSound()` (appelée seulement par un clic : crée l'AudioContext), `setOffscreen(ids)` (n'écrit que si la liste change), `setLifeSigns(signs)`. `present()` et `putBack()` jouent `pick` (`hum` pour l'écran) et `putBack`, `toggleLamp()` joue `switch` et `lampOn`. `replay()` remet tous les corps à leur place (`places` vide, `dragging` nul, `flipped` faux).
 
@@ -63,17 +63,17 @@ Repère du prototype ; rotation `ry` dans le sens de three : un point local `(lx
 
 Encombrement des corps (`BODY_FOOTPRINTS`, repère de l'objet : centre `cx`, `cz`, demi-côtés `hw` en x, `hd` en z) et places de repos :
 
-| Corps         | Place (x, z, ry)   | `cx`, `cz` | `hw`, `hd` |
-| ------------- | ------------------ | ---------- | ---------- |
-| `book`        | -3.25, 1.42, 0.2   | 0, 0       | 0.95, 1.25 |
-| `badge`       | -1.25, 2.05, -0.32 | 0, 0       | 0.43, 0.62 |
-| `laptop`      | 2.95, 1.42, -0.12  | 0, 0       | 1.35, 0.93 |
-| `card`        | 0.52, 2.1, -0.05   | 0, 0       | 0.85, 0.5  |
-| `chest`       | -4.45, -0.7, 0.35  | 0, -0.2    | 0.83, 0.54 |
-| `netherbrain` | 0.75, 0.92, -0.15  | 0, 0       | 0.42, 0.42 |
-| `homelab`     | -5.35, 0.7, 0.25   | 0, 0       | 0.5, 0.4   |
-| `mug`         | 4.55, -0.62, 0     | 0.08, 0    | 0.4, 0.31  |
-| `pad`         | 5.1, 1.95, 0.45    | 0, 0.08    | 0.68, 0.38 |
+| Corps         | Place (x, z, ry)   | `cx`, `cz` | `hw`, `hd`  |
+| ------------- | ------------------ | ---------- | ----------- |
+| `book`        | -3.25, 1.42, 0.2   | 0, 0       | 0.95, 1.25  |
+| `badge`       | -1.25, 2.05, -0.32 | 0, 0       | 0.43, 0.62  |
+| `laptop`      | 2.95, 1.42, -0.12  | 0, 0       | 1.35, 0.93  |
+| `card`        | 0.52, 2.1, -0.05   | 0, 0       | 0.91, 0.575 |
+| `chest`       | -4.45, -0.7, 0.35  | 0, -0.2    | 0.83, 0.54  |
+| `netherbrain` | 0.75, 0.92, -0.15  | 0, 0       | 0.42, 0.42  |
+| `homelab`     | -5.35, 0.7, 0.25   | 0, 0       | 0.5, 0.4    |
+| `mug`         | 4.55, -0.62, 0     | 0.08, 0    | 0.4, 0.31   |
+| `pad`         | 5.1, 1.95, 0.45    | 0, 0.08    | 0.68, 0.38  |
 
 Obstacles fixes : `DECOR_OBSTACLES` (`src/scene/decor/layout.ts` : clavier, pavé, souris, pied de la lampe, pince du micro, corde, bandes, plante, mangas, deux figurines) et `FIXED_ITEM_OBSTACLES` (pied de l'écran, support du casque). Limites : `BOUNDS = { x0: -6.15, x1: 6.2, z0: -3.2, z1: 3.05 }`, qu'aucun coin ne dépasse. Les lanières, câbles et tapis plats ne comptent pas.
 

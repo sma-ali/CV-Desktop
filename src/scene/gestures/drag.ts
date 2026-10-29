@@ -81,6 +81,18 @@ export interface StepEvents {
 
 const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
+const NONE: readonly BodyId[] = [];
+
+/** Le bit d'un corps dans un masque des corps actifs. */
+const BIT = new Map<BodyId, number>(BODY_IDS.map((id, index) => [id, 1 << index]));
+
+/** Les corps actifs en masque de bits : comparer deux images sans rien allouer. */
+function activeMask(active: readonly BodyId[]): number {
+  let mask = 0;
+  for (const id of active) mask |= BIT.get(id)!;
+  return mask;
+}
+
 export class DragSim {
   session: DragSession | null = null;
   private readonly motion = new Map<BodyId, Motion>(
@@ -88,7 +100,20 @@ export class DragSim {
   );
 
   /** Les corps actifs de l'image précédente (pour savoir lequel vient d'être reposé). */
-  private lastActive: readonly BodyId[] = BODY_IDS;
+  private lastMask = activeMask(BODY_IDS);
+  /**
+   * Le plateau peut être en désordre : un corps est revenu, un glisser vient
+   * de finir, le format a changé. Sans cela, rien ne bouge au repos et la
+   * vérification des recouvrements ne tourne pas (ni calcul ni allocation).
+   */
+  private dirty = true;
+  /** Réutilisé d'une image à l'autre : le lire avant l'appel suivant de step(). */
+  private readonly events: StepEvents = { thuds: [], settled: false };
+
+  /** Quelque chose a pu déplacer les corps hors des gestes (changement de format) : à revérifier. */
+  invalidate(): void {
+    this.dirty = true;
+  }
 
   constructor(private readonly world: SolverWorld = DESK_WORLD) {}
 
@@ -131,6 +156,7 @@ export class DragSim {
     const body = desk[session.id];
     const motion = this.motion.get(session.id)!;
     motion.bump = false;
+    this.dirty = true;
     if (reduced) {
       body.lift = 0;
       body.tiltX = 0;
@@ -151,6 +177,7 @@ export class DragSim {
       body.tiltZ = 0;
     }
     this.session = null;
+    this.dirty = true;
     for (const motion of this.motion.values()) {
       motion.vy = 0;
       motion.bump = false;
@@ -167,14 +194,31 @@ export class DragSim {
       body.squash = 0;
       this.motion.get(id)!.vy = 0;
     }
+    this.dirty = true;
   }
 
   /** Une image : le glisser en cours, la retombée des corps, les recouvrements laissés. */
   step(desk: DeskBodies, { dt, active, reduced, instant }: StepOptions): StepEvents {
-    const events: StepEvents = { thuds: [], settled: false };
+    const events = this.events;
+    events.thuds.length = 0;
+    events.settled = false;
     const session = this.session;
     const smooth = reduced || instant;
+    // Les objets qui viennent d'être reposés (leur présentation s'achève).
+    const mask = activeMask(active);
+    const previous = this.lastMask;
+    this.lastMask = mask;
+    const arrived =
+      mask === previous ? NONE : active.filter((id) => (previous & BIT.get(id)!) === 0);
+    if (mask !== previous) this.dirty = true;
     if (session && active.includes(session.id)) {
+      // Un objet revient pendant le glisser d'un autre corps (le glisser
+      // repose d'office l'objet tenu) : on l'écarte tout de suite, sans
+      // toucher au corps tenu ni aux autres.
+      if (arrived.length > 0) {
+        const moved = settleBodies(desk, active, this.world, arrived, [session.id]);
+        if (moved.length > 0) events.settled = true;
+      }
       const body = desk[session.id];
       const motion = this.motion.get(session.id)!;
       const k = smooth ? 1 : 1 - Math.pow(DRAG.follow, dt);
@@ -214,13 +258,14 @@ export class DragSim {
         }
       }
       if (result.pushed.size > 0) events.settled = true;
-    } else if (overlapScore(desk, active, this.world) > 0) {
-      // Un objet reposé sur une place prise entre-temps : on l'écarte en
-      // premier, les autres ne bougent qu'en dernier recours.
-      const arrived = active.filter((id) => !this.lastActive.includes(id));
-      if (settleBodies(desk, active, this.world, arrived).length > 0) events.settled = true;
+    } else if (this.dirty) {
+      this.dirty = false;
+      if (overlapScore(desk, active, this.world) > 0) {
+        // Un objet reposé sur une place prise entre-temps : on l'écarte en
+        // premier, les autres ne bougent qu'en dernier recours.
+        if (settleBodies(desk, active, this.world, arrived).length > 0) events.settled = true;
+      }
     }
-    this.lastActive = [...active];
 
     // Retombée, rebond et écrasement de tous les corps qui ne sont pas tenus.
     for (const id of BODY_IDS) {

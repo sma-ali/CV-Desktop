@@ -151,6 +151,44 @@ describe('DragSim', () => {
     expect(desk.card.moved).toBe(true);
   });
 
+  it('écarte aussitôt un objet qui revient pendant le glisser d’un autre corps', () => {
+    const desk = createDeskBodies();
+    const sim = new DragSim();
+    const withoutCard = ALL.filter((id) => id !== 'card');
+    sim.step(desk, options({ active: withoutCard }));
+    sim.begin(desk, 'laptop', desk.laptop.x, desk.laptop.z);
+    sim.aimCenter(0.52, 2.1);
+    run(sim, desk, 90, { active: withoutCard });
+    sim.release(desk, true);
+    run(sim, desk, 5, { active: withoutCard });
+    const laptop = { x: desk.laptop.x, z: desk.laptop.z };
+    // On glisse la tasse, loin de là ; la carte revient pendant ce glisser.
+    sim.begin(desk, 'mug', desk.mug.x, desk.mug.z);
+    sim.aim(4.7, -0.5);
+    for (let i = 0; i < 30; i++) {
+      sim.step(desk, options());
+      expect(overlapScore(desk, ALL, DESK_WORLD)).toBe(0);
+    }
+    expect(sim.session?.id).toBe('mug');
+    expect(desk.laptop).toMatchObject(laptop);
+    expect(desk.card.moved).toBe(true);
+  });
+
+  it('au repos, ne revérifie pas le plateau à chaque image', () => {
+    const desk = createDeskBodies();
+    const sim = new DragSim();
+    run(sim, desk, 2);
+    // Un recouvrement posé à la main, sans que rien ne l'annonce : ignoré.
+    desk.mug.x = desk.laptop.x;
+    desk.mug.z = desk.laptop.z;
+    run(sim, desk, 2);
+    expect(overlapScore(desk, ALL, DESK_WORLD)).toBeGreaterThan(0);
+    // Annoncé (changement de format), il se résout.
+    sim.invalidate();
+    run(sim, desk, 1);
+    expect(overlapScore(desk, ALL, DESK_WORLD)).toBe(0);
+  });
+
   it('s’arrête net (Rejouer) et pose tout à plat', () => {
     const desk = createDeskBodies();
     const sim = new DragSim();

@@ -47,11 +47,17 @@ function planeUnder(camera: Camera, canvas: HTMLElement, x: number, y: number): 
   return raycaster.ray.intersectPlane(plane, hit);
 }
 
-/** Les corps posés sur le plateau : ni présentés, ni en train d'y revenir. */
-function activeBodies(scene: SceneState, progress: ReadonlyMap<string, number>): BodyId[] {
-  return BODY_IDS.filter(
-    (id) => !isItemId(id) || (scene.presented !== id && (progress.get(id) ?? 0) <= 0.02),
-  );
+/** Les corps posés sur le plateau : ni présentés, ni en train d'y revenir. Écrit dans out. */
+function activeBodies(
+  scene: SceneState,
+  progress: ReadonlyMap<string, number>,
+  out: BodyId[],
+): BodyId[] {
+  out.length = 0;
+  for (const id of BODY_IDS) {
+    if (!isItemId(id) || (scene.presented !== id && (progress.get(id) ?? 0) <= 0.02)) out.push(id);
+  }
+  return out;
 }
 
 export function Gestures() {
@@ -60,6 +66,9 @@ export function Gestures() {
   const replays = useSceneStore((state) => state.replays);
   const playback = useRef({ done: false, startedAt: 0, lastMoveAt: 0 });
   const lastMark = useRef(-Infinity);
+  // Réutilisés à chaque image : rien n'est alloué au repos.
+  const activeScratch = useRef<BodyId[]>([]);
+  const lastPortrait = useRef<boolean | null>(null);
 
   // Rejouer : les corps sont remis en place par le store ; le glisser en
   // cours et les rebonds s'arrêtent.
@@ -208,7 +217,13 @@ export function Gestures() {
     pointer.x += ((reduced ? 0 : pointer.targetX) - pointer.x) * k;
     pointer.y += ((reduced ? 0 : pointer.targetY) - pointer.y) * k;
 
-    const active = activeBodies(scene, hub.progress);
+    const active = activeBodies(scene, hub.progress, activeScratch.current);
+    // Changement de format : le socle a recalé les corps non déplacés sur leur
+    // place de repos, qui peut être prise. Le plateau se revérifie.
+    if (lastPortrait.current !== frame.portrait) {
+      lastPortrait.current = frame.portrait;
+      sim.invalidate();
+    }
 
     // ?glisse= : un glisser joué d'office, lâché à l'arrivée. Sous &fige (ou
     // en mouvement réduit), il se pose aussitôt dans son état final.
@@ -234,9 +249,14 @@ export function Gestures() {
     const session = sim.session;
     if (session) {
       if (!active.includes(session.id)) {
-        // Le corps a quitté le plateau (présenté par une puce) : le glisser s'arrête.
+        // Le corps a quitté le plateau (présenté par une puce, les flèches ou
+        // la fiche) : le glisser s'arrête, et l'appui en cours n'en relancera
+        // pas d'autre (le mouvement suivant reposerait l'objet présenté).
+        // Son relâchement reste avalé : il a parcouru le seuil.
         sim.cancel(desk);
         scene.endDrag();
+        if (hub.press) hub.press.body = null;
+        three.gl.domElement.style.cursor = '';
       } else if (hub.press) {
         const point = planeUnder(three.camera, three.gl.domElement, hub.client.x, hub.client.y);
         if (point) sim.aim(point.x, point.z);

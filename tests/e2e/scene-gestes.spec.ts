@@ -269,6 +269,37 @@ test.describe('les gestes', () => {
     await expect(hud(page)).toHaveAttribute('data-dragging', '');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     await expectNoOverlap(page);
+    // Rejouer reste là en mouvement réduit : il remet les objets en place.
+    await page.getByRole('button', { name: 'Rejouer' }).click();
+    await expect(hud(page)).toHaveAttribute('data-places', '');
+    await expect(hud(page)).toHaveAttribute('data-phase', 'settled');
+  });
+
+  test('laissent présenté l’objet qu’on glissait, choisi au clavier', async ({
+    page,
+    isMobile,
+  }) => {
+    test.skip(isMobile, 'souris et clavier à la fois');
+    await page.goto(SETTLED);
+    await waitForScene(page);
+    const book = await pointOnItem(page, 'book');
+    await page.mouse.move(book.x, book.y);
+    await page.mouse.down();
+    for (let i = 1; i <= 6; i++) await page.mouse.move(book.x + i * 10, book.y);
+    await expect(hud(page)).toHaveAttribute('data-dragging', 'book');
+    // Bouton toujours enfoncé, le livre est présenté par sa puce.
+    await page.locator('[data-step="defi-metiers"]').focus();
+    await page.keyboard.press('Enter');
+    await expect(hud(page)).toHaveAttribute('data-presented', 'book');
+    await expect(hud(page)).toHaveAttribute('data-dragging', '');
+    // Le même appui ne relance pas de glisser : le livre reste présenté.
+    for (let i = 1; i <= 4; i++) await page.mouse.move(book.x + 60 + i * 10, book.y + i * 4);
+    await nextFrames(page);
+    await expect(hud(page)).toHaveAttribute('data-presented', 'book');
+    await expect(hud(page)).toHaveAttribute('data-dragging', '');
+    await page.mouse.up();
+    await nextFrames(page);
+    await expect(hud(page)).toHaveAttribute('data-presented', 'book');
   });
 
   test('coupent la visite automatique', async ({ page, isMobile }) => {

@@ -58,6 +58,8 @@ export interface Separation {
 }
 
 const out: Separation = { depth: 0, nx: 0, nz: 0 };
+/** Les quatre axes des deux rectangles, partagés entre les appels (rien d'alloué). */
+const axes = new Float64Array(8);
 
 /**
  * Séparation de deux rectangles (théorème de l'axe séparateur, sur les
@@ -76,7 +78,14 @@ export function separate(a: Obb, b: Obb, margin = 0): Separation | null {
   const cb = Math.cos(b.ry);
   const sb = Math.sin(b.ry);
   // Axes locaux (x, puis z) de chaque rectangle, dans le repère du plateau.
-  const axes = [ca, -sa, sa, ca, cb, -sb, sb, cb];
+  axes[0] = ca;
+  axes[1] = -sa;
+  axes[2] = sa;
+  axes[3] = ca;
+  axes[4] = cb;
+  axes[5] = -sb;
+  axes[6] = sb;
+  axes[7] = cb;
   let depth = Infinity;
   let nx = 0;
   let nz = 0;
@@ -287,16 +296,17 @@ export function findFreePlace(
 }
 
 /**
- * Remet le plateau en ordre sans glisser en cours : relaxation, puis, pour
- * chaque corps encore en recouvrement (d'abord ceux de prefer, l'objet qui
- * vient d'être reposé), la place libre la plus proche. Renvoie les corps
- * déplacés.
+ * Remet le plateau en ordre : relaxation, puis, pour chaque corps encore en
+ * recouvrement (d'abord ceux de prefer, l'objet qui vient d'être reposé), la
+ * place libre la plus proche. fixed : les corps qui ne bougent jamais (le
+ * corps qu'on glisse pendant qu'un objet revient). Renvoie les corps déplacés.
  */
 export function settleBodies(
   bodies: SolverBodies,
   active: readonly BodyId[],
   world: SolverWorld,
   prefer: readonly BodyId[] = [],
+  fixed: readonly BodyId[] = [],
 ): BodyId[] {
   const initial = snapshot(bodies, active);
   const changed = () =>
@@ -307,12 +317,13 @@ export function settleBodies(
   const valid = () => overlapScore(bodies, active, world) === 0;
   const freeEach = (ids: readonly BodyId[]) => {
     for (const id of ids) {
+      if (fixed.includes(id)) continue;
       if (bodyScore(bodies, id, active, world, 0) <= TOLERANCE) continue;
       findFreePlace(bodies, id, active, world);
       if (valid()) return;
     }
   };
-  const arrivals = prefer.filter((id) => active.includes(id));
+  const arrivals = prefer.filter((id) => active.includes(id) && !fixed.includes(id));
   if (arrivals.length > 0) {
     // D'abord, seuls les nouveaux venus bougent : en les écartant, sinon en
     // leur trouvant une place libre ; les autres corps restent où on les a mis.
@@ -328,8 +339,8 @@ export function settleBodies(
     freeEach(arrivals);
     if (valid()) return changed();
   }
-  // Puis tout le monde, et une place libre en dernier recours.
-  relax(bodies, active, world, null, ITERATIONS * 2);
+  // Puis tout le monde (sauf fixed), et une place libre en dernier recours.
+  relax(bodies, active, world, fixed, ITERATIONS * 2);
   if (!valid()) freeEach(active);
   return changed();
 }

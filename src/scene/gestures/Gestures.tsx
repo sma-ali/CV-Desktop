@@ -6,7 +6,7 @@ import { Plane, Raycaster, Vector2, Vector3, type Camera } from 'three';
 import { BODY_IDS, isItemId, type BodyId } from '../core/ids';
 import type { SceneState } from '../core/store';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
-import { DRAG } from './drag';
+import { deskWorld, DRAG } from './drag';
 import { gestureHub } from './hub';
 import { GESTURES_AFTER } from './pointer';
 import { GESTURES_PRIORITY } from './priorities';
@@ -222,7 +222,7 @@ export function Gestures() {
     // place de repos, qui peut être prise. Le plateau se revérifie.
     if (lastPortrait.current !== frame.portrait) {
       lastPortrait.current = frame.portrait;
-      sim.invalidate();
+      sim.reframe(deskWorld(frame.portrait), desk, frame.portrait);
     }
 
     // ?glisse= : un glisser joué d'office, lâché à l'arrivée. Sous &fige (ou

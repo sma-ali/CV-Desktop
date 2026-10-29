@@ -1,8 +1,8 @@
 import { expect, test, type Page } from '@playwright/test';
 import { bodyObb, homePlace, obbOutside, type DeskPlace } from '../../src/scene/core/bodies';
-import { BOUNDS, HELD } from '../../src/scene/core/constants';
+import { deskBounds, HELD } from '../../src/scene/core/constants';
 import { BODY_IDS } from '../../src/scene/core/ids';
-import { DESK_WORLD } from '../../src/scene/gestures/drag';
+import { deskWorld } from '../../src/scene/gestures/drag';
 import { overlapScore, type SolverBodies } from '../../src/scene/gestures/solver';
 
 // Les gestes (partie « gestes », étape 4) : prendre, retourner, glisser,
@@ -33,11 +33,16 @@ async function pointOnItem(page: Page, item: string, below = 28): Promise<Point>
   return { x: box.x + box.width / 2, y: box.y + box.height + below };
 }
 
+/** Le format de la fenêtre : en portrait, le bureau resserré. */
+function isPortraitPage(page: Page): boolean {
+  const viewport = page.viewportSize()!;
+  return viewport.width / viewport.height < 0.9;
+}
+
 /** Les places lues sur #hud, complétées des places de repos. */
 async function deskState(page: Page): Promise<SolverBodies> {
   const raw = (await hud(page).getAttribute('data-places')) ?? '';
-  const viewport = page.viewportSize()!;
-  const portrait = viewport.width / viewport.height < 0.9;
+  const portrait = isPortraitPage(page);
   const moved = new Map<string, DeskPlace>();
   for (const entry of raw.split(' ').filter(Boolean)) {
     const [id = '', values = ''] = entry.split(':');
@@ -55,10 +60,11 @@ async function deskState(page: Page): Promise<SolverBodies> {
 /** Aucun recouvrement : places au centième, donc une tolérance d'un centième. */
 async function expectNoOverlap(page: Page) {
   const desk = await deskState(page);
+  const portrait = isPortraitPage(page);
   // Les places sont arrondies au centième : on rétrécit un peu les corps.
-  expect(overlapScore(desk, BODY_IDS, DESK_WORLD)).toBeLessThan(0.03);
+  expect(overlapScore(desk, BODY_IDS, deskWorld(portrait))).toBeLessThan(0.03);
   for (const id of BODY_IDS) {
-    expect(obbOutside(bodyObb(id, desk[id]), BOUNDS), id).toBeLessThanOrEqual(0.01);
+    expect(obbOutside(bodyObb(id, desk[id]), deskBounds(portrait)), id).toBeLessThanOrEqual(0.01);
   }
   return desk;
 }

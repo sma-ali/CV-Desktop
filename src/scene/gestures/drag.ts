@@ -1,7 +1,12 @@
-import { FIXED_ITEM_OBSTACLES, type DeskBodies } from '../core/bodies';
-import { BOUNDS } from '../core/constants';
+import {
+  FIXED_ITEM_OBSTACLES,
+  fixedItemObstacles,
+  homePlace,
+  type DeskBodies,
+} from '../core/bodies';
+import { BOUNDS, deskBounds } from '../core/constants';
 import { BODY_IDS, type BodyId } from '../core/ids';
-import { DECOR_OBSTACLES } from '../decor/layout';
+import { DECOR_OBSTACLES, decorObstacles } from '../decor/layout';
 import { moveBody, overlapScore, settleBodies, type SolverWorld } from './solver';
 
 // Le glisser d'un corps sur le plateau, image par image (updateItem et
@@ -16,6 +21,20 @@ export const DESK_WORLD: SolverWorld = {
   obstacles: [...DECOR_OBSTACLES, ...FIXED_ITEM_OBSTACLES],
   bounds: BOUNDS,
 };
+
+/**
+ * Le plateau en portrait, le bureau resserré : le décor à ses places
+ * portrait (decorObstacles), les mêmes objets fixes, les limites
+ * BOUNDS_PORTRAIT.
+ */
+export const DESK_WORLD_PORTRAIT: SolverWorld = {
+  obstacles: [...decorObstacles(true), ...fixedItemObstacles(true)],
+  bounds: deskBounds(true),
+};
+
+/** Le plateau du format. */
+export const deskWorld = (portrait: boolean): SolverWorld =>
+  portrait ? DESK_WORLD_PORTRAIT : DESK_WORLD;
 
 /** Réglages du prototype (l. 1336-1390). */
 export const DRAG = {
@@ -83,6 +102,9 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 
 const NONE: readonly BodyId[] = [];
 
+/** Recouvrement laissé qu'on tient pour nul (arrondis du calcul). */
+const TIDY_TOLERANCE = 1e-6;
+
 /** Le bit d'un corps dans un masque des corps actifs. */
 const BIT = new Map<BodyId, number>(BODY_IDS.map((id, index) => [id, 1 << index]));
 
@@ -110,12 +132,44 @@ export class DragSim {
   /** Réutilisé d'une image à l'autre : le lire avant l'appel suivant de step(). */
   private readonly events: StepEvents = { thuds: [], settled: false };
 
-  /** Quelque chose a pu déplacer les corps hors des gestes (changement de format) : à revérifier. */
+  /**
+   * Les corps que la prochaine remise en ordre écarte en premier : au
+   * changement de format, ceux que le visiteur a déplacés (les autres sont
+   * déjà sur leur place de repos du format, syncDeskBodies, et y restent).
+   */
+  private prefer: readonly BodyId[] = NONE;
+  /** Le format du plateau du moment (places de repos du dernier recours). */
+  private portrait = false;
+
+  /** Reste-t-il un recouvrement ou un dépassement (au-delà des arrondis) ? */
+  private messy(desk: DeskBodies, active: readonly BodyId[]): boolean {
+    return overlapScore(desk, active, this.world) > TIDY_TOLERANCE;
+  }
+
+  /** Quelque chose a pu déplacer les corps hors des gestes : à revérifier. */
   invalidate(): void {
     this.dirty = true;
   }
 
-  constructor(private readonly world: SolverWorld = DESK_WORLD) {}
+  constructor(private world: SolverWorld = DESK_WORLD) {}
+
+  /** Le plateau du moment (le monde du solveur). */
+  get currentWorld(): SolverWorld {
+    return this.world;
+  }
+
+  /**
+   * Le format a changé (téléphone qu'on tourne) : nouveau plateau (décor et
+   * limites du format). À la prochaine image, les corps déplacés par le
+   * visiteur s'écartent s'ils touchent quelque chose ou sortent du plateau ;
+   * les autres ne bougent qu'en dernier recours.
+   */
+  reframe(world: SolverWorld, desk: DeskBodies, portrait: boolean): void {
+    this.world = world;
+    this.portrait = portrait;
+    this.prefer = BODY_IDS.filter((id) => desk[id].moved);
+    this.dirty = true;
+  }
 
   /** Commence un glisser : (px, pz) est le point du plateau sous la main au moment de la prise. */
   begin(desk: DeskBodies, id: BodyId, px: number, pz: number): DragSession {
@@ -260,10 +314,28 @@ export class DragSim {
       if (result.pushed.size > 0) events.settled = true;
     } else if (this.dirty) {
       this.dirty = false;
+      const prefer = [...arrived, ...this.prefer];
+      this.prefer = NONE;
       if (overlapScore(desk, active, this.world) > 0) {
-        // Un objet reposé sur une place prise entre-temps : on l'écarte en
-        // premier, les autres ne bougent qu'en dernier recours.
-        if (settleBodies(desk, active, this.world, arrived).length > 0) events.settled = true;
+        // Un objet reposé sur une place prise entre-temps (ou un corps
+        // déplacé quand le format change) : on l'écarte en premier, les
+        // autres ne bougent qu'en dernier recours.
+        if (settleBodies(desk, active, this.world, prefer).length > 0) events.settled = true;
+        if (this.messy(desk, active)) {
+          // Quand presque tout a été déplacé (le plateau du format est plus
+          // étroit), l'ordre de préférence peut laisser un recouvrement : une
+          // remise en ordre de tout le plateau le règle le plus souvent.
+          if (settleBodies(desk, active, this.world).length > 0) events.settled = true;
+          // Dernier recours : les corps déplacés rentrent un à un à leur
+          // place de repos du format, jusqu'à ce que tout tienne.
+          for (let i = BODY_IDS.length - 1; i >= 0 && this.messy(desk, active); i--) {
+            const id = BODY_IDS[i]!;
+            if (!desk[id].moved || !active.includes(id)) continue;
+            Object.assign(desk[id], homePlace(id, this.portrait), { moved: false });
+            settleBodies(desk, active, this.world, [], [id]);
+            events.settled = true;
+          }
+        }
       }
     }
 

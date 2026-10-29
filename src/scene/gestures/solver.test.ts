@@ -10,7 +10,7 @@ import {
 import { BOUNDS } from '../core/constants';
 import { BODY_IDS, type BodyId } from '../core/ids';
 import { rng } from '../core/rng';
-import { DESK_WORLD } from './drag';
+import { DESK_WORLD, deskWorld } from './drag';
 import {
   intoBounds,
   moveBody,
@@ -28,7 +28,12 @@ import {
 const ALL: readonly BodyId[] = BODY_IDS;
 
 /** Aucun recouvrement (au-delà des arrondis) entre corps, avec le décor, hors des bords. */
-function expectValid(desk: DeskBodies, active: readonly BodyId[] = ALL, label = '') {
+function expectValid(
+  desk: DeskBodies,
+  active: readonly BodyId[] = ALL,
+  label = '',
+  world: SolverWorld = DESK_WORLD,
+) {
   for (const id of active) {
     expect(Number.isFinite(desk[id].x) && Number.isFinite(desk[id].z), `${label} ${id} NaN`).toBe(
       true,
@@ -36,8 +41,10 @@ function expectValid(desk: DeskBodies, active: readonly BodyId[] = ALL, label = 
   }
   for (const [i, a] of active.entries()) {
     const boxA = bodyObb(a, desk[a]);
-    expect(obbOutside(boxA, BOUNDS), `${label} ${a} hors du plateau`).toBeLessThanOrEqual(1e-6);
-    for (const obstacle of DESK_WORLD.obstacles) {
+    expect(obbOutside(boxA, world.bounds), `${label} ${a} hors du plateau`).toBeLessThanOrEqual(
+      1e-6,
+    );
+    for (const obstacle of world.obstacles) {
       expect(
         obbPenetration(boxA, obstacle),
         `${label} ${a} / ${(obstacle as Obb & { id: string }).id}`,
@@ -122,10 +129,11 @@ describe('intoBounds', () => {
 describe('le plateau au repos', () => {
   it.each([false, true])('n’a aucun recouvrement (portrait : %s)', (portrait) => {
     const desk = createDeskBodies(portrait);
-    expect(overlapScore(desk, ALL, DESK_WORLD)).toBe(0);
-    expectValid(desk);
+    const world = deskWorld(portrait);
+    expect(overlapScore(desk, ALL, world)).toBe(0);
+    expectValid(desk, ALL, '', world);
     // La relaxation ne déplace rien qui n'en a pas besoin.
-    expect(relax(desk, ALL, DESK_WORLD)).toEqual([]);
+    expect(relax(desk, ALL, world)).toEqual([]);
     expect(BODY_IDS.some((id) => desk[id].moved)).toBe(false);
   });
 });
@@ -319,5 +327,39 @@ describe('relax', () => {
     relax(desk, ['mug', 'pad'], DESK_WORLD);
     expect(separate(bodyObb('mug', desk.mug), bodyObb('pad', desk.pad))).toBeNull();
     expect(desk.mug.moved && desk.pad.moved).toBe(true);
+  });
+});
+
+describe('le bureau resserré du portrait', () => {
+  const world = deskWorld(true);
+
+  it('bloque un corps glissé contre les bords de la zone resserrée', () => {
+    for (const [x, z] of [
+      [9, 0],
+      [-9, 0],
+      [0, 9],
+      [9, 9],
+    ] as const) {
+      const desk = createDeskBodies(true);
+      moveBody(desk, 'card', x, z, ALL, world);
+      expectValid(desk, ALL, `carte vers ${x},${z}`, world);
+    }
+  });
+
+  it('pousse en chaîne sans recouvrement, sur mille glissers au hasard', () => {
+    const random = rng(29);
+    const desk = createDeskBodies(true);
+    for (let i = 0; i < 1000; i++) {
+      const id = ALL[Math.floor(random() * ALL.length)]!;
+      moveBody(
+        desk,
+        id,
+        world.bounds.x0 + random() * (world.bounds.x1 - world.bounds.x0),
+        world.bounds.z0 + random() * (world.bounds.z1 - world.bounds.z0),
+        ALL,
+        world,
+      );
+    }
+    expectValid(desk, ALL, 'après mille glissers', world);
   });
 });

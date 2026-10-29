@@ -19,6 +19,7 @@ import {
 } from 'three';
 import { POINT_DECAY, STAND, legacyPointIntensity, type Vec3 } from '../core/constants';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
+import { DecorPiece } from './DecorPiece';
 import {
   DECK,
   GLOVES,
@@ -504,8 +505,12 @@ function LightStand() {
 export function StreamGear() {
   return (
     <>
-      <StreamDeck />
-      <Microphone />
+      <DecorPiece id="deck">
+        <StreamDeck />
+      </DecorPiece>
+      <DecorPiece id="mic">
+        <Microphone />
+      </DecorPiece>
       <LightStand />
     </>
   );

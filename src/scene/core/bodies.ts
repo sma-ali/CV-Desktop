@@ -1,4 +1,4 @@
-import { HEADSET_STAND, ITEM_POSES, MONITOR } from './constants';
+import { headsetStand, HEADSET_STAND, ITEM_POSES, MONITOR } from './constants';
 import { PORTRAIT_PLACES } from './framing';
 import { BODY_IDS, type BodyId, type DecorBodyId } from './ids';
 
@@ -83,6 +83,19 @@ export const FIXED_ITEM_OBSTACLES: readonly DeskObstacle[] = [
   },
   { id: 'headset-stand', x: HEADSET_STAND[0], z: HEADSET_STAND[2], ry: 0, hw: 0.4, hd: 0.4 },
 ];
+
+/** Les mêmes en portrait : le support du casque passe à droite de l'écran (HEADSET_PORTRAIT). */
+export const FIXED_ITEM_OBSTACLES_PORTRAIT: readonly DeskObstacle[] = FIXED_ITEM_OBSTACLES.map(
+  (obstacle) => {
+    if (obstacle.id !== 'headset-stand') return obstacle;
+    const [x, , z] = headsetStand(true);
+    return { ...obstacle, x, z };
+  },
+);
+
+/** Les objets fixes du format. */
+export const fixedItemObstacles = (portrait: boolean): readonly DeskObstacle[] =>
+  portrait ? FIXED_ITEM_OBSTACLES_PORTRAIT : FIXED_ITEM_OBSTACLES;
 
 /** La place de repos d'un corps, selon le format (voir PORTRAIT_PLACES). */
 export function homePlace(id: BodyId, portrait: boolean): DeskPlace {

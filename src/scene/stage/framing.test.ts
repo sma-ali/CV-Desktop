@@ -1,6 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { cameraProgress } from '../core/arrival';
 import { bodyObb, homePlace } from '../core/bodies';
+import { decorExtentPortrait } from '../decor/layout';
 import {
   ARRIVAL,
   HELD,
@@ -23,6 +24,7 @@ import {
   createPose,
   deskExtent,
   FIXED_EXTENT,
+  fixedExtent,
   fitRestView,
   focusPoint,
   isPortrait,
@@ -31,6 +33,7 @@ import {
   restLimits,
   restPoints,
   screenFocusPose,
+  screenShare,
   startView,
 } from './framing';
 
@@ -123,12 +126,13 @@ describe('fitRestView', () => {
       [360, 740],
       [412, 915],
     ] as const) {
-      const { portrait, desk, limits } = restBounds(width, height);
+      const { portrait, desk, all, limits } = restBounds(width, height);
       expect(portrait).toBe(true);
       // Pas de bande vide sous le bureau : son bord avant touche le HUD du bas.
       near(desk.y0, limits.yBottom, 2);
-      // Il occupe toute la largeur : c'est elle qui fixe la distance.
-      expect(Math.max(-desk.x0, desk.x1)).toBeGreaterThan(limits.x - 0.02);
+      // Le plateau resserré occupe toute la largeur : c'est elle qui fixe la distance.
+      expect(Math.max(-all.x0, all.x1)).toBeGreaterThan(limits.x - 0.02);
+      expect(Math.min(-desk.x0, desk.x1)).toBeGreaterThan(0.85);
     }
   });
 
@@ -188,6 +192,55 @@ describe('le bureau utile', () => {
     expect(Object.keys(FIXED_EXTENT).sort()).toEqual(['headset', 'lamp', 'mic', 'monitor']);
     // Le micro, au bord gauche du plateau, est le point le plus à gauche.
     expect(Math.min(...points.map(([x]) => x))).toBeLessThan(-6.3);
+  });
+});
+
+describe('le bureau resserré du portrait', () => {
+  /** Part minimale de la hauteur libre (entre les bandes du HUD) que couvre le bureau. */
+  const SHARE = 0.65;
+  const PORTRAITS = Object.entries(SIZES).filter(([, [width, height]]) =>
+    isPortrait(width / height),
+  );
+
+  it('compte sept portraits, six téléphones et une tablette', () => {
+    expect(PORTRAITS).toHaveLength(7);
+  });
+
+  for (const [name, [width, height]] of PORTRAITS) {
+    it(`remplit la hauteur libre, sans bande de mur vide (${name})`, () => {
+      const { camera, limits } = restBounds(width, height);
+      // Avant le bureau resserré : 0.41 en 390x844, 0.47 en 360x740, 0.38 en 412x915.
+      expect(screenShare(deskExtent(true), camera, limits)).toBeGreaterThan(SHARE);
+    });
+
+    it(`garde le décor du portrait dans le cadre (${name})`, () => {
+      const { camera, limits } = restBounds(width, height);
+      const decor = projectedBounds(decorExtentPortrait(), camera);
+      expect(decor.x0).toBeGreaterThanOrEqual(-limits.x - 1e-3);
+      expect(decor.x1).toBeLessThanOrEqual(limits.x + 1e-3);
+      expect(decor.y0).toBeGreaterThanOrEqual(limits.yBottom - 1e-3);
+      expect(decor.y1).toBeLessThanOrEqual(limits.yTop + 1e-3);
+    });
+  }
+
+  it('mesure une part de 1 d’une bande du HUD à l’autre', () => {
+    const { camera, limits } = restBounds(390, 844);
+    const share = screenShare(deskExtent(true), camera, limits);
+    expect(share).toBeGreaterThan(0.7);
+    expect(share).toBeLessThanOrEqual(1 + 1e-3);
+  });
+
+  it('déplace la lampe et le casque, cache le micro, et rien en paysage', () => {
+    expect(fixedExtent(false)).toBe(FIXED_EXTENT);
+    const portrait = fixedExtent(true);
+    expect(portrait.mic).toEqual([]);
+    expect(portrait.monitor).toEqual(FIXED_EXTENT.monitor);
+    expect(portrait.lamp[0]).not.toEqual(FIXED_EXTENT.lamp[0]);
+    expect(portrait.headset[0]![0]).toBeGreaterThan(2.8);
+    // Le décor ne se cadre qu'en portrait.
+    expect(restPoints(false)).toHaveLength(
+      REST_FIT.landscape.points.length + deskExtent(false).length,
+    );
   });
 });
 

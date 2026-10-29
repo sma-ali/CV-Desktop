@@ -13,8 +13,9 @@ import {
   ShapeGeometry,
   type BufferGeometry,
 } from 'three';
-import { DESK, DESK_THICKNESS, FLOOR_Y, WALL_Z, WIN } from '../core/constants';
+import { DESK, DESK_PORTRAIT_Z1, DESK_THICKNESS, FLOOR_Y, WALL_Z, WIN } from '../core/constants';
 import { applyRgb } from '../core/materials';
+import { usePortrait } from '../core/portrait';
 import { useSceneStoreApi } from '../core/store-context';
 import { useCanvasTexture } from '../core/textures';
 import { WINDOW_BACKSTOP } from './layout';
@@ -156,6 +157,7 @@ function windowParts(): Part[] {
 
 export function Room() {
   const store = useSceneStoreApi();
+  const deskZ1 = usePortrait() ? DESK_PORTRAIT_Z1 : DESK.z1;
   const wood = useCanvasTexture({
     width: 2048,
     height: 1024,
@@ -207,15 +209,17 @@ export function Room() {
 
   return (
     <group name="decor-room">
+      {/* En portrait, le plateau s'allonge vers le visiteur (bureau resserré). */}
       <mesh
         geometry={desk}
         material={deskMaterial}
-        position={[0, -DESK_THICKNESS / 2, (DESK.z0 + DESK.z1) / 2]}
+        position={[0, -DESK_THICKNESS / 2, (DESK.z0 + deskZ1) / 2]}
+        scale={[1, 1, (deskZ1 - DESK.z0) / DESK_DEPTH]}
         receiveShadow
         castShadow
       />
       {/* Le liseré clair du bord avant. */}
-      <MergedParts build={frontLipParts} castShadow={false} />
+      <MergedParts build={frontLipParts} castShadow={false} position={[0, 0, deskZ1 - DESK.z1]} />
       <mesh
         geometry={floor}
         material={floorMaterial}

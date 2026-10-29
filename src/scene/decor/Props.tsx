@@ -42,6 +42,7 @@ import {
   type FigureSpec,
   type SteamPuff,
 } from './layout';
+import { DecorPiece } from './DecorPiece';
 import { withFinish, type Part } from './merge';
 import {
   paintSoftDot,
@@ -65,7 +66,8 @@ import { box, cyl, MergedParts, rodPart, sph, torus, tube, usePressTime } from '
 
 const WOOD = 0x6e4a2e;
 
-function sportParts(): Part[] {
+/** La corde à sauter et ses poignées (repère du monde). */
+function ropeParts(): Part[] {
   const [rx, , rz] = ROPE.center;
   return [
     { geometry: tube(ropeCoil(), 0.03, 170, 5), color: 0xd9a441, finish: 'satin' },
@@ -83,7 +85,12 @@ function sportParts(): Part[] {
       position: [rx - 0.5, 0.07, rz - 0.6],
       rotation: [Math.PI / 2, 0, -0.5],
     },
-    // Les bandes roulées, et le bout d'une qui dépasse.
+  ];
+}
+
+/** Les bandes roulées, et le bout d'une qui dépasse (repère du monde). */
+function wrapsParts(): Part[] {
+  return [
     {
       geometry: cyl(0.17, 0.17, 0.24, 10),
       color: 0x2b2b2e,
@@ -515,11 +522,26 @@ function Gamepad() {
 export function Props() {
   return (
     <>
-      <MergedParts build={sportParts} />
-      <Plant />
-      <MangaStack />
-      {FIGURES.map((spec) => (
-        <Figure key={spec.kind} spec={spec} />
+      <DecorPiece id="rope">
+        <MergedParts build={ropeParts} />
+      </DecorPiece>
+      <DecorPiece id="wraps">
+        <MergedParts build={wrapsParts} />
+      </DecorPiece>
+      <DecorPiece id="plant">
+        <Plant />
+      </DecorPiece>
+      {/* Le robot est debout sur les mangas : il bouge avec eux. */}
+      <DecorPiece id="manga">
+        <MangaStack />
+        {FIGURES.filter((spec) => spec.kind === 'robot').map((spec) => (
+          <Figure key={spec.kind} spec={spec} />
+        ))}
+      </DecorPiece>
+      {FIGURES.filter((spec) => spec.kind !== 'robot').map((spec) => (
+        <DecorPiece key={spec.kind} id={spec.kind === 'fox' ? 'fox' : 'wanderer'}>
+          <Figure spec={spec} />
+        </DecorPiece>
       ))}
       <DeskBody id="mug">
         <Mug />

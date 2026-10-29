@@ -1,10 +1,10 @@
 import { describe, expect, it } from 'vitest';
-import { DECOR_OBSTACLES } from '../decor/layout';
+import { decorObstacles } from '../decor/layout';
 import {
   BODY_FOOTPRINTS,
   bodyObb,
   createDeskBodies,
-  FIXED_ITEM_OBSTACLES,
+  fixedItemObstacles,
   formatPlaces,
   homePlace,
   movedPlaces,
@@ -15,7 +15,7 @@ import {
   syncDeskBodies,
   type Obb,
 } from './bodies';
-import { BOUNDS, ITEM_POSES } from './constants';
+import { BOUNDS, BOUNDS_PORTRAIT, deskBounds, ITEM_POSES } from './constants';
 import { BODY_IDS, ITEM_IDS } from './ids';
 
 // La disposition du plateau vue de dessus : chaque corps glissable et
@@ -25,16 +25,25 @@ import { BODY_IDS, ITEM_IDS } from './ids';
 /** Écart minimal entre deux encombrements au repos. */
 const GAP = 0.02;
 
-const obstacles = [...DECOR_OBSTACLES, ...FIXED_ITEM_OBSTACLES];
-
 describe.each([
   ['paysage', false],
   ['portrait', true],
 ] as const)('la disposition en %s', (_, portrait) => {
   const bodies = BODY_IDS.map((id) => ({ id, box: bodyObb(id, homePlace(id, portrait)) }));
+  // Le décor et les objets fixes du format (le bureau resserré en portrait).
+  const obstacles = [...decorObstacles(portrait), ...fixedItemObstacles(portrait)];
 
-  it('garde chaque corps dans les limites du plateau', () => {
-    for (const { id, box } of bodies) expect(obbOutside(box, BOUNDS), id).toBeLessThanOrEqual(0);
+  it('garde chaque corps dans les limites du plateau du format', () => {
+    const bounds = deskBounds(portrait);
+    for (const { id, box } of bodies) expect(obbOutside(box, bounds), id).toBeLessThanOrEqual(0);
+  });
+
+  it('ne pose aucun obstacle fixe sur un autre (écart minimal du décor : 0)', () => {
+    for (const [i, a] of obstacles.entries()) {
+      for (const b of obstacles.slice(i + 1)) {
+        expect(obbPenetration(a, b), `${a.id} / ${b.id}`).toBe(0);
+      }
+    }
   });
 
   it('ne pose aucun corps sur le décor ni sur l’écran ou le casque', () => {
@@ -51,6 +60,33 @@ describe.each([
         expect(obbPenetration(a.box, b.box, GAP), `${a.id} / ${b.id}`).toBe(0);
       }
     }
+  });
+});
+
+describe('le bureau resserré du portrait', () => {
+  it('range les corps sur une zone plus étroite et plus profonde que le paysage', () => {
+    expect(BOUNDS_PORTRAIT.x1 - BOUNDS_PORTRAIT.x0).toBeLessThan((BOUNDS.x1 - BOUNDS.x0) * 0.65);
+    expect(BOUNDS_PORTRAIT.z1 - BOUNDS_PORTRAIT.z0).toBeGreaterThan(BOUNDS.z1 - BOUNDS.z0);
+    const span = (portrait: boolean) => {
+      const xs = BODY_IDS.flatMap((id) =>
+        obbCorners(bodyObb(id, homePlace(id, portrait))).map(([x]) => x),
+      );
+      return Math.max(...xs) - Math.min(...xs);
+    };
+    expect(span(true)).toBeLessThan(span(false) * 0.7);
+  });
+
+  it('ne change rien au paysage', () => {
+    expect(deskBounds(false)).toBe(BOUNDS);
+    expect(fixedItemObstacles(false).map(({ id }) => id)).toEqual([
+      'monitor-stand',
+      'headset-stand',
+    ]);
+  });
+
+  it('pose le support du casque à droite de l’écran', () => {
+    const stand = fixedItemObstacles(true).find(({ id }) => id === 'headset-stand');
+    expect(stand?.x).toBeGreaterThan(2.8);
   });
 });
 

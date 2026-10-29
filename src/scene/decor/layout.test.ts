@@ -1,8 +1,29 @@
 import { describe, expect, it } from 'vitest';
-import { ARRIVAL, DESK, ITEM_POSES, STAND, WALL_Z, WIN } from '../core/constants';
+import { Group, Vector3 } from 'three';
+import {
+  ARRIVAL,
+  BOUNDS_PORTRAIT,
+  DESK,
+  DESK_PORTRAIT_Z1,
+  ITEM_POSES,
+  STAND,
+  WALL_Z,
+  WIN,
+} from '../core/constants';
 import {
   DECK_PALETTE,
+  DECOR_ANCHORS,
   DECOR_OBSTACLES,
+  DECOR_OBSTACLES_PORTRAIT,
+  DECOR_PIECE_IDS,
+  decorExtentPortrait,
+  decorObstacles,
+  decorPieceTransform,
+  decorPlacement,
+  obstaclePiece,
+  obstacleTurn,
+  placeDecorPoint,
+  PORTRAIT_DECOR,
   FIGURES,
   KEY_COLORS,
   KEY_COUNT,
@@ -270,5 +291,90 @@ describe('les mangas et les figurines', () => {
     const leaves = leafLayout();
     expect(leaves).toHaveLength(11);
     expect(new Set(leaves.map((leaf) => leaf.shade))).toEqual(new Set([0, 1]));
+  });
+});
+
+describe('le décor du bureau resserré (portrait)', () => {
+  /** Un point dessiné en paysage, posé par les groupes de DecorPiece (three). */
+  function drawnAt(id: (typeof DECOR_PIECE_IDS)[number], point: readonly [number, number, number]) {
+    const { position, ry, offset } = decorPieceTransform(id, true);
+    const outer = new Group();
+    outer.position.set(...position);
+    outer.rotation.y = ry;
+    const inner = new Group();
+    inner.position.set(...offset);
+    outer.add(inner);
+    outer.updateMatrixWorld(true);
+    return inner.localToWorld(new Vector3(...point));
+  }
+
+  it('ne change rien en paysage', () => {
+    expect(decorObstacles(false)).toBe(DECOR_OBSTACLES);
+    for (const id of DECOR_PIECE_IDS) {
+      const { position, ry, offset, hidden } = decorPieceTransform(id, false);
+      expect(ry).toBe(0);
+      expect(hidden).toBe(false);
+      expect(position[0] + offset[0]).toBe(0);
+      expect(position[2] + offset[2]).toBe(0);
+      expect(placeDecorPoint(id, false, [1, 2, 3])).toEqual([1, 2, 3]);
+    }
+  });
+
+  it('pose les obstacles là où le décor est dessiné', () => {
+    for (const obstacle of DECOR_OBSTACLES) {
+      const piece = obstaclePiece(obstacle.id);
+      const placed = DECOR_OBSTACLES_PORTRAIT.find(({ id }) => id === obstacle.id);
+      if (piece && decorPlacement(piece, true).hidden) {
+        expect(placed, obstacle.id).toBeUndefined();
+        continue;
+      }
+      expect(placed, obstacle.id).toBeDefined();
+      // Le centre de l'obstacle suit le groupe qui porte le dessin.
+      const drawn = piece
+        ? drawnAt(piece, [obstacle.x, 0, obstacle.z])
+        : new Vector3(obstacle.x, 0, obstacle.z);
+      expect(placed!.x, obstacle.id).toBeCloseTo(drawn.x, 6);
+      expect(placed!.z, obstacle.id).toBeCloseTo(drawn.z, 6);
+      expect(placed!.ry, obstacle.id).toBeCloseTo(
+        obstacle.ry + (piece ? obstacleTurn(obstacle.id, decorPlacement(piece, true).ry) : 0),
+        6,
+      );
+    }
+  });
+
+  it('tourne chaque morceau autour de son ancre, comme three', () => {
+    for (const id of DECOR_PIECE_IDS) {
+      const [ax, az] = DECOR_ANCHORS[id];
+      for (const point of [
+        [ax, 0, az],
+        [ax + 1, 0.5, az - 0.7],
+      ] as const) {
+        const drawn = drawnAt(id, point);
+        const [x, y, z] = placeDecorPoint(id, true, point);
+        expect(x, id).toBeCloseTo(drawn.x, 6);
+        expect(y, id).toBeCloseTo(drawn.y, 6);
+        expect(z, id).toBeCloseTo(drawn.z, 6);
+      }
+      // L'ancre arrive sur sa place portrait.
+      const [x, , z] = placeDecorPoint(id, true, [ax, 0, az]);
+      expect(x).toBeCloseTo(PORTRAIT_DECOR[id].x, 6);
+      expect(z).toBeCloseTo(PORTRAIT_DECOR[id].z, 6);
+    }
+  });
+
+  it('garde le décor visible sur le plateau allongé, près de la zone resserrée', () => {
+    const portraitDesk = (x: number, z: number) =>
+      x >= DESK.x0 && x <= DESK.x1 && z >= DESK.z0 && z <= DESK_PORTRAIT_Z1;
+    for (const [x, , z] of decorExtentPortrait()) {
+      expect(portraitDesk(x, z)).toBe(true);
+      // Le décor posé reste dans la largeur de la zone, à 0.2 près (le cadrage le fait tenir).
+      expect(x).toBeGreaterThanOrEqual(BOUNDS_PORTRAIT.x0 - 0.2);
+      expect(x).toBeLessThanOrEqual(BOUNDS_PORTRAIT.x1 + 0.2);
+    }
+  });
+
+  it('ne cache que du décor qui ne trouve pas sa place, jamais la lampe ni la plante', () => {
+    const hidden = DECOR_PIECE_IDS.filter((id) => decorPlacement(id, true).hidden);
+    expect(hidden).toEqual(['mic', 'rope', 'wraps', 'fox', 'wanderer']);
   });
 });

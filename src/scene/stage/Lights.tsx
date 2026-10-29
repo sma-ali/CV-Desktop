@@ -22,6 +22,7 @@ import {
   spotIntensity,
   sunIntensity,
 } from './lighting';
+import { DecorPiece } from '../decor/DecorPiece';
 import { STAGE_PRIORITY } from './priorities';
 
 /** Où le soleil vise : un peu à gauche du centre, sous la fenêtre. */
@@ -112,24 +113,27 @@ export function Lights({ shadows }: { shadows: boolean }) {
         shadow-radius={2}
         shadow-intensity={SUN_SHADOW}
       />
-      <spotLight
-        ref={spot}
-        args={[LAMP_COLOR, 0, 0, 0.66, 0.72, 0]}
-        position={[hx, hy - 0.18, hz + 0.1]}
-        castShadow={shadows}
-        shadow-mapSize={[1024, 1024]}
-        shadow-camera-near={0.5}
-        shadow-camera-far={14}
-        shadow-bias={-0.0012}
-        shadow-normalBias={0.02}
-      />
+      {/* La lampe change de place en portrait (bureau resserré) : sa lumière la suit. */}
+      <DecorPiece id="lamp">
+        <spotLight
+          ref={spot}
+          args={[LAMP_COLOR, 0, 0, 0.66, 0.72, 0]}
+          position={[hx, hy - 0.18, hz + 0.1]}
+          castShadow={shadows}
+          shadow-mapSize={[1024, 1024]}
+          shadow-camera-near={0.5}
+          shadow-camera-far={14}
+          shadow-bias={-0.0012}
+          shadow-normalBias={0.02}
+        />
+        <object3D ref={spotTarget} position={LAMP.aim} />
+      </DecorPiece>
       <pointLight
         ref={monitor}
         args={[0xffd7a8, 0, POINT_LIGHT_DISTANCE, POINT_DECAY]}
         position={MONITOR_LIGHT}
       />
       <pointLight ref={hand} args={[0xfff0dc, 0, POINT_LIGHT_DISTANCE, POINT_DECAY]} />
-      <object3D ref={spotTarget} position={LAMP.aim} />
       <object3D ref={sunTarget} position={SUN_TARGET} />
     </>
   );

@@ -215,11 +215,47 @@ export const POSTIT_ON_MONITOR = {
 export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
 
 /**
+ * Le casque et son support en portrait (bureau resserré) : à droite de
+ * l'écran, tourné vers le centre. À gauche, la lampe passe juste devant lui
+ * et le cachait.
+ */
+export const HEADSET_PORTRAIT = { x: 3.35, z: -2.4, ry: -0.25 } as const;
+
+/** Le pied du support du casque, selon le format. */
+export const headsetStand = (portrait: boolean): Vec3 =>
+  portrait ? [HEADSET_PORTRAIT.x, 0, HEADSET_PORTRAIT.z] : HEADSET_STAND;
+
+/** La pose de repos du casque sur son support, selon le format. */
+export const headsetPose = (portrait: boolean): Pick<ItemPose, 'x' | 'y' | 'z' | 'ry'> =>
+  portrait ? { ...HEADSET_PORTRAIT, y: ITEM_POSES.headset.y } : ITEM_POSES.headset;
+
+/**
  * Limites du plateau pour poser ou glisser un objet : aucun rectangle
  * d'encombrement (voir bodies.ts) n'en sort. Celles du prototype, qui
  * bornait le centre des objets.
  */
 export const BOUNDS = { x0: -6.15, x1: 6.2, z0: -3.2, z1: 3.05 } as const;
+
+/** Des limites du plateau : x de x0 à x1, z de z0 à z1. */
+export interface DeskBounds {
+  x0: number;
+  x1: number;
+  z0: number;
+  z1: number;
+}
+
+/**
+ * Le bureau resserré du téléphone en portrait (décision d'Ali du 29/10) :
+ * les objets et le décor se rangent sur une zone plus étroite et plus
+ * profonde, pour que le bureau grandisse à l'écran. Le plateau s'allonge
+ * vers le visiteur (DESK_PORTRAIT_Z1, ses côtés sortent du cadre) et les
+ * objets restent dans BOUNDS_PORTRAIT. Le paysage ne change pas.
+ */
+export const DESK_PORTRAIT_Z1 = 4.65;
+export const BOUNDS_PORTRAIT = { x0: -3.75, x1: 3.95, z0: -3.2, z1: 4.3 } as const;
+
+/** Les limites du plateau du format. */
+export const deskBounds = (portrait: boolean): DeskBounds => (portrait ? BOUNDS_PORTRAIT : BOUNDS);
 
 /**
  * La fiche (le bristol) à l'écran, pour que l'objet tenu reste visible :

@@ -51,12 +51,15 @@ export const REST_FIT = {
     ] as Vec3[],
     limits: { x: 0.98, yBottom: -0.74, yTop: 0.86 },
   },
+  // En portrait, les coins de la zone resserrée (BOUNDS_PORTRAIT) : un objet
+  // glissé jusqu'au bord reste à l'écran. Le décor posé s'y ajoute
+  // (stage/framing.ts, restPoints).
   portrait: {
     points: [
-      [-4.3, 0, 2.55],
-      [4.3, 0, 2.4],
-      [-4.2, 0, -2.9],
-      [4.2, 0, -2.6],
+      [-3.75, 0, 4.3],
+      [3.95, 0, 4.3],
+      [-3.75, 0, -3.2],
+      [3.95, 0, -3.2],
       [0.3, 3.8, -3.0],
     ] as Vec3[],
     limits: { x: 0.98, yBottom: -0.5, yTop: 0.7 },
@@ -66,10 +69,12 @@ export const REST_FIT = {
 /**
  * Ce que le HUD occupe en portrait, en pixels CSS : en haut, l'identité (les
  * boutons à droite descendent plus bas, mais seulement sur le bord) ; en bas,
- * l'indication, l'heure et les puces. Le bureau tient entre les deux, sur
- * toute la largeur (x, en coordonnées normalisées).
+ * l'indication, l'heure et les puces (le haut de l'indication, à 211 à
+ * 218 px du bas sur les trois portraits mesurés : le bord avant du bureau
+ * ne passe plus dessous). Le bureau tient entre les deux, sur toute la
+ * largeur (x, en coordonnées normalisées).
  */
-export const PORTRAIT_HUD = { top: 112, bottom: 205, x: 0.985 } as const;
+export const PORTRAIT_HUD = { top: 112, bottom: 222, x: 0.985 } as const;
 
 /** La vue de départ de l'arrivée, au ras du bureau (START_L et START_P). */
 export const START_L: View = { target: [-0.3, 1.2, 1.1], elev: 0.26, az: 0.3, dist: 7.8, fov: 36 };
@@ -98,11 +103,26 @@ export const SCREEN_FOCUS = {
 } as const;
 
 /**
- * Places de repos qui changent en portrait (aucune pour l'instant). À
- * l'étape 3, le coffret reculait vers le centre en portrait ; avec ses vrais
- * encombrements (core/bodies.ts), cette place mordait sur le support du
- * casque et le pavé : il reste à sa place, et c'est le cadrage qui fait tenir
- * tout le bureau. Un objet déplacé par le visiteur garde sa place, quel que
- * soit le format. bodies.test.ts vérifie qu'une place ajoutée ici est libre.
+ * Places de repos en portrait : le bureau resserré du téléphone (décision
+ * d'Ali du 29/10). Les objets se rangent sur une zone plus étroite et plus
+ * profonde (BOUNDS_PORTRAIT), autour de l'écran et du clavier qui ne
+ * bougent pas : à gauche, le coffret à côté du clavier, puis le livre et la
+ * manette vers l'avant ; au milieu, le bocal et le badge devant le clavier,
+ * la carte au bord avant ; à droite, la tasse devant le casque, la baie,
+ * puis le portable. Un objet déplacé par le visiteur garde sa place quand
+ * le format change (le solveur l'écarte s'il le faut, et en dernier
+ * recours le renvoie à sa place : gestures/drag.ts, reframe). bodies.test.ts
+ * vérifie qu'au repos rien ne se chevauche et que tout tient dans le
+ * plateau du format.
  */
-export const PORTRAIT_PLACES: Partial<Record<BodyId, { x: number; z: number; ry?: number }>> = {};
+export const PORTRAIT_PLACES: Partial<Record<BodyId, { x: number; z: number; ry?: number }>> = {
+  book: { x: -2.6, z: 2.05, ry: 0.12 },
+  badge: { x: -0.75, z: 1.75 },
+  laptop: { x: 2.45, z: 2.55 },
+  card: { x: -0.3, z: 3.6 },
+  chest: { x: -2.8, z: -0.45, ry: 0.1 },
+  netherbrain: { x: 0.35, z: 1.2 },
+  homelab: { x: 3.3, z: 0.75, ry: -0.2 },
+  mug: { x: 3.45, z: -1.35 },
+  pad: { x: -2.75, z: 3.82, ry: 0 },
+};

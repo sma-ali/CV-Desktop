@@ -3,6 +3,7 @@ import { ease, lerp, seg, smooth } from '../core/arrival';
 import { bodyObb, homePlace, obbCorners, type DeskPlace } from '../core/bodies';
 import {
   ARRIVAL,
+  HEADSET_PORTRAIT,
   HEADSET_STAND,
   HELD,
   ITEM_POSES,
@@ -19,7 +20,13 @@ import {
   type View,
 } from '../core/constants';
 import { BODY_IDS, type BodyId } from '../core/ids';
-import { MIC, MIC_CENTER } from '../decor/layout';
+import {
+  decorExtentPortrait,
+  decorPlacement,
+  MIC,
+  MIC_CENTER,
+  placeDecorPoint,
+} from '../decor/layout';
 
 // Le cadrage de la caméra, en fonctions pures (testées) : la vue de repos
 // calculée d'après le format de la fenêtre (layout() du prototype), la montée
@@ -135,6 +142,41 @@ export const FIXED_EXTENT: Readonly<
   lamp: [LAMP.base, LAMP.head],
 };
 
+/**
+ * La part de la hauteur utile (entre les bandes du HUD, restLimits) que
+ * couvrent des points projetés : 1 quand ils vont d'une bande à l'autre.
+ * Mesure du bureau resserré sur téléphone (data-desk-share).
+ */
+export function screenShare(
+  points: readonly Vec3[],
+  camera: PerspectiveCamera,
+  limits: FitLimits,
+): number {
+  const { y0, y1 } = projectedBounds(points, camera);
+  return (y1 - y0) / (limits.yTop - limits.yBottom);
+}
+
+/**
+ * Les points fixes du format : en portrait, la lampe et le micro sont à
+ * leur place du bureau resserré (decor/layout.ts, PORTRAIT_DECOR), et un
+ * morceau caché n'a plus de points.
+ */
+export function fixedExtent(
+  portrait: boolean,
+): Readonly<Record<'monitor' | 'headset' | 'mic' | 'lamp', readonly Vec3[]>> {
+  return portrait ? FIXED_EXTENT_PORTRAIT : FIXED_EXTENT;
+}
+
+const placed = (id: 'lamp' | 'mic', points: readonly Vec3[]): Vec3[] =>
+  decorPlacement(id, true).hidden ? [] : points.map((point) => placeDecorPoint(id, true, point));
+
+const FIXED_EXTENT_PORTRAIT = {
+  monitor: FIXED_EXTENT.monitor,
+  headset: [[HEADSET_PORTRAIT.x, ITEM_POSES.headset.y + 0.9, HEADSET_PORTRAIT.z]],
+  mic: placed('mic', FIXED_EXTENT.mic),
+  lamp: placed('lamp', FIXED_EXTENT.lamp),
+} as const;
+
 /** Les huit coins de l'encombrement d'un corps posé à une place (bas, puis haut). */
 export function bodyExtent(id: BodyId, place: DeskPlace): Vec3[] {
   const corners = obbCorners(bodyObb(id, place));
@@ -149,7 +191,7 @@ export function bodyExtent(id: BodyId, place: DeskPlace): Vec3[] {
 export function deskExtent(portrait: boolean): Vec3[] {
   const points: Vec3[] = [];
   for (const id of BODY_IDS) points.push(...bodyExtent(id, homePlace(id, portrait)));
-  for (const fixed of Object.values(FIXED_EXTENT)) points.push(...fixed);
+  for (const fixed of Object.values(fixedExtent(portrait))) points.push(...fixed);
   return points;
 }
 
@@ -226,10 +268,8 @@ export function fitView({ view, points, limits, align }: FitRequest, aspect: num
 
 /** Les points que la vue de repos cadre : ceux de REST_FIT et tout le bureau utile. */
 export function restPoints(portrait: boolean): Vec3[] {
-  return [
-    ...(portrait ? REST_FIT.portrait.points : REST_FIT.landscape.points),
-    ...deskExtent(portrait),
-  ];
+  if (!portrait) return [...REST_FIT.landscape.points, ...deskExtent(false)];
+  return [...REST_FIT.portrait.points, ...deskExtent(true), ...decorExtentPortrait()];
 }
 
 /**

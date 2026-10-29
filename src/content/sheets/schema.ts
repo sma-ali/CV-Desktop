@@ -63,14 +63,14 @@ const liveSchema = z.strictObject({
 const uiSchema = z.strictObject({
   /** Nom de la région de la fiche pour les lecteurs d'écran. */
   label: text,
+  /** Préc. et Suiv. : l'abréviation visible, puis son complément pour les lecteurs d'écran. */
   prev: text,
   prevLabel: text,
   next: text,
   nextLabel: text,
+  /** Reposer et Retourner : le texte visible est aussi le nom du bouton. */
   close: text,
-  closeLabel: text,
   flip: text,
-  flipLabel: text,
   /** Le raccourci de « Retourner » (une touche, la même en FR et en EN). */
   flipKey: z.string().regex(/^[A-Z]$/, 'une lettre majuscule attendue'),
   /** L'appel au contact (lien vers la section contact de la version express). */

@@ -271,7 +271,6 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
               <button
                 type="button"
                 className={styles.sheetFlip}
-                aria-label={ui.flipLabel}
                 aria-pressed={flipped}
                 aria-keyshortcuts={ui.flipKey}
                 onClick={() => store.getState().toggleFlip()}
@@ -297,21 +296,25 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
           </div>
 
           <div className={styles.sheetFoot}>
-            <button type="button" aria-label={ui.prevLabel} onClick={() => go(-1)}>
+            {/* Le nom de chaque bouton commence par son texte visible (WCAG
+                2.5.3, commande vocale) ; l'abréviation se complète pour les
+                lecteurs d'écran. */}
+            <button type="button" onClick={() => go(-1)}>
               <span aria-hidden="true">‹ </span>
               {ui.prev}
+              <span className="visually-hidden"> ({ui.prevLabel})</span>
             </button>
             <button
               type="button"
               className={styles.sheetClose}
-              aria-label={ui.closeLabel}
               aria-keyshortcuts="Escape"
               onClick={putBack}
             >
               {ui.close}
             </button>
-            <button type="button" aria-label={ui.nextLabel} onClick={() => go(1)}>
+            <button type="button" onClick={() => go(1)}>
               {ui.next}
+              <span className="visually-hidden"> ({ui.nextLabel})</span>
               <span aria-hidden="true"> ›</span>
             </button>
           </div>

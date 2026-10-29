@@ -1070,10 +1070,12 @@
 }
 
 .sheetMeta a {
-  /* 24 px de haut au moins : une cible tactile (WCAG 2.5.8). */
-  display: inline-block;
-  min-height: 24px;
-  padding: 2px 0;
+  /* 44 px de haut au moins, comme les boutons de la fiche : l'e-mail et
+     LinkedIn sont l'appel principal de la carte, souvent touchés au doigt. */
+  display: inline-flex;
+  align-items: center;
+  min-height: 44px;
+  padding: 0;
   box-sizing: border-box;
   color: var(--brique);
   text-decoration: underline;

@@ -40,7 +40,7 @@ test.describe('la fiche', () => {
     await expect(sheet(page)).toHaveAttribute('data-open', 'true');
     await expect(sheet(page)).toHaveAttribute('data-sheet', 'netherbrain');
     await expect(sheet(page).getByRole('heading', { name: 'Netherbrain' })).toBeVisible();
-    await sheet(page).getByRole('button', { name: "Reposer l'objet" }).click();
+    await sheet(page).getByRole('button', { name: 'Reposer', exact: true }).click();
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     await expect(sheet(page)).toHaveAttribute('data-open', 'false');
   });
@@ -89,7 +89,7 @@ test.describe('la fiche', () => {
     }
     expect(seen).toEqual([...SHEET_ORDER.slice(1), SHEET_ORDER[0]]);
 
-    await sheet(page).getByRole('button', { name: 'Objet précédent' }).click();
+    await sheet(page).getByRole('button', { name: 'Préc. (objet précédent)', exact: true }).click();
     await expect(sheet(page)).toHaveAttribute('data-sheet', SHEET_ORDER.at(-1)!);
 
     const back: string[] = [];
@@ -131,7 +131,7 @@ test.describe('la fiche', () => {
     await chip.focus();
     await page.keyboard.press('Enter');
     await expect(sheet(page).getByRole('heading', { level: 2 })).toBeFocused();
-    await sheet(page).getByRole('button', { name: "Reposer l'objet" }).focus();
+    await sheet(page).getByRole('button', { name: 'Reposer', exact: true }).focus();
     await page.keyboard.press('Enter');
     await expect(sheet(page)).toHaveAttribute('data-open', 'false');
     await expect(chip).toBeFocused();
@@ -152,7 +152,7 @@ test.describe('la fiche', () => {
     test.slow();
     await page.goto(at('fr', 'prendre=badge'));
     await waitForScene(page);
-    const flip = sheet(page).getByRole('button', { name: "Retourner l'objet" });
+    const flip = sheet(page).getByRole('button', { name: 'Retourner', exact: true });
     await expect(hud(page)).toHaveAttribute('data-flipped', 'true');
     await expect(flip).toHaveAttribute('aria-pressed', 'true');
     await expect(flip).toHaveAttribute('aria-keyshortcuts', 'R');
@@ -166,7 +166,9 @@ test.describe('la fiche', () => {
     await page.goto(at('fr', 'prendre=monitor'));
     await waitForScene(page);
     await expect(sheet(page)).toHaveAttribute('data-sheet', 'monitor');
-    await expect(sheet(page).getByRole('button', { name: "Retourner l'objet" })).toHaveCount(0);
+    await expect(sheet(page).getByRole('button', { name: 'Retourner', exact: true })).toHaveCount(
+      0,
+    );
   });
 
   test('aucun lien vers un dépôt privé', async ({ page }) => {
@@ -193,14 +195,17 @@ test.describe('la fiche', () => {
     });
   }
 
-  test('ses boutons font au moins 44 px', async ({ page }) => {
+  test('ses boutons et ses liens font au moins 44 px', async ({ page }) => {
     await page.goto(at('fr', 'prendre=card'));
     await waitForScene(page);
-    const targets = sheet(page).locator('button, a[class]');
-    expect(await targets.count()).toBeGreaterThanOrEqual(5);
+    // Tous les liens, ceux de la méta compris (e-mail, LinkedIn).
+    const targets = sheet(page).locator('button, a');
+    expect(await targets.count()).toBeGreaterThanOrEqual(7);
     for (const target of await targets.all()) {
       const box = await target.boundingBox();
-      expect(box!.height).toBeGreaterThanOrEqual(44);
+      expect(box!.height, (await target.textContent()) ?? '').toBeGreaterThanOrEqual(44);
+      // Le nom vient du texte visible (WCAG 2.5.3) : aucun aria-label ne l'écrase.
+      expect(await target.getAttribute('aria-label')).toBeNull();
       expect(box!.width).toBeGreaterThanOrEqual(44);
     }
   });
@@ -277,7 +282,7 @@ test.describe('le son', () => {
 
     // Avec le son : prendre, retourner, reposer.
     await page.locator('[data-step="contact"]').click();
-    await sheet(page).getByRole('button', { name: "Retourner l'objet" }).click();
+    await sheet(page).getByRole('button', { name: 'Retourner', exact: true }).click();
     await page.keyboard.press('Escape');
 
     await button.click();
@@ -336,7 +341,7 @@ test.describe('sur téléphone', () => {
       // Au plus 42 % de la hauteur (SHEET.portrait.maxHeight), marge comprise.
       expect(box.y).toBeGreaterThanOrEqual(size.height * (1 - 0.42) - 1);
       // Elle défile, et ses boutons restent à portée.
-      const close = sheet(page).getByRole('button', { name: "Reposer l'objet" });
+      const close = sheet(page).getByRole('button', { name: 'Reposer', exact: true });
       await expect(close).toBeInViewport();
       await close.tap();
       await expect(sheet(page)).toHaveAttribute('data-open', 'false');

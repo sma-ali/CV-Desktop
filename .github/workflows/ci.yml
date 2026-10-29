@@ -33,9 +33,10 @@ jobs:
     runs-on: ubuntu-latest
     # La 3D tourne par SwiftShader, sur le processeur : chaque profil se
     # découpe en trois parts, en parallèle, pour tenir dans le temps imparti.
-    # Étape 4 : 10.8 min (ordinateur) et 9.0 min (téléphone) en local sur 16
+    # Étape 4 : 10.7 min (ordinateur) et 9.0 min (téléphone) en local sur 16
     # cœurs et 4 pages ; un profil entier sur 4 cœurs et 2 pages, comme un
-    # exécuteur de GitHub, dépasse 30 min.
+    # exécuteur de GitHub, dépasse 30 min (36.6 min) ; la part la plus lourde
+    # y prend 16 min de tests.
     timeout-minutes: 30
     strategy:
       fail-fast: false

@@ -1,4 +1,4 @@
-# Le bureau en 3D (étape 3)
+# Le bureau en 3D (étapes 3 et 4)
 
 Ce document fixe le contrat entre les parties de la scène. Le socle a été posé sur la branche `feat/bureau-3d` ; trois parties (décor, objets, mise en scène) se sont construites en parallèle, chacune dans son worktree et dans ses propres fichiers, puis une passe d'assemblage les a fusionnées et a calé le rendu sur le prototype (voir « État à la fin de l'étape 3 »). Le contrat reste valable pour l'étape 4, que [`docs/gestes.md`](gestes.md) complète (gestes, fiches, son, signes de vie, nouveaux objets) et corrige là où il le dit.
 
@@ -201,7 +201,7 @@ Pour comparer, capturer le site avec les mêmes paramètres (`prendre=book` pour
 
 ## Worktrees et ports
 
-Les trois worktrees de l'étape 3 ont été fusionnés puis supprimés. Les ports et worktrees de l'étape 4 sont dans [`docs/gestes.md`](gestes.md). Commande de l'étape 3, pour mémoire :
+Les worktrees des étapes 3 et 4 ont été fusionnés puis supprimés. Les ports de l'étape 4 sont dans [`docs/gestes.md`](gestes.md). Commande de l'étape 3, pour mémoire :
 
 ```bash
 git worktree add .claude/worktrees/decor -b feat/bureau-3d-decor feat/bureau-3d
@@ -221,14 +221,17 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
 
 ## Vérifier
 
-- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre.
+- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre. Étape 4 : encombrements au repos (`bodies.test.ts`), solveur des collisions et glisser (`gestures/`), présentation et suivi du pointeur, signes de vie (`src/lib/life-signs`, vue de la fiche), battements du coffret, LED de la baie, pile du portable comparée au CV, cadrage sur 14 fenêtres réelles.
 - `npm run test:e2e` : build de production puis Playwright sur ordinateur et téléphone.
   - `bureau.spec.ts` (socle) : HUD visible sans la 3D, pixels du canvas, repli sans WebGL et sans JavaScript, mouvement réduit, nuit à 23 h, sélecteur d'ambiance, langues, liens bureau et version express, axe sur le HUD, aucune erreur en console, en-têtes et CSP, scène hors du JavaScript initial, puce qui présente un objet, Rejouer.
   - `scene-decor.spec.ts` : décor immobile sous `&fige`, vivant sinon, nuit sans erreur.
   - `scene-objets.spec.ts` : étiquettes FR et EN, cachées pendant l'arrivée et la présentation, puce, étiquette, survol et clic, clic hors des objets, mouvement réduit.
   - `scene-scene.spec.ts` : arrivée du noir à `settled`, Rejouer trois fois sans fuite WebGL, visite dans l'ordre, arrêt et reprise, `?auto=0`, puce qui reprend la main, mouvement réduit, changement d'ambiance.
   - `parcours.spec.ts` (assemblage) : puce au clavier puis Échap, gros plan sur l'écran au clic et par `?prendre=monitor`, visite arrêtée par une touche, Rejouer qui repose l'objet et garde l'ambiance, passage en anglais scène comprise, aller-retour avec la version express.
-  - Étape 4 : `scene-gestes.spec.ts` (gestes), `scene-fiches.spec.ts` (fiches et son), `scene-projets.spec.ts` (Netherbrain, Homelab, cadrage) ; voir [`docs/gestes.md`](gestes.md).
+  - `scene-gestes.spec.ts` (étape 4, gestes) : bureau au repos, objet présenté retourné sauf avec `?recto`, portable glissé contre la carte sans la chevaucher, objet tiré vers le bord qui reste sur le plateau, `?glisse=mug`, appui de moins de 7 px qui reste un clic, retourner puis remettre d'un clic, objet déplacé présenté puis reposé à sa nouvelle place jusqu'à Rejouer, `?glisse` sous `&fige` et sans, mouvement réduit, visite coupée par un glisser, pas de défilement au doigt. Les recouvrements se vérifient avec le solveur, à partir de `data-places`.
+  - `scene-fiches.spec.ts` (étape 4, fiches et son) : chaque puce ouvre la bonne fiche en FR et en EN (comparée au contenu), Préc. / Suiv. et flèches sur tout `SHEET_ORDER`, focus au clavier rendu par Échap et Reposer, visite qui ne vole pas le focus, Retourner au bouton et à `R`, aucun lien vers un dépôt privé, axe fiche ouverte, boutons de 44 px, signes de vie FR et EN sans mot interdit, son coupé jusqu'au clic (aucun AudioContext avant), indication de l'objet tenu, feuille du bas en 390x844, 360x740 et 412x915, fiche à droite en 844x390.
+  - `scene-projets.spec.ts` (étape 4, objets et cadrage) : étiquettes de Netherbrain, Homelab et de la pile, présentation par la puce, l'étiquette, un clic ou un tap, dos peint des deux objets retournés, coffret qui bat au rythme de ses signes de vie, `data-offscreen` vide sur ordinateur, en trois portraits et en paysage, bord avant du bureau sur le HUD du bas.
+  - La CI découpe chaque profil en trois parts (`--shard`), six jobs en parallèle : voir « Décisions de l'assemblage de l'étape 4 ».
 
 ## État à la fin de l'étape 3
 
@@ -291,3 +294,38 @@ Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (deve
 - Le carton d'arrivée a un voile plus dense : le code de l'écran, devenu lisible, se brouillait avec « Bienvenue chez ».
 - Le soir, la tache du soleil sous la fenêtre est plus forte (`patchOpacity` de 0.6 à 1.1) : passée en linéaire, elle se perdait et le soir tirait vers la nuit.
 - La CI lance les tests de bout en bout en deux jobs parallèles (ordinateur, téléphone), 30 minutes au plus chacun.
+
+## État à la fin de l'étape 4
+
+Tout le périmètre de [`docs/gestes.md`](gestes.md) est en place, fusionné sur `feat/gestes` :
+
+- prendre : l'objet se soulève devant la caméra, tourne, et suit un peu le pointeur ;
+- retourner : un clic ou un tap sur l'objet tenu, le bouton « Retourner » de la fiche ou la touche `R`, selon le mode de chaque objet (`flip`, `open`, `laptop`, `turn`, `shake`, `spin`) ;
+- glisser : neuf corps (livre, badge, portable, carte, coffret, Netherbrain, Homelab, tasse, manette), à la souris et au doigt, avec soulèvement, inclinaison, rebond et écrasement, poussée en chaîne et collisions entre rectangles orientés contre le décor, les autres corps et les bords ; le portable ne chevauche plus la carte ; les places tiennent jusqu'à « Rejouer » ;
+- fiches : une par objet, en FR et en EN, tirée du CV, avec Préc. / Reposer / Suiv., flèches, Échap, focus géré, feuille du bas sur téléphone ;
+- Netherbrain (bocal au cerveau qui luit) et Homelab (mini baie aux LED qui clignotent), sans lien vers leurs dépôts, encore privés ;
+- coffret : signes de vie (données d'exemple signalées comme telles) et battement de sa LED et de son liseré ;
+- son : synthèse WebAudio, coupé par défaut, AudioContext créé au clic sur « Son » ;
+- téléphone : tout le bureau utile à l'écran en portrait et en paysage (`data-offscreen` vide), glisser au doigt sans défiler ;
+- mouvement réduit : glisser sans retard, inclinaison ni rebond ; retournement et présentation immédiats.
+
+Vérifié à la main, hors du dépôt, avec de vrais gestes : chaque corps glissé vers chacun des autres, vers les trois obstacles du décor les plus proches et vers les quatre bords, sur ordinateur (1440x900, 135 glissers) et sur téléphone (Pixel 7, au doigt, 93 glissers) : aucun recouvrement, rien hors du plateau, aucun objet présenté par un glisser, aucune erreur dans la console. Les fiches parcourues au clavier (puce, Entrée, flèches, `R`, Échap) : focus sur le titre puis rendu à la puce, chaque objet retourné puis remis, l'écran sans bouton ; aucun AudioContext avant le clic sur « Son ». Le rendu au repos des quatre ambiances, sur ordinateur, comparé au prototype avec les mêmes paramètres, ne montre pas de régression par rapport à l'étape 3 ; les deux nouveaux objets s'y ajoutent.
+
+Ce qui reste ouvert :
+
+- en portrait, tenir tout le bureau (micro et corde compris, x de -6.42 à 6.2) dans la largeur laisse une bande de mur vide au-dessus du bureau au repos (environ 140 px en 360x740, 245 px en 412x915) ; elle sert de scène à l'objet tenu. La réduire demande de rapprocher le décor en portrait ou d'accepter des bords coupés : à trancher avec Ali ;
+- sur téléphone, même réduites à leur mot, quelques étiquettes se chevauchent (Homelab et DEFI-METIERS, Netherbrain et Compétences) et couvrent en partie le bocal et le badge : un tap à cet endroit présente l'objet de l'étiquette, et le glisser se prend plus bas sur l'objet ;
+- à valider avec Ali : le sens du retournement (l'objet présenté fait son geste d'office), ce qu'affichent les signes de vie, les deux notes de la fiche du coffret (« Le contenu se raconte en entretien. » et « Le contenu, lui, reste scellé. »), et les étiquettes réduites à leur mot sur téléphone ;
+- étape 5 : `getLifeSigns()` lira le JSON public derrière `/api/signes-de-vie`.
+
+## Décisions de l'assemblage de l'étape 4
+
+- Les trois parties ne partageaient aucun fichier : fusion sans conflit, dans l'ordre gestes, objets, fiches.
+- Un glisser qui commence alors qu'un objet est tenu le repose (décision de la partie gestes, gardée) : le prototype le laissait en main, mais la fiche ouverte parlerait alors d'un autre objet que celui qu'on déplace. Un glisser ne passe jamais par `onPointerMissed` : son clic est avalé avant React Three Fiber.
+- Le coffret ne cliquette (`rattle`) que tenu et retourné : il ne tremble plus remis à l'endroit (partie gestes), le son suit.
+- La pile du portable vient de la section compétences du CV : `SceneTexts.skills` (les compétences à plat, `buildSceneTexts`) filtre les technologies des projets (`laptopChips`). WireGuard, qui n'est pas une compétence du CV mais une brique du Homelab, quitte l'écran du portable et reste sur la baie. Un test compare chaque pastille au CV.
+- Sur téléphone (portrait, ou hauteur de 500 px au plus), les étiquettes ne gardent que leur mot (`TagLayer.module.css`) : entières, elles couvraient le bocal, le badge et la manette, qu'on ne pouvait plus ni toucher ni glisser. Les années restent sur les puces.
+- Le test « coupent la visite automatique » glisse le premier corps que le pointeur atteint : la fiche du livre, ouverte par la visite, couvre le portable sur ordinateur et le bas du bureau sur téléphone.
+- Les tests qui chargent deux scènes de suite sont marqués `test.slow()`.
+- CI : les tests de bout en bout prennent 10.7 min (ordinateur) et 9.0 min (téléphone) en local, sur 16 cœurs et 4 pages ; un profil entier sur 4 cœurs et 2 pages, comme un exécuteur de GitHub (simulé avec `taskset -c 0-3 --workers=2`), prend 36.6 min, au-delà des 30 min du job. Chaque profil se découpe donc en trois parts (`--shard=1/3` à `3/3`), six jobs en parallèle. En CI, le délai d'un test passe à 120 s et celui d'une attente à 30 s (`playwright.config.ts`) : sur 4 cœurs, la scène dessine environ deux fois moins vite (avec les délais de 60 s, la simulation comptait 8 tests instables). Simulées avec ces réglages, les parts 2/3 et 3/3 de l'ordinateur, les plus lourdes (les tests de la 3D), prennent 15.5 et 16 min sans échec ni reprise, la part 1/3 du téléphone 1.4 min (accueil, socle, version express) : avec l'installation et le build, environ 20 min pour le job le plus long. Les parts sont déséquilibrées parce que Playwright découpe la liste dans l'ordre des fichiers.
+- Le rendu par image n'a pas changé avec l'étape 4 (même cadence sous SwiftShader que l'étape 3, environ 3 images par seconde par page) : le temps des tests vient de leur nombre (156 sur ordinateur, 142 sur téléphone).

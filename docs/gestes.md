@@ -224,3 +224,36 @@ Pendant que les trois parties tournent, chacune lance Playwright avec `--workers
 - Netherbrain se pose devant le clavier, à droite de la lanière du badge ; Homelab à l'avant gauche, entre la corde, le coffret et le livre. Ce sont les deux seules places libres du plateau sans toucher au décor.
 - L'écran a sa fiche (le profil et les dates) et ferme la boucle de `SHEET_ORDER`.
 - La visite passe par les deux nouveaux objets et par le portable (la pile) : 7 objets.
+
+## Décisions des parties
+
+Gestes (`src/scene/gestures/`) :
+
+- `gestureHub(store)` (`hub.ts`, un par store, dans une `WeakMap`) porte ce que partagent les gestes et les objets : l'appui en cours, le glisser (`DragSim`), le pointeur lissé que l'objet tenu suit (0 au doigt), et l'avancement de la présentation de chaque objet, écrit par `usePresentation` : un objet présenté, ou qui revient, ne compte pas dans les collisions.
+- Les gestes écoutent eux-mêmes `pointerdown` et `pointermove` sur le canvas, `pointerup` et `pointercancel` sur la fenêtre : React Three Fiber ne compte un clic qu'en deçà de 2 px, le seuil du glisser est de 7 px (`DRAG.threshold`). Un appui qui a parcouru 7 px ou plus n'est jamais un clic : le clic qui suit est avalé en phase de capture sur la fenêtre, avant React Three Fiber (ni présentation, ni réaction du décor). Un appui bougé de 2 à 7 px hors des objets repose quand même l'objet tenu.
+- `claimBody` (`pointer.ts`) n'attribue l'appui à un corps que s'il est le premier objet sous le pointeur : la lampe ou l'objet tenu devant lui ne font pas glisser ce qui est derrière.
+- Un glisser qui commence alors qu'un objet est tenu le repose (le prototype le laissait en main) : un glisser ne présente rien, et la fiche ne parle jamais d'un autre objet que celui qu'on tient.
+- Solveur (`solver.ts`, pur, sans three) : axe séparateur sur les quatre axes, relaxation bornée à 8 itérations (le corps tenu reste immobile face aux autres, qui se poussent en chaîne), voisinage limité aux corps et obstacles à portée du pas. `moveBody` avance par sous-pas d'au plus `MAX_STEP` (0.12, pas de tunnel) ; un pas qui créerait un recouvrement est refusé, puis il tente de glisser le long de l'obstacle (x seul, z seul), puis un quart de pas. Un état valide reste valide. `CONTACT_MARGIN` = 0.012. `DESK_WORLD` (`drag.ts`) = `DECOR_OBSTACLES` + `FIXED_ITEM_OBSTACLES` + `BOUNDS`.
+- `DragSim` (`drag.ts`, réglages du prototype dans `DRAG`) : retard sur la main, soulèvement de 0.32, inclinaison selon la vitesse (0.05 par unité, au plus 0.3), un seul `thud` par contact ; au lâcher, chute, rebond et écrasement, `thud` selon la force. `endDrag` est appelé au lâcher : x et z ne bougent plus, le rebond n'est que visuel. Un objet reposé sur une place prise pendant sa présentation est écarté (relaxation, puis place libre la plus proche).
+- `?glisse` animé : le corps est lâché arrivé, bloqué depuis 0.4 s, ou au bout de 3 s ; sous `&fige` ou en mouvement réduit, l'état final est posé dans la même image.
+- Objet tenu : un clic dessus appelle `toggleFlip` (l'écran, lui, quitte le gros plan) ; il se décale vers le pointeur de `HELD_FOLLOW` (0.025 de sa distance à la caméra), en plus de pencher. En mode `shake`, la secousse du coffret est multipliée par `f` : retourné il tremble, remis à l'endroit il est calme.
+- `usePressable` (décor) garde son seuil de 9 px pour un clic : sans effet, le clic étant avalé dès 7 px.
+
+Fiches et son (`src/components/desk/`) :
+
+- `Sheet` prend `texts`, `locale` et `onAnnounce` (la région `status` du HUD). Bouton « Retourner » (`aria-pressed`, `aria-keyshortcuts="R"`, absent pour l'écran) ; Préc. et Suiv. passent par `neighborItem` et `present(id, 'sheet')`. Flèches et `R` tant que la fiche est ouverte, ignorées avec Ctrl, Alt ou Meta et dans un champ ; `R` est le seul écouteur du raccourci. Échap reste dans `DeskShell`.
+- Focus : ouverte au clavier, la fiche le prend sur son titre (`tabIndex -1`) et le rend à l'élément d'où il venait, sinon à la puce de l'étape. Ouverte au pointeur ou par la visite, elle le laisse où il est.
+- La fiche s'appelle `.bristol` en CSS : `.sheet` reste le cadre du repli (version express).
+- Sous `?fige`, l'animation d'entrée de la fiche est coupée (sinon elle resterait gelée à opacité 0) : toute nouvelle animation d'entrée du HUD a le même piège.
+- L'indication du HUD (`#hud p[data-on]`, seul de son espèce) se découpe en phrases, une par ligne sur téléphone ; avec la fiche ouverte, elle se centre à gauche de la fiche sous 1300 px et se masque en portrait.
+- Signes de vie : `lifeSignsView.ts` (pur, testé) appelle `formatLifeSigns` et résiste aux données mal formées ; l'horloge de la fiche avance par pas de 20 s et ne remonte jamais avant `measuredAt`.
+- `createWebAudioSound()` : les 11 sons d'après `Snd` du prototype, un souffle de pièce et un compresseur, sans fichier. L'AudioContext naît au premier `setEnabled(true)` ; couper met le gain à 0 et suspend le contexte. La préférence du son n'est pas gardée d'une page à l'autre : la rouvrir sans clic créerait un AudioContext sans geste du visiteur.
+
+Objets et cadrage (`src/scene/items/`, `src/scene/stage/`) :
+
+- Netherbrain : bocal de verre teinté, couvercle et socle en laiton, cerveau en icosaèdre déformé dont l'émissif respire (`breath`), halo additif ; retourné (`spin`), l'étiquette enroulée au dos (nom, accroche, année, pile, tests). Homelab : baie de 10 pouces fusionnée en un appel de dessin, 14 LED sur un `InstancedMesh`, déterministes (`items/homelab.ts`, `ledLevel(t)`), figées sous `&fige`, allumées sans clignoter en mouvement réduit ; au dos, trois étiquettes à pictogramme sans logo réel. Aucune lumière ponctuelle ajoutée (chaque lumière recompile tous les matériaux).
+- Coffret : LED, liseré et lueur battent selon `activityPulse(store.lifeSigns)` (`heartbeat`, `items/beats.ts`), sans battement en mouvement réduit ; `rattle` au début de chaque à-coup quand il est tenu et retourné.
+- Cadrage : `fitRestView(aspect, size)` cadre `REST_FIT` plus tout le bureau utile, `deskExtent(portrait)` (les 8 coins de chaque corps à sa place, hauteurs `BODY_HEIGHTS`, et les points fixes `FIXED_EXTENT` : haut de l'écran, casque, micro, lampe). En portrait, les limites se calculent en pixels d'après `PORTRAIT_HUD` (112 px en haut, 205 px en bas, calés sur le HUD actuel : à recaler si sa hauteur change), le bas du bureau se pose sur le HUD du bas (`align: 'bottom'`), `REST.portrait` passe à `elev` 0.85 et `fov` 40, et `camera.far` suit la distance (au moins 90). Le paysage ne change pas.
+- `HELD.portrait` = `{ x: 0, y: 0.3, fracH: 0.34, fracW: 0.9 }` : l'objet tenu se tient de -0.04 à 0.64 en y, au-dessus de la feuille du bas (42 %), qui doit rester sous 0.58 de la hauteur.
+- `OffscreenProbe` reprend les points du cadrage sur les places du moment ; il écrit `data-offscreen-probes` (nombre de relevés) sur le canvas, pour qu'un test sache qu'une liste vide vient d'une mesure.
+- `ITEM_POSES.netherbrain.hold` = `{ w: 1.4, h: 1.85, oy: 0.55 }`, `homelab.hold` = `{ w: 1.9, h: 1.85, oy: 0.46 }`. `MergedParts` et `mergeColored` (`merged.tsx`) fusionnent des géométries quelconques.

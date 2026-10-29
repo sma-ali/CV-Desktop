@@ -43,7 +43,7 @@ Les tests lancent le site sur le port 3100 ; `E2E_PORT=3411 npm run test:e2e` en
 
 ## Le bureau en 3D
 
-La page `/fr` (ou `/en`) s'affiche tout de suite avec son HUD ; la scène React Three Fiber arrive ensuite, dans un fichier JavaScript à part. On assiste à l'arrivée (la lampe s'allume, le code se tape à l'écran, la caméra monte), puis une visite automatique présente les objets du CV un à un. Un clic sur un objet, sur son étiquette ou sur une puce du bas de page le soulève devant la caméra ; Échap ou un clic ailleurs le repose. Le sélecteur en bas à droite change la lumière (matin, après-midi, soir, nuit), « Rejouer » relance l'arrivée. Avec `prefers-reduced-motion`, la scène arrive posée, sans visite ni animation. Sans WebGL ou sans JavaScript, la version express s'affiche à la place.
+La page `/fr` (ou `/en`) s'affiche tout de suite avec son HUD ; la scène React Three Fiber arrive ensuite, dans un fichier JavaScript à part. On assiste à l'arrivée (la lampe s'allume, le code se tape à l'écran, la caméra monte), puis une visite automatique présente les objets du CV un à un. Un clic sur un objet, sur son étiquette ou sur une puce du bas de page le soulève devant la caméra et ouvre sa fiche (Préc. / Suiv., flèches gauche et droite) ; un clic sur l'objet tenu, le bouton « Retourner » ou la touche R le retourne ; Échap, « Reposer » ou un clic ailleurs le repose. Les objets du plateau se font aussi glisser, à la souris comme au doigt, et se poussent les uns les autres sans se chevaucher ; « Rejouer » les remet en place. Le bouton « Son » ouvre le son (synthétisé, coupé par défaut). Le sélecteur en bas à droite change la lumière (matin, après-midi, soir, nuit), « Rejouer » relance l'arrivée. Avec `prefers-reduced-motion`, la scène arrive posée, sans visite ni animation. Sans WebGL ou sans JavaScript, la version express s'affiche à la place.
 
 Paramètres de test, à ajouter à l'adresse du bureau :
 
@@ -55,10 +55,12 @@ Paramètres de test, à ajouter à l'adresse du bureau :
 | `?ambiance=night`      | force une ambiance (`morning`, `afternoon`, `evening`, `night`)                        |
 | `?auto=0`              | pas de visite automatique                                                              |
 | `?reduit`              | mouvement réduit                                                                       |
-| `?prendre=book`        | présente un objet d'office (`book`, `postit`, `laptop`, `card`, `chest`, `monitor`...) |
+| `?prendre=book`        | présente un objet d'office (`book`, `postit`, `netherbrain`, `chest`, `monitor`...)    |
+| `&recto`               | avec `?prendre=`, l'objet reste à l'endroit (sans son geste)                           |
+| `?glisse`              | glisse le portable sur la carte, comme le prototype ; `?glisse=mug:1.5,-0.25` un autre |
 | `?noshadow`, `?nopost` | sans ombres, sans post-traitement                                                      |
 
-Par exemple http://localhost:3000/fr?t=11000&fige&auto=0&heure=23 montre le bureau posé, de nuit. L'état de la scène est exposé sur `#hud` (`data-ready`, `data-phase`, `data-mood`, `data-presented`, `data-auto`...) pour les tests. Architecture, contrat entre les parties et calage : [docs/scene-3d.md](docs/scene-3d.md).
+Par exemple http://localhost:3000/fr?t=11000&fige&auto=0&heure=23 montre le bureau posé, de nuit. L'état de la scène est exposé sur `#hud` (`data-ready`, `data-phase`, `data-mood`, `data-presented`, `data-flipped`, `data-places`...) pour les tests. Architecture, contrat entre les parties et calage : [docs/scene-3d.md](docs/scene-3d.md) ; gestes, fiches, son et signes de vie : [docs/gestes.md](docs/gestes.md).
 
 ## Capturer le bureau
 
@@ -90,8 +92,9 @@ node scripts/capture.mjs /fr --params "t=11000&fige&auto=0&heure=14&prendre=book
 
 - `src/content/` : le contenu du CV en français et en anglais, typé et validé par zod, avec les textes de l'interface et ceux du bureau (`src/content/scene/` pour les textes peints dans la 3D). C'est la seule source des textes : la scène 3D et la version express la lisent toutes les deux. Un contenu invalide fait échouer le build.
 - `src/app/[locale]/page.tsx` : le bureau, rendu au build pour chaque langue (HUD et repli dans le HTML).
-- `src/components/desk/` : le HUD, le grain, le repli et le chargement de la scène.
-- `src/scene/` : la scène React Three Fiber, chargée à part. `core/` (Canvas, horloge, store, constantes), `decor/` (pièce, lampe, clavier, décor perso), `items/` (écran et objets du CV, étiquettes, présentation) et `stage/` (lumières, ciel, caméra, visite automatique, post-traitement). Architecture et contrat : [docs/scene-3d.md](docs/scene-3d.md).
+- `src/components/desk/` : le HUD, la fiche de l'objet tenu, la synthèse des sons, le grain, le repli et le chargement de la scène.
+- `src/lib/life-signs/` : les signes de vie du coffret (données d'exemple à l'étape 4), lus par le serveur et formatés en FR et EN.
+- `src/scene/` : la scène React Three Fiber, chargée à part. `core/` (Canvas, horloge, store, constantes), `decor/` (pièce, lampe, clavier, décor perso), `items/` (écran et objets du CV, étiquettes, présentation), `gestures/` (glisser, solveur des collisions) et `stage/` (lumières, ciel, caméra, visite automatique, post-traitement). Architecture et contrat : [docs/scene-3d.md](docs/scene-3d.md).
 - `scripts/capture.mjs` : capture d'une page avec la 3D.
 - `src/app/[locale]/express/` : la page de la version express, ses métadonnées et son image de partage, générées au build pour chaque langue.
 - `src/app/` : `sitemap.ts`, `robots.ts` et l'icône du site.

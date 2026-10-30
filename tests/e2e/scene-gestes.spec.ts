@@ -311,7 +311,8 @@ test.describe('les gestes', () => {
   });
 
   test('coupent la visite automatique', async ({ page, isMobile }) => {
-    test.setTimeout(90_000);
+    // En portrait, on attend la pause qui suit le livre : plus long au doigt.
+    test.setTimeout(isMobile ? 150_000 : 90_000);
     // Avant la visite (AUTO_START = 12.6 s), on repère les corps sous leur étiquette.
     await page.goto('/fr?t=10000&heure=14');
     await waitForScene(page);

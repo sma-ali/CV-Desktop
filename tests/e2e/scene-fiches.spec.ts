@@ -47,6 +47,8 @@ test.describe('la fiche', () => {
 
   for (const locale of ['fr', 'en'] as const) {
     test(`chaque puce ouvre la bonne fiche (${locale})`, async ({ page }) => {
+      // Cinq présentations de suite : près de 60 s avec 4 pages sous SwiftShader.
+      test.slow();
       const { sheets } = getContent(locale);
       await page.goto(at(locale));
       await waitForScene(page);
@@ -78,6 +80,8 @@ test.describe('la fiche', () => {
   }
 
   test('Préc. / Suiv. et les flèches parcourent tous les objets', async ({ page }) => {
+    // Tous les objets présentés de suite : près de 60 s avec 4 pages sous SwiftShader.
+    test.slow();
     await page.goto(at('fr', 'prendre=book'));
     await waitForScene(page);
     await expect(sheet(page)).toHaveAttribute('data-sheet', 'book');

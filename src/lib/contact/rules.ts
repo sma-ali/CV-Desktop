@@ -34,7 +34,7 @@ export const CONTACT_LIMITS = {
   message: { min: 10, max: 5000 },
 } as const;
 
-/** Une saisie envoyée moins de 3 s après la première frappe vient d'un robot. */
+/** Un envoi moins de 3 s après l'affichage du formulaire vient d'un robot. */
 export const MIN_TYPING_MS = 3000;
 
 /** Taille maximale du corps de la requête lu par le serveur (16 ko). */
@@ -52,9 +52,15 @@ export type ContactSource = (typeof CONTACT_SOURCES)[number];
 // déborder dans un en-tête d'e-mail.
 const EMAIL_PATTERN = /^[^\s@<>()[\]\\,;:"]+@[^\s@<>()[\]\\,;:"]+\.[^\s@<>()[\]\\,;:".]{2,}$/;
 
-// Caractères de contrôle, séparateurs de ligne Unicode et marques de
-// direction (qui retourneraient l'affichage du sujet de l'e-mail).
-const NAME_FORBIDDEN = /[\p{Cc}\u2028\u2029\u202a-\u202e\u2066-\u2069]/u;
+// Une adresse en ASCII imprimable seulement : ni caractère de contrôle, ni
+// marque de direction, ni caractère invisible (elle part dans Reply-To).
+const EMAIL_CHARSET = /^[\x21-\x7e]+$/;
+
+// Caractères de contrôle, séparateurs de ligne Unicode, marques de direction
+// (qui retourneraient l'affichage du sujet de l'e-mail) et caractères de
+// format invisibles (\p{Cf}). Seuls restent permis les liants U+200C et
+// U+200D, que certaines écritures (le persan, par exemple) utilisent dans les noms.
+const NAME_FORBIDDEN = /[\p{Cc}\u2028\u2029]|(?![\u200c\u200d])\p{Cf}/u;
 // Dans le message, les retours à la ligne et les tabulations restent permis.
 const MESSAGE_FORBIDDEN =
   /[\u0000-\u0008\u000b\u000c\u000e-\u001f\u007f-\u009f\u202a-\u202e\u2066-\u2069]/;
@@ -91,7 +97,7 @@ export function checkEmail(raw: string): FieldErrorCode | null {
   const value = cleanEmail(raw);
   if (value === '') return 'required';
   if (value.length > CONTACT_LIMITS.email.max) return 'too_long';
-  if (!EMAIL_PATTERN.test(value)) return 'invalid';
+  if (!EMAIL_CHARSET.test(value) || !EMAIL_PATTERN.test(value)) return 'invalid';
   return null;
 }
 

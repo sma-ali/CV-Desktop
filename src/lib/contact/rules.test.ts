@@ -32,6 +32,23 @@ describe('règles des champs', () => {
     expect(checkName('Camille ‮emmoc')).toBe('invalid');
   });
 
+  it('refuse les caractères invisibles et les marques de direction dans le nom', () => {
+    for (const mark of ['\u200b', '\u200e', '\u200f', '\u061c', '\u2060', '\ufeff', '\u{e0041}']) {
+      expect(checkName(`Bo${mark}b`), mark.codePointAt(0)!.toString(16)).toBe('invalid');
+    }
+    // Les liants restent permis : certaines écritures en ont besoin.
+    expect(checkName('Mohammad\u200cReza')).toBeNull();
+    expect(checkName('Zoé Ørsted-Łukasz')).toBeNull();
+  });
+
+  it('veut une adresse en ASCII imprimable', () => {
+    expect(checkEmail('a\u0001x@b.fr')).toBe('invalid');
+    expect(checkEmail('a\u007fx@b.fr')).toBe('invalid');
+    expect(checkEmail('a\u202ex@b.fr')).toBe('invalid');
+    expect(checkEmail('a\u200bx@b.fr')).toBe('invalid');
+    expect(checkEmail('camille.martin+cv@exemple.fr')).toBeNull();
+  });
+
   it('vérifie le format et la longueur de l’e-mail', () => {
     expect(checkEmail(' camille@exemple.fr ')).toBeNull();
     expect(checkEmail('')).toBe('required');

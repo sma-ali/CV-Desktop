@@ -231,6 +231,7 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
   - `scene-gestes.spec.ts` (étape 4, gestes) : bureau au repos, objet présenté retourné sauf avec `?recto`, portable glissé contre la carte sans la chevaucher, objet tiré vers le bord qui reste sur le plateau, `?glisse=mug`, appui de moins de 7 px qui reste un clic, retourner puis remettre d'un clic, objet déplacé présenté puis reposé à sa nouvelle place jusqu'à Rejouer, `?glisse` sous `&fige` et sans, mouvement réduit (Rejouer compris), objet glissé puis présenté au clavier qui reste présenté, visite coupée par un glisser, pas de défilement au doigt. Les recouvrements se vérifient avec le solveur, à partir de `data-places`.
   - `scene-fiches.spec.ts` (étape 4, fiches et son) : chaque puce ouvre la bonne fiche en FR et en EN (comparée au contenu), Préc. / Suiv. et flèches sur tout `SHEET_ORDER`, focus au clavier rendu par Échap et Reposer, visite qui ne vole pas le focus, Retourner au bouton et à `R`, aucun lien vers un dépôt privé, axe fiche ouverte, boutons et liens de 44 px sans `aria-label`, signes de vie FR et EN sans mot interdit, son coupé jusqu'au clic (aucun AudioContext avant), indication de l'objet tenu, feuille du bas en 390x844, 360x740 et 412x915, fiche à droite en 844x390.
   - `scene-projets.spec.ts` (étape 4, objets et cadrage) : étiquettes de Netherbrain, Homelab et de la pile, présentation par la puce, l'étiquette, un clic ou un tap, dos peint des deux objets retournés, coffret qui bat au rythme de ses signes de vie, `data-offscreen` vide sur ordinateur, en trois portraits et en paysage, bureau resserré qui remplit la hauteur libre en portrait (`data-desk-share` au-dessus de 0.65), bord avant du bureau sur le HUD du bas.
+  - `contact.spec.ts`, `contact-api.spec.ts` et `signes.spec.ts` (étape 5, routes serveur) : voir [`routes-serveur.md`](routes-serveur.md).
   - La CI découpe chaque profil en trois parts (`--shard`), six jobs en parallèle : voir « Décisions de l'assemblage de l'étape 4 ».
 
 ## État à la fin de l'étape 3
@@ -317,7 +318,7 @@ Ce qui reste ouvert (après la relecture, voir plus bas) :
 - à valider avec Ali : ce qu'affichent les signes de vie, les étiquettes réduites à leur mot sur téléphone, l'allure des deux nouveaux objets et le son ;
 - en 412x915 seulement, sous SwiftShader, un triangle du plan des autocollants du portable se dessine en rayures (texture de 1200 x 840, anisotropie 8). Ni en 390x844, ni en 360x740, ni sur ordinateur ; jamais vu sur un vrai processeur graphique : à vérifier sur un vrai téléphone avant d'y toucher ;
 - la CI découpe chaque profil en trois parts dans l'ordre des fichiers : les parts sont déséquilibrées (la plus longue tient dans le temps imparti). Les équilibrer demanderait `PWTEST_SHARD_WEIGHTS`, une variable interne de Playwright, non documentée ;
-- étape 5 : `getLifeSigns()` lira le JSON public derrière `/api/signes-de-vie`.
+- étape 5 (faite, voir [`routes-serveur.md`](routes-serveur.md)) : `getLifeSigns()` lit le JSON public, partagé avec `/api/signes-de-vie`.
 
 ## Décisions de l'assemblage de l'étape 4
 

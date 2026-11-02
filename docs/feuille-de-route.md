@@ -22,6 +22,8 @@ Prendre un objet (il se soulève et tourne), le retourner, le faire glisser avec
 
 `/api/contact` : validation zod, piège à robots, limite de débit, envoi d'e-mail, réponses d'erreur claires, tests. `/api/signes-de-vie` : lecture d'un JSON public avec cache et repli sur des données d'exemple, tests.
 
+Fait sur la branche `feat/routes-serveur`, en attente de la validation d'Ali : contrat dans [`routes-serveur.md`](routes-serveur.md). Restent pour la mise en ligne : compte Mailjet, adresse expéditrice et DNS, variables sur Vercel, règle du pare-feu Vercel sur `/api/contact`, hébergement du JSON public des signes de vie.
+
 ## 6. Tests réels et performances
 
 Suite Playwright des parcours : clic sur un objet, retournement, glisser, formulaire, version express, bascule FR/EN, téléphone. Budget de poids, Lighthouse, test sur un vrai téléphone.

@@ -36,26 +36,26 @@ Aucune des deux routes n'envoie d'en-tête CORS.
 
 ### Champs
 
-| Champ      | Règle                                                                                                   |
-| ---------- | ------------------------------------------------------------------------------------------------------- |
-| `name`     | 1 à 100 caractères après nettoyage (espaces réduits), sans caractère de contrôle ni marque de direction |
-| `email`    | adresse simple, 254 caractères au plus, rien qui puisse déborder dans un en-tête d'e-mail               |
-| `message`  | 10 à 5000 caractères ; retours à la ligne ramenés à `\n` (même longueur que dans le navigateur)         |
-| `locale`   | `fr` ou `en`                                                                                            |
-| `website`  | le piège (`HONEYPOT_FIELD`) : caché, hors de l'ordre de tabulation, `aria-hidden`, `autocomplete="off"` |
-| `typingMs` | millisecondes depuis la première frappe, mesurées par le navigateur ; absent sans JavaScript            |
-| `from`     | `express` ou `desk` : la page où renvoyer un envoi sans JavaScript                                      |
+| Champ      | Règle                                                                                                                                                                                          |
+| ---------- | ---------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `name`     | 1 à 100 caractères après nettoyage (espaces réduits), sans caractère de contrôle ni caractère de format invisible (`\p{Cf}`, marques de direction comprises), sauf les liants U+200C et U+200D |
+| `email`    | adresse simple en ASCII imprimable, 254 caractères au plus, rien qui puisse déborder dans un en-tête d'e-mail                                                                                  |
+| `message`  | 10 à 5000 caractères ; retours à la ligne ramenés à `\n` (même longueur que dans le navigateur)                                                                                                |
+| `locale`   | `fr` ou `en`                                                                                                                                                                                   |
+| `website`  | le piège (`HONEYPOT_FIELD`) : caché, hors de l'ordre de tabulation, `aria-hidden`, `autocomplete="off"`                                                                                        |
+| `typingMs` | millisecondes depuis l'affichage du formulaire, mesurées par le navigateur ; toujours là en JSON, absent sans JavaScript                                                                       |
+| `from`     | `express` ou `desk` : la page où renvoyer un envoi sans JavaScript                                                                                                                             |
 
-L'horodatage de début de saisie est devenu une durée (`typingMs`) : l'horloge du visiteur peut être décalée de celle du serveur.
+L'horodatage de début de saisie est devenu une durée (`typingMs`) : l'horloge du visiteur peut être décalée de celle du serveur. Elle part de l'affichage du formulaire, pas de la première frappe : un message collé et des champs remplis par le navigateur ne passent pas pour un robot.
 
 ### Ordre du traitement
 
 1. Origine : un en-tête `Origin` présent doit être celui du site (`SITE_URL`, `src/lib/site.ts`) ou l'hôte de la requête (local, aperçus Vercel), en HTTPS hors de `localhost`, `127.0.0.1` et `[::1]`. Sinon 403. Sans `Origin`, la requête passe (la limite de débit tient toujours).
 2. Type de contenu : JSON ou formulaire, sinon 415.
 3. Taille : 16 ko lus au plus (`Content-Length` d'abord, puis lecture bornée du flux), sinon 413.
-4. Piège rempli : succès apparent, rien n'est envoyé.
+4. Piège rempli (toute valeur non vide, quel que soit son type) : succès apparent, rien n'est envoyé.
 5. Validation zod : 400 avec le code de chaque champ fautif.
-6. Saisie trop rapide (`typingMs` sous 3000) : succès apparent, rien n'est envoyé.
+6. Saisie trop rapide (`typingMs` sous 3000, ou absent d'un envoi JSON) : succès apparent, rien n'est envoyé.
 7. Configuration de l'envoi absente : 503.
 8. Limite de débit : 429 avec `Retry-After`.
 9. Envoi : 502 s'il échoue.
@@ -100,7 +100,7 @@ Interface `Mailer`. En production, Mailjet par `fetch`, sans SDK, sur l'API Send
 - un message en texte seul (`TextPart`, aucune partie HTML), `From` = `CONTACT_FROM` (nom affiché « alismaani.fr »), `To` = `CONTACT_TO`, `ReplyTo` = le visiteur, sujet « Message du site | <nom> », corps avec nom, e-mail, langue et message, suivi des ouvertures et des clics coupé ;
 - succès quand `Messages[0].Status` vaut `success` ; sinon `MailerError` avec la cause, le statut HTTP et les codes `mj-xxxx`, jamais le texte d'erreur de Mailjet (il peut contenir l'adresse du visiteur).
 
-Dry run (`CONTACT_DRY_RUN=1`) : rien n'est envoyé, le journal dit seulement « message accepté (dry run) » et la longueur du message.
+Dry run (`CONTACT_DRY_RUN=1`) : rien n'est envoyé, le journal dit seulement « message accepté (dry run) » et la longueur du message. La réponse d'un message passé par l'envoi porte alors `X-Contact-Dry-Run: sent`, jamais un succès de façade (piège, saisie trop rapide) : les tests de bout en bout prouvent ainsi que l'envoi a eu lieu. Hors dry run, l'en-tête n'existe pas.
 
 Le journal ne contient jamais le texte du message, l'adresse du visiteur ni une valeur de clé.
 
@@ -108,23 +108,26 @@ Le journal ne contient jamais le texte du message, l'adresse du visiteur ni une 
 
 Interface `RateLimiter`, implémentation en mémoire (fenêtre glissante) :
 
-- par IP : 5 envois par 10 minutes (`CONTACT_RATE_LIMIT_MAX` change le maximum, pour les tests de bout en bout où tout vient de localhost) ;
-- pour toute l'instance : 30 envois par heure, pour protéger le quota Mailjet (relevé au maximum par IP s'il est plus haut) ;
-- IP : premier élément de `x-forwarded-for` (posé par Vercel), sinon `x-real-ip`, sinon « inconnu » (tous les inconnus partagent la même limite) ;
+- par IP : 5 envois par 10 minutes et 10 par heure, pour qu'une seule adresse ne vide pas le plafond de l'instance (`CONTACT_RATE_LIMIT_MAX` change le maximum, pour les tests de bout en bout où tout vient de localhost) ;
+- pour toute l'instance : 30 envois par heure et 100 par jour, pour protéger le quota Mailjet (tous relevés au maximum par IP s'il est plus haut) ;
+- IP : premier élément de `x-forwarded-for` (posé par Vercel), sinon `x-real-ip`, sinon « inconnu » (tous les inconnus partagent la même limite). Une IPv6 est ramenée à son préfixe /64 (un abonné en dispose d'ordinaire en entier) ; une IPv4 transcrite en IPv6 (`::ffff:a.b.c.d`) reste cette IPv4 ;
 - table bornée à 10 000 clés : les entrées expirées sont purgées, puis les plus anciennes.
+
+Le plafond de l'instance a un revers : des envois venus de nombreuses adresses peuvent l'atteindre et couper le formulaire pour tous, jusqu'à ce que la fenêtre glisse (le visiteur garde le lien vers l'e-mail).
 
 Limite honnête : cette mémoire vit dans une instance du serveur. Sur Vercel, plusieurs instances peuvent tourner en même temps, chacune compte de son côté, et une instance froide repart de zéro. Elle freine un visiteur trop pressé ou un robot naïf, sans plus. La vraie barrière est une règle de limite de débit du pare-feu Vercel sur `/api/contact`, à poser à la mise en ligne. L'interface permet de brancher plus tard un stockage partagé sans toucher à la route.
 
 ## `/api/signes-de-vie`
 
-GET et HEAD, toujours 200, JSON `LifeSigns`, `Cache-Control: public, max-age=0, s-maxage=600, stale-while-revalidate=86400`. POST, PUT et DELETE reçoivent le 405 de Next.
+GET et HEAD, toujours 200, JSON `LifeSigns`, `Cache-Control: public, max-age=0, s-maxage=600, stale-while-revalidate=86400`. Les données d'exemple (repli) ne restent que 30 s au CDN (`public, max-age=0, s-maxage=30`) : une panne passagère de la source ne s'affiche pas 10 minutes. POST, PUT et DELETE reçoivent le 405 de Next.
 
 ### Lecture du JSON public
 
 `getLifeSigns()` (`src/lib/life-signs/source.ts`) est partagé par la route et la page du bureau :
 
 - adresse dans `LIFE_SIGNS_URL`, https seulement, variable serveur jamais envoyée au navigateur ;
-- `fetch` avec le cache de Next (`next.revalidate` 600 s), délai de 3 s, redirections refusées, 32 Kio lus au plus ;
+- `fetch` hors du cache de fetch de Next (`cache: 'no-store'`), délai de 3 s, redirections refusées, 32 Kio lus au plus ;
+- le résultat validé, quelques centaines d'octets, est gardé 600 s par `unstable_cache` (clé `life-signs`, sans l'adresse). Un échec n'est jamais gardé : la lecture suivante réessaie ;
 - validation zod (`schema.ts`), puis liste blanche : seuls les champs connus ressortent, même si le JSON en contient d'autres ;
 - au moindre échec, données d'exemple (`sample: true`). Le journal dit « signes de vie : données d'exemple, cause <code> », sans l'adresse. Codes : `missing_url` (journalisé une fois par processus), `invalid_url`, `http_error`, `timeout`, `network`, `too_large`, `invalid_json`, `invalid_format`.
 
@@ -148,10 +151,13 @@ Tout autre champ est ignoré ; `sample` est posé par le serveur. Le fichier doi
 
 À l'ouverture de la fiche du coffret (y compris par `?prendre=chest`), si la mesure envoyée par le serveur a 10 minutes ou plus, `DeskShell` fait un GET `/api/signes-de-vie` (délai de 5 s), sans bloquer la fiche. Jamais deux requêtes à la fois, pas de nouvel essai avant 60 s. En cas d'échec ou de réponse mal formée, il garde ce qu'il a ; il ne remplace jamais de vraies données par l'exemple. La forme reçue est vérifiée sans zod (`toLifeSigns`, liste blanche). Les données d'exemple restent affichées comme telles (« Données d'exemple »).
 
-### Limites connues
+### Pourquoi pas le cache de fetch
 
-- Lors d'un renouvellement en arrière-plan, le cache de Next ne transmet pas le signal : le délai de 3 s ne vaut que pour la lecture au premier plan.
-- Ce cache lit tout le corps d'une réponse 200 avant la borne de 32 Kio : un fichier énorme serait mis en cache puis refusé (`too_large`). Le fichier étant choisi par Ali, le risque est faible.
+Le cache de fetch de Next (`next.revalidate`) lit tout le corps d'une réponse 200 pour le garder, avant la borne de 32 Kio, et cite l'adresse dans son journal au-delà de 2 Mo ; il ne garde pas une réponse en erreur (la source serait relue à chaque requête) et retire le signal, donc le délai, pendant un renouvellement en arrière-plan. Garder le résultat validé évite les trois.
+
+### Limite connue
+
+La page du bureau est régénérée toutes les 10 minutes : si la source échoue à ce moment-là, la page garde les données d'exemple jusqu'à la régénération suivante. La route, elle, ne les garde que 30 s.
 
 ## Variables d'environnement
 
@@ -176,8 +182,8 @@ En local, Next charge le `.env` du projet, puis `shared-keys.ts` complète `proc
 
 - `npm run check` : Vitest couvre `src/lib/contact/{rules,rate-limit,mailer,handler}.test.ts` (limites, nettoyage, 429 et purge, origine, types de contenu, taille, piège, Mailjet avec `fetch` simulé : requête exacte, erreurs, délai, dry run, configuration manquante), `src/lib/env/env.test.ts`, `src/lib/life-signs/source.test.ts` (succès, liste blanche, chaque cause de repli, cache), `src/app/api/signes-de-vie/route.test.ts` et `src/components/desk/lifeSignsRefresh.test.ts`. Vitest fixe `CLES_DIR=/nonexistent`.
 - `npm run test:e2e` : le serveur de test tourne en `CONTACT_DRY_RUN=1`, avec `CLES_DIR=/nonexistent` et `CONTACT_RATE_LIMIT_MAX=1000` (`webServer.env` de `playwright.config.ts`, que Playwright ajoute à `process.env`), sans `LIFE_SIGNS_URL`.
-  - `contact.spec.ts` : version express FR et EN, erreurs 400, 429 et 503 simulées (`page.route`), état d'envoi, piège, axe en clair et en sombre, envoi sans JavaScript, fiche de la carte FR et EN.
-  - `contact-api.spec.ts` (ordinateur seulement) : 405, 415, 403, 413, 400, 303, piège, succès.
+  - `contact.spec.ts` : version express FR et EN (les envois réussis attendent 3 s et vérifient `X-Contact-Dry-Run` : le message est passé par l'envoi), erreurs 400, 429 et 503 simulées (`page.route`), état d'envoi, piège, axe en clair et en sombre, envoi sans JavaScript, fiche de la carte FR et EN.
+  - `contact-api.spec.ts` (ordinateur seulement) : 405, 415, 403, 413, 400, 303, piège (texte et non textuel), JSON sans durée, succès passé par l'envoi (`X-Contact-Dry-Run`).
   - `signes.spec.ts` : la route et ses en-têtes (ordinateur seulement), rafraîchissement à l'ouverture du coffret, horloge avancée d'une heure, en succès et en 503.
 
 ## Ce qui reste à faire à la mise en ligne (étape 7)

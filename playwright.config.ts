@@ -46,5 +46,15 @@ export default defineConfig({
     url: `${baseURL}/fr/express`,
     reuseExistingServer: false,
     timeout: 60_000,
+    // Playwright ajoute ces variables à process.env (il ne le remplace pas).
+    // Le formulaire n'envoie rien (dry run), les vraies clés de
+    // ~/.config/cles ne sont jamais lues, et la limite par IP est relevée :
+    // toutes les requêtes des tests viennent de localhost. Le 429 se vérifie
+    // en Vitest (src/lib/contact/handler.test.ts).
+    env: {
+      CONTACT_DRY_RUN: '1',
+      CLES_DIR: '/nonexistent',
+      CONTACT_RATE_LIMIT_MAX: '1000',
+    },
   },
 });

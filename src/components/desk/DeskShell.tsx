@@ -11,6 +11,7 @@ import { SceneStoreProvider } from '@/scene/core/store-context';
 import type { SceneTexts } from '@/scene/core/texts';
 import { Grain } from './Grain';
 import { Hud } from './Hud';
+import { createLifeSignsRefresher } from './lifeSignsRefresh';
 import { SceneBoundary } from './SceneBoundary';
 import { createWebAudioSound } from './sound';
 import styles from './Desk.module.css';
@@ -49,7 +50,7 @@ function hasWebGL(): boolean {
 export interface DeskShellProps {
   hud: DeskHudTexts;
   scene: SceneTexts;
-  /** Les signes de vie du coffret, lus par le serveur (données d'exemple à l'étape 4). */
+  /** Les signes de vie du coffret, lus par le serveur (le JSON public, ou l'exemple). */
   lifeSigns: LifeSigns | null;
   /** Le repli : la version express, rendue par le serveur. */
   children: ReactNode;
@@ -72,6 +73,28 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
     if (lifeSigns) store.getState().setLifeSigns(rebaseLifeSigns(lifeSigns, Date.now()));
   }, [lifeSigns, store]);
   useEffect(() => () => store.getState().sound.dispose(), [store]);
+
+  // À l'ouverture de la fiche du coffret, des signes de vie de plus de 10
+  // minutes sont redemandés à /api/signes-de-vie, sans bloquer la fiche ;
+  // en cas d'échec, on garde ce qu'on a. Abonné avant init(), pour voir
+  // aussi le coffret présenté dès l'arrivée (?prendre=chest).
+  const [refresher] = useState(() =>
+    createLifeSignsRefresher(lifeSigns, {
+      fetch: (input, init) => fetch(input, init),
+      now: () => Date.now(),
+    }),
+  );
+  useEffect(() => {
+    const onChest = () => {
+      void refresher.refresh().then((fresh) => {
+        if (fresh) store.getState().setLifeSigns(rebaseLifeSigns(fresh, Date.now()));
+      });
+    };
+    if (store.getState().presented === 'chest') onChest();
+    return store.subscribe((state, previous) => {
+      if (state.presented === 'chest' && previous.presented !== 'chest') onChest();
+    });
+  }, [refresher, store]);
 
   useEffect(() => {
     const params = parseTestParams(window.location.search);

@@ -1,18 +1,28 @@
 import { Fragment, useId } from 'react';
+import { ContactForm } from '@/components/contact/ContactForm';
 import { getContent, type Locale } from '@/content';
 import { formatMonthPeriod, formatYearPeriod, RANGE_SEPARATOR, type DateLabel } from '@/lib/dates';
 import { displayUrl } from '@/lib/urls';
 import styles from './ExpressCv.module.css';
 
-// Le CV entier en HTML, depuis le module de contenu. Composant serveur sans
-// état ni lien vers une route : il sert la page /[locale]/express et le repli
-// du bureau (sans JavaScript, sans WebGL). Les puces du bureau visent ses ids
-// (contact, projects, et l'id de chaque expérience).
-export function ExpressCv({ locale }: { locale: Locale }) {
+// Le CV entier en HTML, depuis le module de contenu. Composant serveur : il
+// sert la page /[locale]/express et le repli du bureau (sans JavaScript, sans
+// WebGL). Les puces du bureau visent ses ids (contact, projects, et l'id de
+// chaque expérience). La section contact porte le formulaire (composant
+// client, replié), qui marche aussi sans JavaScript.
+//
+// from : la page qui l'affiche, où revient un envoi sans JavaScript.
+export function ExpressCv({
+  locale,
+  from = 'express',
+}: {
+  locale: Locale;
+  from?: 'express' | 'desk';
+}) {
   const nameId = useId();
   const content = getContent(locale);
   const { profile, contact, sections, experiences, projects, education, skills, ui } = content;
-  const { softSkills, languages, interests } = content;
+  const { softSkills, languages, interests, contactForm } = content;
 
   const contactLinks = [
     { label: ui.emailLabel, href: `mailto:${contact.email}`, text: contact.email },
@@ -55,6 +65,15 @@ export function ExpressCv({ locale }: { locale: Locale }) {
             </li>
           ))}
         </ul>
+        <ContactForm
+          texts={contactForm}
+          locale={locale}
+          from={from}
+          email={contact.email}
+          variant="page"
+          noScriptStatus
+          collapsible
+        />
       </section>
 
       <section className={styles.summary}>

@@ -18,7 +18,12 @@ export default defineConfig([
   // Prettier s'occupe de la mise en forme : on coupe les règles ESLint qui la touchent.
   prettier,
   {
-    files: ['src/scene/**/*.{ts,tsx}', 'src/components/desk/**/*.{ts,tsx}'],
+    files: [
+      'src/scene/**/*.{ts,tsx}',
+      'src/components/desk/**/*.{ts,tsx}',
+      'src/components/contact/**/*.{ts,tsx}',
+      'src/lib/contact/rules.ts',
+    ],
     rules: {
       'no-restricted-imports': ['error', { patterns: [serverOnlyContent] }],
     },

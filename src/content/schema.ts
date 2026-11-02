@@ -117,7 +117,6 @@ const deskSchema = z.strictObject({
   controlsLabel: text,
   expressLink: text,
   replay: text,
-  loading: text,
   arrivalKicker: text,
   glance: text,
   perso: z.strictObject({ title: text, detail: text }),
@@ -150,8 +149,12 @@ const deskSchema = z.strictObject({
   }),
   /** Étape 6 : le bureau dézingué. offer est le bouton, tidying et done s'annoncent. */
   tidy: z.strictObject({ offer: text, tidying: text, done: text }),
-  /** Étape 6 : l'écran de chargement (le nom vient du profil). */
-  intro: z.strictObject({ preparing: text }),
+  /**
+   * Étape 6 : l'écran de chargement (le nom vient du profil). skip est le
+   * lien vers la version express pendant l'attente ; slow, le message du
+   * repli quand la scène tarde trop.
+   */
+  intro: z.strictObject({ preparing: text, skip: text, slow: text }),
 });
 
 export const contentSchema = z.strictObject({

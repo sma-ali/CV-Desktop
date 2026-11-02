@@ -26,3 +26,51 @@ export function loadProgress(load: LoadProgress): number {
   for (const step of LOAD_STEPS) total += LOAD_WEIGHTS[step] * Math.min(1, Math.max(0, load[step]));
   return Math.min(1, total);
 }
+
+/**
+ * L'attente au-delà de laquelle une scène qui n'a toujours pas dessiné sa
+ * première image cède la place à la version express. Seul compte le temps
+ * où la page attend sans rien faire (réseau lent, fichier qui n'arrive pas),
+ * onglet visible : le temps où elle travaille (montage de la scène,
+ * compilation des shaders, qui bloquent la page) ne compte pas, car elle
+ * avance. Un recruteur pressé a de toute façon le lien vers la version
+ * express sous les yeux.
+ */
+export const LOAD_TIMEOUT_MS = 20_000;
+
+/** Le battement qui mesure l'attente (setInterval). */
+export const IDLE_BEAT_MS = 250;
+
+/**
+ * Un écart entre deux battements à partir duquel la page travaillait (une
+ * longue tâche l'a bloquée) au lieu d'attendre : cet écart ne compte pas.
+ */
+export const BUSY_GAP_MS = 1000;
+
+/** L'attente cumulée après un battement survenu gapMs après le précédent. */
+export function idleWait(waited: number, gapMs: number, hidden: boolean): number {
+  if (hidden || !(gapMs > 0) || gapMs >= BUSY_GAP_MS) return waited;
+  return waited + gapMs;
+}
+
+/**
+ * Le délai de l'adresse (?attente=ms, pour les tests), sinon LOAD_TIMEOUT_MS.
+ * ?attente=0 ne renonce jamais.
+ */
+export function loadTimeout(search: string): number {
+  const raw = new URLSearchParams(search).get('attente');
+  if (raw === null || raw.trim() === '') return LOAD_TIMEOUT_MS;
+  const value = Number(raw);
+  if (!Number.isFinite(value) || value < 0) return LOAD_TIMEOUT_MS;
+  return value === 0 ? Infinity : value;
+}
+
+/**
+ * Ce que montre l'écran de chargement : l'avancement réel, arrondi au
+ * centième (le filament ne change pas de dessin pour un millième), et 1
+ * quand la scène est prête.
+ */
+export function introProgress(load: LoadProgress, ready: boolean): number {
+  if (ready) return 1;
+  return Math.floor(loadProgress(load) * 100) / 100;
+}

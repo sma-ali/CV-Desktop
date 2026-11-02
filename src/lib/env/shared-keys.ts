@@ -19,6 +19,7 @@ export const SHARED_KEY_NAMES = [
   'CONTACT_FROM',
   'MAILJET_API_KEY',
   'MAILJET_API_SECRET',
+  'LIFE_SIGNS_URL',
 ] as const;
 
 type Env = Record<string, string | undefined>;

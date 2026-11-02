@@ -1,3 +1,4 @@
+import { readLifeSignsUrl } from '@/lib/env/server';
 import { sampleLifeSigns } from './sample';
 import { parsePublicLifeSigns } from './schema';
 import type { LifeSigns } from './types';
@@ -9,11 +10,8 @@ import type { LifeSigns } from './types';
 // retombe sur les données d'exemple, signalées comme telles : jamais
 // d'erreur vers le visiteur. Le journal dit la cause, jamais l'adresse.
 
-// Garde équivalente à « server-only » (paquet absent du projet) : ce module
-// lit une variable serveur et ne doit pas entrer dans le navigateur.
-if (typeof window !== 'undefined') {
-  throw new Error('src/lib/life-signs/source.ts ne tourne que sur le serveur.');
-}
+// La variable vient du module d'environnement du serveur (src/lib/env), dont
+// la garde empêche aussi ce module d'entrer dans le navigateur.
 
 /** Durée de vie du JSON public dans le cache de Next, en secondes. */
 export const LIFE_SIGNS_REVALIDATE_S = 600;
@@ -42,7 +40,7 @@ export type LifeSignsRead =
   { ok: true; signs: LifeSigns } | { ok: false; reason: LifeSignsFailure; detail?: string };
 
 export interface LifeSignsSourceOptions {
-  /** L'adresse du JSON public ; par défaut process.env.LIFE_SIGNS_URL. */
+  /** L'adresse du JSON public ; par défaut LIFE_SIGNS_URL (src/lib/env/server.ts). */
   url?: string;
   /** Pour les tests ; par défaut le fetch global (patché par Next pour le cache). */
   fetch?: typeof fetch;
@@ -89,7 +87,7 @@ export async function readLifeSigns(
   now: number = Date.now(),
   options: LifeSignsSourceOptions = {},
 ): Promise<LifeSignsRead> {
-  const raw = 'url' in options ? options.url : process.env.LIFE_SIGNS_URL;
+  const raw = 'url' in options ? options.url : readLifeSignsUrl();
   if (!raw?.trim()) return { ok: false, reason: 'missing_url' };
   let url: URL;
   try {

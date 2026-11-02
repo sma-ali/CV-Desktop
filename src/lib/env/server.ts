@@ -26,6 +26,15 @@ const contactEnvSchema = z.object({
   CONTACT_RATE_LIMIT_MAX: optional(z.coerce.number().int().min(1).max(100_000)),
 });
 
+const lifeSignsEnvSchema = z.object({
+  /**
+   * L'adresse du JSON public des signes de vie. Elle est seulement nettoyée
+   * ici : source.ts la vérifie (https seulement) pour journaliser la bonne
+   * cause de repli.
+   */
+  LIFE_SIGNS_URL: optional(z.string().trim().min(1)),
+});
+
 export type ContactConfig =
   | { mode: 'dry-run' }
   | { mode: 'mailjet'; to: string; from: string; apiKey: string; apiSecret: string }
@@ -70,6 +79,12 @@ export function readRateLimitMax(env: Env = loadedEnv()): number {
     env.CONTACT_RATE_LIMIT_MAX,
   );
   return (parsed.success ? parsed.data : undefined) ?? DEFAULT_PER_KEY.max;
+}
+
+/** L'adresse du JSON public des signes de vie, ou undefined si elle manque. */
+export function readLifeSignsUrl(env: Env = loadedEnv()): string | undefined {
+  const parsed = lifeSignsEnvSchema.safeParse({ LIFE_SIGNS_URL: env.LIFE_SIGNS_URL });
+  return parsed.success ? parsed.data.LIFE_SIGNS_URL : undefined;
 }
 
 /** process.env, complété une fois par le dossier des clés communes (hors Vercel). */

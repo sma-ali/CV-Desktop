@@ -2,7 +2,7 @@ import { mkdirSync, mkdtempSync, rmSync, writeFileSync } from 'node:fs';
 import { tmpdir } from 'node:os';
 import { join } from 'node:path';
 import { afterEach, beforeEach, describe, expect, it } from 'vitest';
-import { readContactConfig, readRateLimitMax } from './server';
+import { readContactConfig, readLifeSignsUrl, readRateLimitMax } from './server';
 import { loadSharedKeys, parseEnvFile } from './shared-keys';
 
 // Des valeurs factices seulement : ces tests ne lisent jamais le vrai dossier
@@ -108,5 +108,16 @@ describe('configuration de l’envoi', () => {
     expect(readRateLimitMax({ CONTACT_RATE_LIMIT_MAX: '200' })).toBe(200);
     expect(readRateLimitMax({ CONTACT_RATE_LIMIT_MAX: 'beaucoup' })).toBe(5);
     expect(readRateLimitMax({ CONTACT_RATE_LIMIT_MAX: '0' })).toBe(5);
+  });
+});
+
+describe('adresse des signes de vie', () => {
+  it("rend l'adresse nettoyée, ou undefined si elle est vide ou absente", () => {
+    expect(readLifeSignsUrl({ LIFE_SIGNS_URL: ' https://exemple.test/vie.json ' })).toBe(
+      'https://exemple.test/vie.json',
+    );
+    expect(readLifeSignsUrl({ LIFE_SIGNS_URL: '' })).toBeUndefined();
+    expect(readLifeSignsUrl({ LIFE_SIGNS_URL: '   ' })).toBeUndefined();
+    expect(readLifeSignsUrl({})).toBeUndefined();
   });
 });

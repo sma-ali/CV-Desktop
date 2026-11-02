@@ -24,10 +24,14 @@ Prendre un objet (il se soulève et tourne), le retourner, le faire glisser avec
 
 Fait sur la branche `feat/routes-serveur`, en attente de la validation d'Ali : contrat dans [`routes-serveur.md`](routes-serveur.md). Restent pour la mise en ligne : compte Mailjet, adresse expéditrice et DNS, variables sur Vercel, règle du pare-feu Vercel sur `/api/contact`, hébergement du JSON public des signes de vie.
 
-## 6. Tests réels et performances
+## 6. Le bureau vivant
+
+Tout ce qui est posé sur le bureau devient un corps physique (Rapier) : on le glisse, on le lance, il bascule, s'empile, tombe. L'objet présenté se tourne dans tous les sens. Un bouton range le bureau quand il est sens dessus dessous. Décor revu (kimono à la place du matériel de stream et des gants) et vrai écran de chargement avant l'arrivée. Contrat dans [`bureau-vivant.md`](bureau-vivant.md) ; socle posé sur la branche `feat/bureau-vivant`.
+
+## 7. Tests réels et performances
 
 Suite Playwright des parcours : clic sur un objet, retournement, glisser, formulaire, version express, bascule FR/EN, téléphone. Budget de poids, Lighthouse, test sur un vrai téléphone.
 
-## 7. Mise en ligne
+## 8. Mise en ligne
 
 Dépôt public, projet Vercel, variables d'environnement, bascule d'alismaani.fr avec son accord, mentions légales.

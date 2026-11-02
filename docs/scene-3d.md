@@ -212,16 +212,20 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
 
 `.claude/worktrees/` est ignoré par git, ESLint, Prettier et TypeScript du dépôt principal. `next.config.ts` fixe la racine de Turbopack et du traçage des fichiers sur le dossier du worktree. Chaque worktree a ses `node_modules` et son `.next`. Un seul `next dev` peut tourner par dossier : pour un second serveur dans le même dossier, servir le build (`npm run build && npm run start -- --port 3420`).
 
-| Partie        | `next dev` | E2E (`E2E_PORT`) |
-| ------------- | ---------- | ---------------- |
-| décor         | 3401       | 3411             |
-| objets        | 3402       | 3412             |
-| mise en scène | 3403       | 3413             |
-| assemblage    | 3420       | 3100 (défaut)    |
+| Partie                        | `next dev` | E2E (`E2E_PORT`) |
+| ----------------------------- | ---------- | ---------------- |
+| décor                         | 3401       | 3411             |
+| objets                        | 3402       | 3412             |
+| mise en scène                 | 3403       | 3413             |
+| assemblage                    | 3420       | 3100 (défaut)    |
+| étape 6 : A (rotation)        | 3601       | 3611             |
+| étape 6 : B (rangement)       | 3602       | 3612             |
+| étape 6 : C (décor, intro)    | 3603       | 3613             |
+| étape 6 : socle et assemblage | 3600       | 3600             |
 
 ## Vérifier
 
-- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre. Étape 4 : encombrements au repos (`bodies.test.ts`), solveur des collisions et glisser (`gestures/`), présentation et suivi du pointeur, signes de vie (`src/lib/life-signs`, vue de la fiche), battements du coffret, LED de la baie, pile du portable comparée au CV, cadrage sur 14 fenêtres réelles, pile sous la carte dans son encombrement (`cardPile.test.ts`), étiquettes écartées (`tagSpread.test.ts`).
+- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre. Étape 4 : encombrements au repos (`bodies.test.ts`), hub des gestes (`gestures/`), présentation et suivi du pointeur, signes de vie (`src/lib/life-signs`, vue de la fiche), battements du coffret, LED de la baie, pile du portable comparée au CV, cadrage sur 14 fenêtres réelles, pile sous la carte dans son encombrement (`cardPile.test.ts`), étiquettes écartées (`tagSpread.test.ts`). Étape 6 : le monde physique avec le vrai Rapier (`physics/world.test.ts` : repos immobile, glisser sans interpénétration, empilement, chute, lancer, retour, format, déterminisme).
 - `npm run test:e2e` : build de production puis Playwright sur ordinateur et téléphone.
   - `bureau.spec.ts` (socle) : HUD visible sans la 3D, pixels du canvas, repli sans WebGL et sans JavaScript, mouvement réduit, nuit à 23 h, sélecteur d'ambiance, langues, liens bureau et version express, axe sur le HUD, aucune erreur en console, en-têtes et CSP, scène hors du JavaScript initial, puce qui présente un objet, Rejouer.
   - `scene-decor.spec.ts` : décor immobile sous `&fige`, vivant sinon, nuit sans erreur.

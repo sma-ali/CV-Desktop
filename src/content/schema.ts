@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { sceneContentSchema } from './scene/schema';
+import { sheetsSchema } from './sheets/schema';
 import { text, texts } from './text';
 
 const id = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'identifiant attendu en kebab-case');
@@ -131,7 +132,14 @@ const deskSchema = z.strictObject({
     evening: moodTextSchema,
     night: moodTextSchema,
   }),
-  hint: z.strictObject({ pointer: text, touch: text, auto: text, presented: text }),
+  hint: z.strictObject({
+    pointer: text,
+    touch: text,
+    auto: text,
+    presented: text,
+    /** Quand un objet est tenu : comment le retourner. */
+    held: z.strictObject({ pointer: text, touch: text }),
+  }),
   fallback: z.strictObject({
     noScript: text,
     noWebgl: text,
@@ -155,6 +163,7 @@ export const contentSchema = z.strictObject({
   ui: uiSchema,
   desk: deskSchema,
   scene: sceneContentSchema,
+  sheets: sheetsSchema,
 });
 
 export type Content = z.infer<typeof contentSchema>;

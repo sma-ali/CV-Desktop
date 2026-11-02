@@ -1,9 +1,15 @@
 import { PerspectiveCamera, Vector3 } from 'three';
 import { ease, lerp, seg, smooth } from '../core/arrival';
+import { bodyObb, homePlace, obbCorners, type DeskPlace } from '../core/bodies';
 import {
   ARRIVAL,
+  HEADSET_PORTRAIT,
+  HEADSET_STAND,
   HELD,
+  ITEM_POSES,
+  LAMP,
   MONITOR,
+  PORTRAIT_HUD,
   PORTRAIT_MAX_ASPECT,
   REST,
   REST_FIT,
@@ -13,6 +19,14 @@ import {
   type Vec3,
   type View,
 } from '../core/constants';
+import { BODY_IDS, type BodyId } from '../core/ids';
+import {
+  decorExtentPortrait,
+  decorPlacement,
+  MIC,
+  MIC_CENTER,
+  placeDecorPoint,
+} from '../decor/layout';
 
 // Le cadrage de la caméra, en fonctions pures (testées) : la vue de repos
 // calculée d'après le format de la fenêtre (layout() du prototype), la montée
@@ -63,41 +77,181 @@ export function cameraForView(view: View, aspect: number): PerspectiveCamera {
   return camera;
 }
 
+/** Les limites à l'écran (coordonnées normalisées) où le bureau doit tenir. */
+export interface FitLimits {
+  x: number;
+  yBottom: number;
+  yTop: number;
+}
+
+/** La taille de la fenêtre en pixels CSS, quand on la connaît. */
+export interface ViewportSize {
+  width: number;
+  height: number;
+}
+
 /**
- * La vue de repos pour un rapport largeur / hauteur : la plus petite distance
- * qui fait tenir les points REST_FIT dans leurs limites, en recentrant le
- * point visé (layout() du prototype). Appelée au redimensionnement seulement.
+ * Les limites du cadrage de repos. En portrait, elles se calculent en pixels
+ * (PORTRAIT_HUD) : le haut et le bas du HUD ont une hauteur fixe, quelle que
+ * soit la taille du téléphone. Sans taille connue, celles de REST_FIT.
  */
-export function fitRestView(aspect: number): View {
-  const portrait = isPortrait(aspect);
-  const rest = portrait ? REST.portrait : REST.landscape;
-  const { points, limits } = portrait ? REST_FIT.portrait : REST_FIT.landscape;
-  const camera = new PerspectiveCamera(rest.fov, aspect, 0.1, 90);
+export function restLimits(portrait: boolean, size?: ViewportSize): FitLimits {
+  if (!portrait) return REST_FIT.landscape.limits;
+  if (!size || size.height <= 0) return REST_FIT.portrait.limits;
+  const { top, bottom, x } = PORTRAIT_HUD;
+  return {
+    x,
+    yBottom: -1 + (2 * bottom) / size.height,
+    yTop: 1 - (2 * top) / size.height,
+  };
+}
+
+/**
+ * Hauteur de chaque corps au-dessus du plateau : le haut de son encombrement
+ * doit aussi tenir dans le cadre (le coffret, le bocal, la baie sont hauts).
+ */
+export const BODY_HEIGHTS = {
+  book: 0.42,
+  badge: 0.05,
+  laptop: 0.17,
+  card: 0.08,
+  chest: 0.96,
+  netherbrain: 1.08,
+  homelab: 0.98,
+  mug: 0.6,
+  pad: 0.32,
+} as const satisfies Record<BodyId, number>;
+
+const [monitorX, , monitorZ] = MONITOR.position;
+const monitorHalf = MONITOR.frame.width / 2;
+const monitorTop = MONITOR.tiltY + MONITOR.frame.height / 2;
+
+/**
+ * Les points fixes du bureau utile, par identifiant : le haut du cadre de
+ * l'écran, le casque sur son support, le micro sur son bras, la lampe.
+ */
+export const FIXED_EXTENT: Readonly<
+  Record<'monitor' | 'headset' | 'mic' | 'lamp', readonly Vec3[]>
+> = {
+  monitor: [
+    [monitorX - monitorHalf, monitorTop, monitorZ],
+    [monitorX + monitorHalf, monitorTop, monitorZ],
+  ],
+  headset: [[HEADSET_STAND[0], ITEM_POSES.headset.y + 0.9, HEADSET_STAND[2]]],
+  mic: [MIC.clamp, ...MIC.joints, MIC_CENTER],
+  lamp: [LAMP.base, LAMP.head],
+};
+
+/**
+ * La part de la hauteur utile (entre les bandes du HUD, restLimits) que
+ * couvrent des points projetés : 1 quand ils vont d'une bande à l'autre.
+ * Mesure du bureau resserré sur téléphone (data-desk-share).
+ */
+export function screenShare(
+  points: readonly Vec3[],
+  camera: PerspectiveCamera,
+  limits: FitLimits,
+): number {
+  const { y0, y1 } = projectedBounds(points, camera);
+  return (y1 - y0) / (limits.yTop - limits.yBottom);
+}
+
+/**
+ * Les points fixes du format : en portrait, la lampe et le micro sont à
+ * leur place du bureau resserré (decor/layout.ts, PORTRAIT_DECOR), et un
+ * morceau caché n'a plus de points.
+ */
+export function fixedExtent(
+  portrait: boolean,
+): Readonly<Record<'monitor' | 'headset' | 'mic' | 'lamp', readonly Vec3[]>> {
+  return portrait ? FIXED_EXTENT_PORTRAIT : FIXED_EXTENT;
+}
+
+const placed = (id: 'lamp' | 'mic', points: readonly Vec3[]): Vec3[] =>
+  decorPlacement(id, true).hidden ? [] : points.map((point) => placeDecorPoint(id, true, point));
+
+const FIXED_EXTENT_PORTRAIT = {
+  monitor: FIXED_EXTENT.monitor,
+  headset: [[HEADSET_PORTRAIT.x, ITEM_POSES.headset.y + 0.9, HEADSET_PORTRAIT.z]],
+  mic: placed('mic', FIXED_EXTENT.mic),
+  lamp: placed('lamp', FIXED_EXTENT.lamp),
+} as const;
+
+/** Les huit coins de l'encombrement d'un corps posé à une place (bas, puis haut). */
+export function bodyExtent(id: BodyId, place: DeskPlace): Vec3[] {
+  const corners = obbCorners(bodyObb(id, place));
+  const height = BODY_HEIGHTS[id];
+  return [
+    ...corners.map(([x, z]): Vec3 => [x, 0, z]),
+    ...corners.map(([x, z]): Vec3 => [x, height, z]),
+  ];
+}
+
+/** Tous les points du bureau utile au repos, pour un format : corps à leur place, points fixes. */
+export function deskExtent(portrait: boolean): Vec3[] {
+  const points: Vec3[] = [];
+  for (const id of BODY_IDS) points.push(...bodyExtent(id, homePlace(id, portrait)));
+  for (const fixed of Object.values(fixedExtent(portrait))) points.push(...fixed);
+  return points;
+}
+
+/** Ce que demande un cadrage : une vue de départ, des points, des limites, un alignement. */
+export interface FitRequest {
+  view: View;
+  points: readonly Vec3[];
+  limits: FitLimits;
+  /**
+   * center : les points se centrent entre les limites ; bottom : leur bas se
+   * pose sur la limite basse (en portrait, le mur et la fenêtre remplissent
+   * le haut au lieu d'une bande vide sous le bureau).
+   */
+  align: 'center' | 'bottom';
+}
+
+/** Recentrages du point visé à chaque distance essayée. */
+const FIT_ITERATIONS = 24;
+
+/**
+ * La plus petite distance qui fait tenir les points dans leurs limites, en
+ * recentrant le point visé (layout() du prototype).
+ */
+export function fitView({ view, points, limits, align }: FitRequest, aspect: number): View {
+  const camera = new PerspectiveCamera(view.fov, aspect, 0.1, 90);
   camera.updateProjectionMatrix();
   const target = new Vector3();
+  const sinElev = Math.sin(view.elev);
 
   const fitAt = (dist: number): boolean => {
-    const [rx, ry, rz] = rest.target;
+    const [rx, ry, rz] = view.target;
     target.set(rx, ry, rz);
-    for (let iteration = 0; iteration < 6; iteration++) {
-      cameraPosition([target.x, target.y, target.z], rest.elev, 0, dist, camera.position);
+    for (let iteration = 0; iteration < FIT_ITERATIONS; iteration++) {
+      cameraPosition([target.x, target.y, target.z], view.elev, 0, dist, camera.position);
       camera.lookAt(target);
       camera.updateMatrixWorld(true);
       const { x0, x1, y0, y1 } = projectedBounds(points, camera);
-      if (iteration === 5) {
-        return x0 >= -limits.x && x1 <= limits.x && y0 >= limits.yBottom && y1 <= limits.yTop;
+      if (iteration === FIT_ITERATIONS - 1) {
+        const eps = 1e-4;
+        return (
+          x0 >= -limits.x - eps &&
+          x1 <= limits.x + eps &&
+          y0 >= limits.yBottom - eps &&
+          y1 <= limits.yTop + eps
+        );
       }
       const k = dist * Math.tan((camera.fov * Math.PI) / 360);
-      target.z -=
-        ((((y0 + y1) / 2 - (limits.yBottom + limits.yTop) / 2) * k) / Math.sin(rest.elev)) * 0.9;
+      const shiftY =
+        align === 'bottom'
+          ? y0 - limits.yBottom
+          : (y0 + y1) / 2 - (limits.yBottom + limits.yTop) / 2;
+      target.z -= ((shiftY * k) / sinElev) * 0.9;
       target.x += ((x0 + x1) / 2) * k * camera.aspect * 0.9;
     }
     return false;
   };
 
   let lo = 4;
-  let hi = 60;
-  for (let i = 0; i < 24; i++) {
+  let hi = 140;
+  for (let i = 0; i < 26; i++) {
     const mid = (lo + hi) / 2;
     if (fitAt(mid)) hi = mid;
     else lo = mid;
@@ -105,11 +259,35 @@ export function fitRestView(aspect: number): View {
   fitAt(hi);
   return {
     target: [target.x, target.y, target.z],
-    elev: rest.elev,
+    elev: view.elev,
     az: 0,
     dist: hi,
-    fov: rest.fov,
+    fov: view.fov,
   };
+}
+
+/** Les points que la vue de repos cadre : ceux de REST_FIT et tout le bureau utile. */
+export function restPoints(portrait: boolean): Vec3[] {
+  if (!portrait) return [...REST_FIT.landscape.points, ...deskExtent(false)];
+  return [...REST_FIT.portrait.points, ...deskExtent(true), ...decorExtentPortrait()];
+}
+
+/**
+ * La vue de repos pour un rapport largeur / hauteur (et, en portrait, la
+ * taille en pixels, pour tenir compte du HUD). Appelée au redimensionnement
+ * seulement.
+ */
+export function fitRestView(aspect: number, size?: ViewportSize): View {
+  const portrait = isPortrait(aspect);
+  return fitView(
+    {
+      view: portrait ? REST.portrait : REST.landscape,
+      points: restPoints(portrait),
+      limits: restLimits(portrait, size),
+      align: portrait ? 'bottom' : 'center',
+    },
+    aspect,
+  );
 }
 
 /** La vue de départ de l'arrivée, au ras du bureau. */

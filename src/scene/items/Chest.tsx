@@ -2,18 +2,14 @@
 
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
-import { MeshBasicMaterial, PlaneGeometry, Vector3, type PointLight } from 'three';
-import {
-  ARRIVAL,
-  CHEST_PORTRAIT,
-  ITEM_POSES,
-  legacyPointIntensity,
-  POINT_DECAY,
-} from '../core/constants';
+import { MeshBasicMaterial, PlaneGeometry, type PointLight } from 'three';
+import { ARRIVAL, ITEM_POSES, legacyPointIntensity, POINT_DECAY } from '../core/constants';
 import { Box, Cyl } from '../core/geometry';
 import { brass, standardMaterial } from '../core/materials';
+import { activityPulse, type LifeSigns } from '@/lib/life-signs/types';
 import { useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
+import { heartbeat, rattleStarts, type Pulse } from './beats';
 import { TagAnchor } from './TagLayer';
 import { MergedBoxes, type BoxPiece } from './merged';
 import { paintPlaque, PLAQUE_TEXTURE } from './paint';
@@ -27,8 +23,11 @@ const GLOW_DISTANCE = 2.6;
 // Le coffret scellé (projets perso) : il ne dit jamais ce qu'il contient.
 // Plus grand et plus clair que dans le prototype (défaut connu : petit et
 // sombre), bois blond, laiton et ruban rouge. Sa LED et le joint du
-// couvercle battent comme un cœur ; présenté, il tremble un peu. Ses signes
-// de vie (chiffres) viendront à l'étape 4.
+// couvercle battent comme un cœur, au rythme de ses signes de vie
+// (store.lifeSigns, activityPulse : plus les derniers jours sont actifs,
+// plus le cœur bat vite et fort) ; présenté, il tremble par à-coups, avec un
+// petit bruit (« rattle ») quand le son est ouvert. En mouvement réduit, la
+// LED reste allumée, sans battement.
 
 const CW = 1.5;
 const CH = 0.66;
@@ -47,14 +46,21 @@ const CORNERS: BoxPiece[] = [
   color: 0xd9a74a,
 }));
 
-/** Le battement de la LED : un coup bref toutes les 2.4 s environ. */
-const beatAt = (t: number) => Math.pow(Math.max(0, Math.sin(t * 2.6)), 10);
+/** Le battement retenu pour des signes de vie donnés (calculé une fois par objet reçu). */
+function pulseFor(signs: LifeSigns | null, cache: { signs?: LifeSigns | null; pulse?: Pulse }) {
+  if (cache.pulse && cache.signs === signs) return cache.pulse;
+  cache.signs = signs;
+  cache.pulse = activityPulse(signs);
+  return cache.pulse;
+}
 
 export function Chest({ texts }: { texts: SceneTexts }) {
   const { content, locale } = texts;
   const store = useSceneStoreApi();
   const glowLight = useRef<PointLight>(null);
   const held = useRef<PresentState | null>(null);
+  const pulse = useRef<{ signs?: LifeSigns | null; pulse?: Pulse }>({});
+  const lastT = useRef(0);
 
   const plaque = usePaintedMaterial(
     useMemo(() => paintPlaque(content), [content]),
@@ -73,12 +79,10 @@ export function Chest({ texts }: { texts: SceneTexts }) {
   );
 
   const rest = useMemo(() => deskRestPose(ITEM_POSES.chest), []);
-  const portraitRest = useMemo(() => new Vector3(CHEST_PORTRAIT.x, 0, CHEST_PORTRAIT.z), []);
   const glow = useMemo(() => [plaque], [plaque]);
   const { ref, handlers } = usePresentation({
     id: 'chest',
     rest,
-    portraitRest,
     seed: 0.78,
     glow,
     glowBase: 0.1,
@@ -88,14 +92,24 @@ export function Chest({ texts }: { texts: SceneTexts }) {
   });
 
   useFrame(() => {
-    const { frame, settings } = store.getState();
+    const scene = store.getState();
+    const { frame, settings } = scene;
     const on = frame.t >= ARRIVAL.chestLed ? 1 : 0;
     // Mouvement réduit : la LED reste allumée, sans battement.
-    const beat = settings.reducedMotion ? 0.25 : beatAt(frame.t);
+    const beat = settings.reducedMotion
+      ? 0.25
+      : heartbeat(frame.t, pulseFor(scene.lifeSigns, pulse.current));
+    // Tenu et retourné, il tremble par à-coups (mode shake, selon f) : un
+    // bruit au début de chacun. Remis à l'endroit, il est calme et muet.
+    const p = held.current?.p ?? 0;
+    const f = held.current?.f ?? 0;
+    if (scene.presented === 'chest' && p >= 1 && f > 0.5 && !settings.reducedMotion) {
+      if (rattleStarts(lastT.current, frame.t)) scene.sound.play('rattle', 0.6);
+    }
+    lastT.current = frame.t;
     led.color.setRGB(on * (0.1 + beat * 0.4), on * (0.45 + beat * 1.5), on * (0.2 + beat * 0.6));
     seam.color.setRGB(on * (0.25 + beat * 0.9), on * (0.14 + beat * 0.5), on * 0.04);
     if (glowLight.current) {
-      const p = held.current?.p ?? 0;
       glowLight.current.intensity = legacyPointIntensity(
         on * (0.12 + beat * 0.9) * (1 - p * 0.6),
         GLOW_DISTANCE,

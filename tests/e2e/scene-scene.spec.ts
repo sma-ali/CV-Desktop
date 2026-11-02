@@ -108,7 +108,8 @@ test.describe('la visite automatique', () => {
     await page.goto('/fr?t=12000&heure=14');
     await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-auto', 'true', { timeout: 15_000 });
-    for (const item of ['book', 'postit', 'laptop']) {
+    // AUTO_SEQ : les deux postes, puis Netherbrain (étape 4).
+    for (const item of ['book', 'postit', 'netherbrain']) {
       await expect(hud(page)).toHaveAttribute('data-presented', item, { timeout: 15_000 });
     }
     await expect(hud(page)).toHaveAttribute('data-auto', 'true');

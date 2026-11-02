@@ -1,6 +1,6 @@
-# Le bureau en 3D (étape 3)
+# Le bureau en 3D (étapes 3 et 4)
 
-Ce document fixe le contrat entre les parties de la scène. Le socle a été posé sur la branche `feat/bureau-3d` ; trois parties (décor, objets, mise en scène) se sont construites en parallèle, chacune dans son worktree et dans ses propres fichiers, puis une passe d'assemblage les a fusionnées et a calé le rendu sur le prototype (voir « État à la fin de l'étape 3 »). Le contrat reste valable pour l'étape 4.
+Ce document fixe le contrat entre les parties de la scène. Le socle a été posé sur la branche `feat/bureau-3d` ; trois parties (décor, objets, mise en scène) se sont construites en parallèle, chacune dans son worktree et dans ses propres fichiers, puis une passe d'assemblage les a fusionnées et a calé le rendu sur le prototype (voir « État à la fin de l'étape 3 »). Le contrat reste valable pour l'étape 4, que [`docs/gestes.md`](gestes.md) complète (gestes, fiches, son, signes de vie, nouveaux objets) et corrige là où il le dit.
 
 Référence visuelle et de comportement : `prototype/bureau-plateau.html` (Three.js r128). On le reproduit et on l'améliore, on ne le recopie pas : ses textes ne sont pas des faits (voir « Textes »).
 
@@ -8,7 +8,7 @@ Référence visuelle et de comportement : `prototype/bureau-plateau.html` (Three
 
 Dans l'étape 3 : le port du prototype en composants React Three Fiber avec un Three.js récent. Plateau, mur et fenêtre, lampe, écran au code TypeScript, objets du CV, décor, lumière selon l'heure du visiteur (quatre ambiances et sélecteur), arrivée (carton, lampe qui s'allume, LED du clavier, code tapé à l'écran, montée de caméra), étiquettes des objets, survol, présentation d'un objet (il se soulève devant la caméra, tourne lentement, puis se repose) déclenchée par le mode auto, un clic sur l'objet ou une puce du bas de page, mode auto (visite), Rejouer, `prefers-reduced-motion`, chargement progressif, repli sur la version express. Défauts du prototype à corriger ici : code de l'écran illisible en vue large, micro illisible vu de dessus, coffret petit et sombre.
 
-Hors périmètre (étape 4) : retourner un objet, le faire glisser, les collisions, les fiches (le bristol), le son, les nouveaux objets de Netherbrain et Homelab, les signes de vie du coffret, la correction complète des bords coupés sur téléphone (le cadrage portrait du prototype suffit ici).
+Hors périmètre (étape 4, voir [`docs/gestes.md`](gestes.md)) : retourner un objet, le faire glisser, les collisions, les fiches (le bristol), le son, les nouveaux objets de Netherbrain et Homelab, les signes de vie du coffret, la correction complète des bords coupés sur téléphone (le cadrage portrait du prototype suffit ici).
 
 ## Architecture
 
@@ -100,8 +100,8 @@ Portées du prototype, sans dépendance à three :
 
 - Bureau et pièce : `DESK`, `DESK_THICKNESS`, `WIN`, `WALL_Z`, `WINDOW_SKY` (le plan du ciel, peint par la mise en scène, avec le fond sombre du décor derrière), `FLOOR_Y`, `BACKGROUND`.
 - Matériel partagé : `LAMP` (pied, coude, tête, point visé), `STAND`, `MONITOR` (position, hauteur et inclinaison de la dalle, tailles), `KEYBOARD`, `HEADSET_STAND`.
-- Objets : `ITEM_POSES` (position, rotation, encombrement présenté `hold`, mode de présentation, accroche de l'étiquette), `POSTIT_ON_MONITOR`, `CHEST_PORTRAIT`, `BOUNDS`.
-- Caméra : `PORTRAIT_MAX_ASPECT`, `REST` et `REST_FIT` (vue de repos et points à cadrer), `START_L`, `START_P`, `HELD`, `HELD_MAX_DISTANCE`, `SCREEN_FOCUS`.
+- Objets : `ITEM_POSES` (position, rotation, encombrement présenté `hold`, mode de présentation, accroche de l'étiquette), `POSTIT_ON_MONITOR`, `BOUNDS`, `SHEET` (étape 4). Encombrement vu de dessus : `src/scene/core/bodies.ts` (étape 4).
+- Caméra (dans `framing.ts` depuis l'étape 4, réexporté par `constants.ts`) : `PORTRAIT_MAX_ASPECT`, `PORTRAIT_PLACES`, `REST` et `REST_FIT` (vue de repos et points à cadrer), `START_L`, `START_P`, `HELD`, `HELD_MAX_DISTANCE`, `SCREEN_FOCUS`.
 - Temps : `SETTLE` (10.4 s), `AUTO_START` (12.6 s), `IDLE_DELAY` (12 s), `AUTO_SEQ`, `AUTO_TIMING`, `ARRIVAL` (tous les temps de l'arrivée), `TYPING_END_DEFAULT`, `MOOD_TRANSITION`.
 - Ambiances et lumières : `MOODS` (valeurs du prototype), `MOOD_SWATCHES`, `LAMP_COLOR`, `legacyIntensity()`, `POINT_DECAY` et `legacyPointIntensity()`.
 
@@ -109,7 +109,7 @@ Les niveaux de l'arrivée sont des fonctions pures de T dans `arrival.ts` (`lamp
 
 ## Identifiants (`src/scene/core/ids.ts`)
 
-Objets : `book`, `badge`, `postit`, `headset`, `laptop`, `card`, `chest`, `monitor`. Étapes du CV (puces) : `defi-metiers`, `dares`, `projects`, `perso`, `contact`.
+Objets : `book`, `badge`, `postit`, `headset`, `laptop`, `card`, `chest`, `monitor`, et depuis l'étape 4 `netherbrain` et `homelab` (tableau à jour dans [`docs/gestes.md`](gestes.md) : l'étape `projects` présente désormais `netherbrain`). Étapes du CV (puces) : `defi-metiers`, `dares`, `projects`, `perso`, `contact`.
 
 | Étape          | Objets              | Objet présenté (`STEP_ITEM`) | Puce                         |
 | -------------- | ------------------- | ---------------------------- | ---------------------------- |
@@ -121,7 +121,7 @@ Objets : `book`, `badge`, `postit`, `headset`, `laptop`, `card`, `chest`, `monit
 
 L'écran (`monitor`) n'appartient à aucune étape : il montre tout le parcours, et son gros plan n'allume aucune puce.
 
-Visite automatique (`AUTO_SEQ`) : `book`, `postit`, `laptop`, `card`, `chest`. Chaque puce est un lien vers la section de la version express (`#defi-metiers`, `#dares`, `#projects`, `#contact`) ; quand la scène tourne, le HUD l'intercepte et présente l'objet.
+Visite automatique (`AUTO_SEQ`) à l'étape 3 : `book`, `postit`, `laptop`, `card`, `chest` (étape 4 : `book`, `postit`, `netherbrain`, `homelab`, `laptop`, `card`, `chest`). Chaque puce est un lien vers la section de la version express (`#defi-metiers`, `#dares`, `#projects`, `#contact`) ; quand la scène tourne, le HUD l'intercepte et présente l'objet.
 
 ## Rendu
 
@@ -201,7 +201,7 @@ Pour comparer, capturer le site avec les mêmes paramètres (`prendre=book` pour
 
 ## Worktrees et ports
 
-Les trois worktrees de l'étape 3 ont été fusionnés puis supprimés. Pour reprendre ce mode de travail à l'étape 4 :
+Les worktrees des étapes 3 et 4 ont été fusionnés puis supprimés. Les ports de l'étape 4 sont dans [`docs/gestes.md`](gestes.md). Commande de l'étape 3, pour mémoire :
 
 ```bash
 git worktree add .claude/worktrees/decor -b feat/bureau-3d-decor feat/bureau-3d
@@ -221,13 +221,17 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
 
 ## Vérifier
 
-- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre.
+- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre. Étape 4 : encombrements au repos (`bodies.test.ts`), solveur des collisions et glisser (`gestures/`), présentation et suivi du pointeur, signes de vie (`src/lib/life-signs`, vue de la fiche), battements du coffret, LED de la baie, pile du portable comparée au CV, cadrage sur 14 fenêtres réelles, pile sous la carte dans son encombrement (`cardPile.test.ts`), étiquettes écartées (`tagSpread.test.ts`).
 - `npm run test:e2e` : build de production puis Playwright sur ordinateur et téléphone.
   - `bureau.spec.ts` (socle) : HUD visible sans la 3D, pixels du canvas, repli sans WebGL et sans JavaScript, mouvement réduit, nuit à 23 h, sélecteur d'ambiance, langues, liens bureau et version express, axe sur le HUD, aucune erreur en console, en-têtes et CSP, scène hors du JavaScript initial, puce qui présente un objet, Rejouer.
   - `scene-decor.spec.ts` : décor immobile sous `&fige`, vivant sinon, nuit sans erreur.
   - `scene-objets.spec.ts` : étiquettes FR et EN, cachées pendant l'arrivée et la présentation, puce, étiquette, survol et clic, clic hors des objets, mouvement réduit.
   - `scene-scene.spec.ts` : arrivée du noir à `settled`, Rejouer trois fois sans fuite WebGL, visite dans l'ordre, arrêt et reprise, `?auto=0`, puce qui reprend la main, mouvement réduit, changement d'ambiance.
   - `parcours.spec.ts` (assemblage) : puce au clavier puis Échap, gros plan sur l'écran au clic et par `?prendre=monitor`, visite arrêtée par une touche, Rejouer qui repose l'objet et garde l'ambiance, passage en anglais scène comprise, aller-retour avec la version express.
+  - `scene-gestes.spec.ts` (étape 4, gestes) : bureau au repos, objet présenté retourné sauf avec `?recto`, portable glissé contre la carte sans la chevaucher, objet tiré vers le bord qui reste sur le plateau, `?glisse=mug`, appui de moins de 7 px qui reste un clic, retourner puis remettre d'un clic, objet déplacé présenté puis reposé à sa nouvelle place jusqu'à Rejouer, `?glisse` sous `&fige` et sans, mouvement réduit (Rejouer compris), objet glissé puis présenté au clavier qui reste présenté, visite coupée par un glisser, pas de défilement au doigt. Les recouvrements se vérifient avec le solveur, à partir de `data-places`.
+  - `scene-fiches.spec.ts` (étape 4, fiches et son) : chaque puce ouvre la bonne fiche en FR et en EN (comparée au contenu), Préc. / Suiv. et flèches sur tout `SHEET_ORDER`, focus au clavier rendu par Échap et Reposer, visite qui ne vole pas le focus, Retourner au bouton et à `R`, aucun lien vers un dépôt privé, axe fiche ouverte, boutons et liens de 44 px sans `aria-label`, signes de vie FR et EN sans mot interdit, son coupé jusqu'au clic (aucun AudioContext avant), indication de l'objet tenu, feuille du bas en 390x844, 360x740 et 412x915, fiche à droite en 844x390.
+  - `scene-projets.spec.ts` (étape 4, objets et cadrage) : étiquettes de Netherbrain, Homelab et de la pile, présentation par la puce, l'étiquette, un clic ou un tap, dos peint des deux objets retournés, coffret qui bat au rythme de ses signes de vie, `data-offscreen` vide sur ordinateur, en trois portraits et en paysage, bureau resserré qui remplit la hauteur libre en portrait (`data-desk-share` au-dessus de 0.65), bord avant du bureau sur le HUD du bas.
+  - La CI découpe chaque profil en trois parts (`--shard`), six jobs en parallèle : voir « Décisions de l'assemblage de l'étape 4 ».
 
 ## État à la fin de l'étape 3
 
@@ -248,12 +252,12 @@ Calage sur le prototype (captures côte à côte, mêmes paramètres, luminance 
 
 Réglages : `CALIBRATION` (hémisphère 0.62, soleil 0.7, spot 2.0, cône 0.3, tache 0.45, rais 0.35, poussière 0.7, écran et objet tenu 1), `MOOD_REFERENCE` (les intensités des ambiances relatives à l'après-midi, élevées à la puissance 2.2), `SPOT_BOOST` (0.3), `POINT_DECAY` (1) et `skyLevel` à la puissance 2.2.
 
-Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (`DECOR_FOOTPRINTS` dans `src/scene/decor/layout.ts` donne déjà l'encombrement du décor), fiches, son, objets dédiés à Netherbrain et Homelab, signes de vie du coffret, bords coupés sur téléphone (le coffret et le micro y sont en partie hors champ, comme dans le prototype).
+Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (devenu `DECOR_OBSTACLES`, des rectangles orientés, à l'étape 4), fiches, son, objets dédiés à Netherbrain et Homelab, signes de vie du coffret, bords coupés sur téléphone (le coffret et le micro y sont en partie hors champ, comme dans le prototype).
 
 ## Décisions du socle
 
 - Le HUD est visible dès le HTML du serveur (recruteur pressé, référencement, repli). Une fois la scène prête et pendant l'arrivée, l'identité et les puces s'effacent puis reviennent à 7.4 s et 8.1 s, comme dans le prototype ; en mouvement réduit, l'arrivée est déjà finie.
-- En mouvement réduit, l'horloge démarre après l'arrivée, sans visite automatique ; « Rejouer » est masqué.
+- En mouvement réduit, l'horloge démarre après l'arrivée, sans visite automatique. « Rejouer » était masqué ; depuis la relecture de l'étape 4, il reste là et remet les objets déplacés en place sans rejouer l'arrivée.
 - Le carton dit « Bienvenue chez Ali » (prénom tiré du nom) et le titre du CV.
 - La puce « Projets perso » mène à la section des projets de la version express, qui n'a pas de section dédiée.
 - `?prendre=` prend les identifiants anglais (`book`, pas `livre`).
@@ -267,7 +271,7 @@ Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (`DEC
 - L'écran écrit `frame.typingEnd` : le clavier s'arrête de taper à la dernière lettre du code, quelle que soit sa longueur.
 - Sous `&fige`, la présentation se pose aussitôt dans son état final (comme en mouvement réduit) : captures et tests ne dépendent plus de la cadence.
 - L'étiquette du post-it passe sous le post-it : au-dessus, elle cachait la fin des lignes de code de l'écran.
-- `CHEST_PORTRAIT.z` avance de 0.3 (le coffret agrandi touchait le pied du casque en portrait).
+- `CHEST_PORTRAIT.z` avance de 0.3 (le coffret agrandi touchait le pied du casque en portrait). Supprimé à l'étape 4 : voir [`docs/gestes.md`](gestes.md).
 - Un clic n'importe où hors de l'objet tenu le repose, décor compris (le décor garde ses propres réactions : lampe, figurines, tasse...).
 - Les deux vignettes restent : celle du CSS et celle de `GradeEffect` (0.75), qui ensemble retrouvent celle du prototype.
 - L'horloge ne part qu'à la deuxième image : la première compile les shaders et peut prendre des secondes sur une machine lente, et le visiteur manquait alors le début de l'arrivée.
@@ -290,3 +294,78 @@ Ce qui reste pour l'étape 4 : retourner et glisser les objets, collisions (`DEC
 - Le carton d'arrivée a un voile plus dense : le code de l'écran, devenu lisible, se brouillait avec « Bienvenue chez ».
 - Le soir, la tache du soleil sous la fenêtre est plus forte (`patchOpacity` de 0.6 à 1.1) : passée en linéaire, elle se perdait et le soir tirait vers la nuit.
 - La CI lance les tests de bout en bout en deux jobs parallèles (ordinateur, téléphone), 30 minutes au plus chacun.
+
+## État à la fin de l'étape 4
+
+Tout le périmètre de [`docs/gestes.md`](gestes.md) est en place, fusionné sur `feat/gestes` :
+
+- prendre : l'objet se soulève devant la caméra, tourne, et suit un peu le pointeur ;
+- retourner : un clic ou un tap sur l'objet tenu, le bouton « Retourner » de la fiche ou la touche `R`, selon le mode de chaque objet (`flip`, `open`, `laptop`, `turn`, `shake`, `spin`) ;
+- glisser : neuf corps (livre, badge, portable, carte, coffret, Netherbrain, Homelab, tasse, manette), à la souris et au doigt, avec soulèvement, inclinaison, rebond et écrasement, poussée en chaîne et collisions entre rectangles orientés contre le décor, les autres corps et les bords ; le portable ne chevauche plus la carte ; les places tiennent jusqu'à « Rejouer » ;
+- fiches : une par objet, en FR et en EN, tirée du CV, avec Préc. / Reposer / Suiv., flèches, Échap, focus géré, feuille du bas sur téléphone ;
+- Netherbrain (bocal au cerveau qui luit) et Homelab (mini baie aux LED qui clignotent), sans lien vers leurs dépôts, encore privés ;
+- coffret : signes de vie (données d'exemple signalées comme telles) et battement de sa LED et de son liseré ;
+- son : synthèse WebAudio, coupé par défaut, AudioContext créé au clic sur « Son » ;
+- téléphone : tout le bureau utile à l'écran en portrait et en paysage (`data-offscreen` vide), glisser au doigt sans défiler ; en portrait, le bureau se resserre (voir « Le bureau resserré du téléphone ») ;
+- mouvement réduit : glisser sans retard, inclinaison ni rebond ; retournement et présentation immédiats.
+
+Vérifié à la main, hors du dépôt, avec de vrais gestes : chaque corps glissé vers chacun des autres, vers les trois obstacles du décor les plus proches et vers les quatre bords, sur ordinateur (1440x900, 135 glissers) et sur téléphone (Pixel 7, au doigt, 93 glissers) : aucun recouvrement, rien hors du plateau, aucun objet présenté par un glisser, aucune erreur dans la console. Les fiches parcourues au clavier (puce, Entrée, flèches, `R`, Échap) : focus sur le titre puis rendu à la puce, chaque objet retourné puis remis, l'écran sans bouton ; aucun AudioContext avant le clic sur « Son ». Le rendu au repos des quatre ambiances, sur ordinateur, comparé au prototype avec les mêmes paramètres, ne montre pas de régression par rapport à l'étape 3 ; les deux nouveaux objets s'y ajoutent.
+
+Ce qui reste ouvert (après la relecture, voir plus bas) :
+
+- en portrait, la feuille du bas couvre le bureau quand un objet est tenu : on glisse après l'avoir reposé, ou pendant les pauses de la visite ;
+- à valider avec Ali : ce qu'affichent les signes de vie, les étiquettes réduites à leur mot sur téléphone, l'allure des deux nouveaux objets et le son ;
+- en 412x915 seulement, sous SwiftShader, un triangle du plan des autocollants du portable se dessine en rayures (texture de 1200 x 840, anisotropie 8). Ni en 390x844, ni en 360x740, ni sur ordinateur ; jamais vu sur un vrai processeur graphique : à vérifier sur un vrai téléphone avant d'y toucher ;
+- la CI découpe chaque profil en trois parts dans l'ordre des fichiers : les parts sont déséquilibrées (la plus longue tient dans le temps imparti). Les équilibrer demanderait `PWTEST_SHARD_WEIGHTS`, une variable interne de Playwright, non documentée ;
+- étape 5 : `getLifeSigns()` lira le JSON public derrière `/api/signes-de-vie`.
+
+## Décisions de l'assemblage de l'étape 4
+
+- Les trois parties ne partageaient aucun fichier : fusion sans conflit, dans l'ordre gestes, objets, fiches.
+- Un glisser qui commence alors qu'un objet est tenu le repose (décision de la partie gestes, gardée) : le prototype le laissait en main, mais la fiche ouverte parlerait alors d'un autre objet que celui qu'on déplace. Un glisser ne passe jamais par `onPointerMissed` : son clic est avalé avant React Three Fiber.
+- Le coffret ne cliquette (`rattle`) que tenu et retourné : il ne tremble plus remis à l'endroit (partie gestes), le son suit.
+- La pile du portable vient de la section compétences du CV : `SceneTexts.skills` (les compétences à plat, `buildSceneTexts`) filtre les technologies des projets (`laptopChips`). WireGuard, qui n'est pas une compétence du CV mais une brique du Homelab, quitte l'écran du portable et reste sur la baie. Un test compare chaque pastille au CV.
+- Sur téléphone (portrait, ou hauteur de 500 px au plus), les étiquettes ne gardent que leur mot (`TagLayer.module.css`) : entières, elles couvraient le bocal, le badge et la manette, qu'on ne pouvait plus ni toucher ni glisser. Les années restent sur les puces.
+- Le test « coupent la visite automatique » glisse le premier corps que le pointeur atteint : la fiche du livre, ouverte par la visite, couvre le portable sur ordinateur et le bas du bureau sur téléphone.
+- Les tests qui chargent deux scènes de suite sont marqués `test.slow()`.
+- CI : les tests de bout en bout prennent 10.7 min (ordinateur) et 9.0 min (téléphone) en local, sur 16 cœurs et 4 pages ; un profil entier sur 4 cœurs et 2 pages, comme un exécuteur de GitHub (simulé avec `taskset -c 0-3 --workers=2`), prend 36.6 min, au-delà des 30 min du job. Chaque profil se découpe donc en trois parts (`--shard=1/3` à `3/3`), six jobs en parallèle. En CI, le délai d'un test passe à 120 s et celui d'une attente à 30 s (`playwright.config.ts`) : sur 4 cœurs, la scène dessine environ deux fois moins vite (avec les délais de 60 s, la simulation comptait 8 tests instables). Simulées avec ces réglages, les parts 2/3 et 3/3 de l'ordinateur, les plus lourdes (les tests de la 3D), prennent 15.5 et 16 min sans échec ni reprise, la part 1/3 du téléphone 1.4 min (accueil, socle, version express) : avec l'installation et le build, environ 20 min pour le job le plus long. Les parts sont déséquilibrées parce que Playwright découpe la liste dans l'ordre des fichiers.
+- Le rendu par image n'a pas changé avec l'étape 4 (même cadence sous SwiftShader que l'étape 3, environ 3 images par seconde par page) : le temps des tests vient de leur nombre (156 sur ordinateur, 142 sur téléphone).
+
+## Décisions de la relecture de l'étape 4
+
+- Un objet qui revient sur le plateau pendant le glisser d'un autre corps est écarté dans la même image (`settleBodies` avec le corps glissé dans `fixed`) : il restait dans un autre corps jusqu'au lâcher. Le cas arrive à chaque glisser commencé quand un objet est tenu, puisque le glisser le repose.
+- Quand le corps glissé est présenté au clavier (puce, flèches, Préc. / Suiv.), l'appui en cours oublie son corps : au mouvement suivant, il relançait un glisser qui reposait l'objet qu'on venait de présenter.
+- Au repos, les gestes n'allouent plus rien à chaque image : corps actifs en masque de bits, tableaux et événements réutilisés, axes du solveur partagés. Le plateau ne se revérifie que quand il a pu changer : un objet revient, un glisser finit, Rejouer, changement de format (`DragSim.invalidate()`).
+- « Rejouer » reste en mouvement réduit : le glisser y est permis, et sans ce bouton on ne pouvait remettre le bureau en ordre qu'en rechargeant la page.
+- Les liens de la méta de la fiche (e-mail, LinkedIn) font 44 px de haut, comme les boutons ; le test des cibles mesure tous les liens et tous les boutons de la fiche.
+- Les boutons de la fiche n'ont plus d'`aria-label` : leur nom commence par leur texte visible (WCAG 2.5.3, commande vocale). « Reposer » et « Retourner » se suffisent ; « Préc. » et « Suiv. » se complètent par un texte masqué (« Préc. (objet précédent) »). `closeLabel` et `flipLabel` quittent le contenu.
+- La pile sous la carte suit la carte (`items/cardPile.ts`, posée chaque image sur `store.desk.card`, soulèvement du glisser compris ; elle reste sur le bureau quand la carte est présentée). L'encombrement de la carte la contient (`hw` 0.91, `hd` 0.575, testé) : un portable poussé contre la carte ne s'enfonce plus dans la pile.
+- Les étiquettes de Netherbrain et de Homelab reculent derrière leur objet (`z` -0.55 et -0.6), comme les autres : elles cachaient le couvercle du bocal et le haut de la baie.
+- Les étiquettes ne se chevauchent plus (`items/tagSpread.ts`, pur et testé) : celles qui se touchent s'écartent du moins qu'il faut, le plus souvent en hauteur, et restent dans la fenêtre. Sur téléphone, Homelab et DEFI-METIERS, Netherbrain et Compétences se couvraient. Leur taille se remesure quand la fenêtre change.
+- L'écran n'est jamais retourné : `present('monitor')` laisse `flipped` à faux, et `data-flipped` aussi.
+- Constat rejeté : élever la vue portrait (`elev` 1.1 à 1.2) pour remplir la bande de mur. Mesuré sur les trois portraits : le plateau grandit de 10 à 20 %, mais la hauteur du bureau utile reste la même (environ 220 px en 390x844) et la bande ne rétrécit pas, alors que l'écran se lit moins bien de plus haut.
+
+## Décisions d'Ali sur l'étape 4 (29/10)
+
+- Le sens du retournement reste celui du prototype : l'objet présenté fait son geste d'office (badge retourné, livre ouvert, dos du bocal), le premier clic le remet à l'endroit.
+- La fiche du coffret ne garde qu'une note, « Le contenu se raconte en entretien. » : la note des signes de vie (« Le contenu, lui, reste scellé. ») disparaît, avec son champ `live.note`.
+- Sur téléphone en portrait, le bureau se resserre au lieu de laisser une bande de mur vide (voir « Le bureau resserré du téléphone »).
+
+## Le bureau resserré du téléphone
+
+En portrait (largeur / hauteur sous 0.9), et seulement là, les objets et le décor se rangent sur une zone plus étroite et plus profonde (détail et places : [`docs/gestes.md`](gestes.md), « Le bureau resserré du portrait »). C'est la largeur qui fixait l'échelle : tenir tout le bureau (x de -6.42 à 5.91) laissait une bande de mur vide au-dessus de l'écran. Les corps tiennent maintenant dans `BOUNDS_PORTRAIT` (x de -3.75 à 3.95), le plateau s'allonge vers le visiteur (`DESK_PORTRAIT_Z1`), le casque passe à droite de l'écran, la lampe et la plante reculent au fond à gauche, le pavé de boutons passe derrière le clavier, les mangas et le robot devant. Le micro sur son bras, la corde à sauter, les bandes, le renard et le voyageur sont cachés en portrait : ils n'avaient plus de place, et le micro sortait du cadre. Aucun objet du CV n'est caché.
+
+Mesures au repos (bande : de 112 px, bas de l'identité du HUD, au haut du bureau utile ; part : hauteur du bureau utile sur la hauteur libre entre les bandes du HUD, `data-desk-share`) :
+
+| Fenêtre  | Bureau avant | Bande avant | Part avant | Bureau après | Bande après | Part après |
+| -------- | ------------ | ----------- | ---------- | ------------ | ----------- | ---------- |
+| 390x844  | 214 px       | 313 px      | 0.41       | 375 px       | 134 px      | 0.74       |
+| 360x740  | 197 px       | 226 px      | 0.47       | 343 px       | 62 px       | 0.84       |
+| 412x915  | 227 px       | 371 px      | 0.38       | 398 px       | 182 px      | 0.69       |
+| 768x1024 |              |             | 0.59       | 677 px       | 12 px       | 0.98       |
+
+La tablette en portrait (768x1024) en profite aussi. Le paysage ne change pas : comparées pixel à pixel, avant et après, les captures en 1440x900 (14 h) et en 844x390 ne diffèrent que du bruit d'une capture à l'autre (moins de 0.07 % des pixels, au plus 10 sur 255) et de l'anneau animé du HUD. Le grain du HUD avance en cinq pas par seconde : pour comparer deux captures, il faut le même hasard (graine fixe) et la même phase.
+
+`PORTRAIT_HUD.bottom` passe de 205 à 222 px : la rangée avant du bureau resserré passait sous l'indication du HUD.
+
+Tests de bout en bout : en portrait, « coupent la visite automatique » glisse la baie pendant la pause qui suit le livre, mesurée au début de la pause. Le bureau agrandi dépasse entre la feuille du bas et le livre présenté, mais le livre qui s'ouvre finit par couvrir ce qui dépasse : le test glissait le coffret au moment où le livre le cachait. « Gardent sur le plateau un objet glissé vers le bord » (au doigt), « chaque puce ouvre la bonne fiche » et « Préc. / Suiv. » sont marqués `test.slow()` : seuls, 16 à 45 s ; avec 4 pages sous SwiftShader, ils passaient parfois les 60 s. Le rendu, lui, n'est pas plus lent : mesuré sous SwiftShader avant et après, de 2.5 à 3.4 images par seconde en portrait (Pixel 7), de 1.5 à 1.8 sur ordinateur.

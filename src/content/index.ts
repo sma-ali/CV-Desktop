@@ -6,6 +6,7 @@ import { contentSchema, type Content } from './schema';
 export * from './locales';
 export type { Content, DeskUi, Education, Experience, Project, Ui } from './schema';
 export type { SceneContent } from './scene/schema';
+export type { SheetContent, SheetsContent } from './sheets/schema';
 
 // Validation au chargement du module : un contenu invalide fait échouer le
 // build, pas la visite d'un recruteur.

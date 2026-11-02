@@ -20,14 +20,13 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ARRIVAL } from '../core/constants';
+import { DeskBody } from '../gestures/DeskBody';
 import { useSceneStoreApi } from '../core/store-context';
 import { useCanvasTexture } from '../core/textures';
 import {
   FIGURES,
   MANGA,
   MANGA_SIZE,
-  MUG,
-  PAD,
   PLANT,
   ROPE,
   STEAM_COUNT,
@@ -43,6 +42,7 @@ import {
   type FigureSpec,
   type SteamPuff,
 } from './layout';
+import { DecorPiece } from './DecorPiece';
 import { withFinish, type Part } from './merge';
 import {
   paintSoftDot,
@@ -56,8 +56,9 @@ import { box, cyl, MergedParts, rodPart, sph, torus, tube, usePressTime } from '
 
 // Les petites choses de la vie : corde à sauter, bandes de boxe, plante,
 // pile de mangas et figurines (inventés : ni titre, ni marque, ni
-// personnage réel), tasse fumante, manette. Tasse et manette se
-// déplaceront à l'étape 4 ; ici, un clic les fait réagir.
+// personnage réel), tasse fumante, manette. Tasse et manette glissent sur
+// le plateau (étape 4, DeskBody de la partie « gestes ») ; un clic les fait
+// réagir.
 
 // ------------------------------------------------------------------
 // Corde à sauter et bandes de boxe
@@ -65,7 +66,8 @@ import { box, cyl, MergedParts, rodPart, sph, torus, tube, usePressTime } from '
 
 const WOOD = 0x6e4a2e;
 
-function sportParts(): Part[] {
+/** La corde à sauter et ses poignées (repère du monde). */
+function ropeParts(): Part[] {
   const [rx, , rz] = ROPE.center;
   return [
     { geometry: tube(ropeCoil(), 0.03, 170, 5), color: 0xd9a441, finish: 'satin' },
@@ -83,7 +85,12 @@ function sportParts(): Part[] {
       position: [rx - 0.5, 0.07, rz - 0.6],
       rotation: [Math.PI / 2, 0, -0.5],
     },
-    // Les bandes roulées, et le bout d'une qui dépasse.
+  ];
+}
+
+/** Les bandes roulées, et le bout d'une qui dépasse (repère du monde). */
+function wrapsParts(): Part[] {
+  return [
     {
       geometry: cyl(0.17, 0.17, 0.24, 10),
       color: 0x2b2b2e,
@@ -423,7 +430,7 @@ function Mug() {
   });
 
   return (
-    <group name="decor-mug" position={MUG.position} {...handlers}>
+    <group name="decor-mug" {...handlers}>
       <MergedParts build={mugParts} />
       {STEAM_INDICES.map((i) => (
         <sprite
@@ -501,7 +508,7 @@ function Gamepad() {
   });
 
   return (
-    <group name="decor-pad" position={PAD.position} rotation={[0, PAD.ry, 0]} {...handlers}>
+    <group name="decor-pad" {...handlers}>
       <group ref={group}>
         <MergedParts build={padBuild} />
         <mesh material={led} position={[0, 0.205, -0.17]}>
@@ -515,14 +522,33 @@ function Gamepad() {
 export function Props() {
   return (
     <>
-      <MergedParts build={sportParts} />
-      <Plant />
-      <MangaStack />
-      {FIGURES.map((spec) => (
-        <Figure key={spec.kind} spec={spec} />
+      <DecorPiece id="rope">
+        <MergedParts build={ropeParts} />
+      </DecorPiece>
+      <DecorPiece id="wraps">
+        <MergedParts build={wrapsParts} />
+      </DecorPiece>
+      <DecorPiece id="plant">
+        <Plant />
+      </DecorPiece>
+      {/* Le robot est debout sur les mangas : il bouge avec eux. */}
+      <DecorPiece id="manga">
+        <MangaStack />
+        {FIGURES.filter((spec) => spec.kind === 'robot').map((spec) => (
+          <Figure key={spec.kind} spec={spec} />
+        ))}
+      </DecorPiece>
+      {FIGURES.filter((spec) => spec.kind !== 'robot').map((spec) => (
+        <DecorPiece key={spec.kind} id={spec.kind === 'fox' ? 'fox' : 'wanderer'}>
+          <Figure spec={spec} />
+        </DecorPiece>
       ))}
-      <Mug />
-      <Gamepad />
+      <DeskBody id="mug">
+        <Mug />
+      </DeskBody>
+      <DeskBody id="pad">
+        <Gamepad />
+      </DeskBody>
     </>
   );
 }

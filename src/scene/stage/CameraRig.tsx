@@ -21,6 +21,8 @@ import type { StageShared } from './shared';
 /** Vitesse du lissage de la caméra et du gros plan sur l'écran (part restante après une seconde). */
 const CAMERA_SMOOTHING = 0.02;
 const SCREEN_SMOOTHING = 0.03;
+/** Plan du fond de la caméra au plus près (celui du Canvas du socle). */
+const MIN_FAR = 90;
 
 // La caméra : montée de l'arrivée (de START vers la vue de repos), cadrage
 // recalculé au redimensionnement (portrait sur téléphone), léger mouvement
@@ -36,7 +38,7 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
   const portrait = isPortrait(aspect);
 
   // La vue de repos ne dépend que du format : calculée au redimensionnement.
-  const rest = useMemo(() => fitRestView(aspect), [aspect]);
+  const rest = useMemo(() => fitRestView(aspect, { width, height }), [aspect, width, height]);
   const screen = useMemo(() => screenFocusPose(portrait), [portrait]);
   // Poses de travail, réutilisées à chaque image ; ready à false : la
   // prochaine pose est prise telle quelle, sans lissage.
@@ -87,8 +89,12 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
     }
     camera.position.copy(smoothed.position);
     camera.lookAt(smoothed.target);
-    if (Math.abs(camera.fov - pose.fov) > 1e-4) {
+    // En portrait, la caméra recule loin pour faire tenir tout le bureau :
+    // le plan du fond suit, pour garder le mur et la fenêtre.
+    const far = Math.max(MIN_FAR, rest.dist * 2.2);
+    if (Math.abs(camera.fov - pose.fov) > 1e-4 || camera.far !== far) {
       camera.fov = pose.fov;
+      camera.far = far;
       camera.updateProjectionMatrix();
     }
     camera.updateMatrixWorld(true);

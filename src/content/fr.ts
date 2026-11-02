@@ -1,5 +1,6 @@
 import type { Content } from './schema';
 import { sceneFr } from './scene/fr';
+import { sheetsFr } from './sheets/fr';
 import { contact } from './shared';
 
 // Source : le CV d'Ali en français (septembre 2026). Ne rien reformuler ici
@@ -198,10 +199,14 @@ export const fr = {
       night: { name: 'Nuit', light: 'Nuit. La lampe veille.' },
     },
     hint: {
-      pointer: 'Cliquez sur un objet pour le voir de près.',
-      touch: 'Touchez un objet pour le voir de près.',
+      pointer: 'Cliquez sur un objet pour le voir de près. Glissez-le pour le déplacer.',
+      touch: 'Touchez un objet pour le voir de près. Glissez-le pour le déplacer.',
       auto: 'Visite automatique. Touchez un objet pour prendre la main.',
       presented: 'Objet vu de près. Échap pour le reposer.',
+      held: {
+        pointer: "Cliquez sur l'objet pour le retourner. Échap pour le reposer.",
+        touch: "Touchez l'objet pour le retourner.",
+      },
     },
     fallback: {
       noScript: 'Le bureau en 3D a besoin de JavaScript. Voici le CV en version express.',
@@ -213,4 +218,5 @@ export const fr = {
     },
   },
   scene: sceneFr,
+  sheets: sheetsFr,
 } satisfies Content;

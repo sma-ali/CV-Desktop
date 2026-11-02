@@ -2,7 +2,8 @@ import { z } from 'zod';
 import { text, texts } from '../text';
 
 // Textes peints dans la scène 3D : étiquettes des objets, code de l'écran,
-// couvertures, pages, badge, post-it, carte de visite, portable et coffret.
+// couvertures, pages, badge, post-it, carte de visite, portable, coffret,
+// bocal de Netherbrain et baie du Homelab.
 // Mêmes règles que le reste du contenu : des faits du CV, rien d'inventé ni
 // d'arrondi. Les faits sont regroupés dans `facts` et comparés au contenu du
 // CV par scene.test.ts ; le reste n'est que du décor qui n'affirme rien
@@ -98,12 +99,15 @@ const factsSchema = z.strictObject({
 });
 
 export const sceneContentSchema = z.strictObject({
+  // Une étiquette par objet dont la pose a un point d'accroche (ITEM_POSES).
   labels: z.strictObject({
     book: labelSchema,
     postit: labelSchema,
     laptop: labelSchema,
     card: labelSchema,
     chest: labelSchema,
+    netherbrain: labelSchema,
+    homelab: labelSchema,
   }),
   screen: screenSchema,
   facts: factsSchema,
@@ -125,6 +129,25 @@ export const sceneContentSchema = z.strictObject({
   card: z.strictObject({ contact: text }),
   laptop: z.strictObject({ path: text }),
   chest: z.strictObject({ kicker: text, title: text }),
+  // Faits du CV, comparés au contenu par scene.test.ts.
+  netherbrain: z.strictObject({
+    /** L'étiquette au dos du bocal, lue quand on le retourne. */
+    label: z.strictObject({
+      name: text,
+      tagline: text,
+      year: text,
+      /** La pile, ligne à ligne, telle que le CV l'écrit. */
+      stack: texts,
+      tests: text,
+    }),
+  }),
+  homelab: z.strictObject({
+    name: text,
+    /** Les plaques des unités de la baie : le serveur et le pare-feu (le switch n'en a pas). */
+    units: z.strictObject({ server: text, firewall: text }),
+    /** La petite étiquette de l'accès. */
+    access: text,
+  }),
 });
 
 export type SceneContent = z.infer<typeof sceneContentSchema>;

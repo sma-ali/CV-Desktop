@@ -78,6 +78,8 @@ test.describe('l’écran', () => {
     await page.goto('/fr?t=11000&fige&heure=14&prendre=monitor');
     await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-presented', 'monitor');
+    // L'écran n'a pas de geste : il n'est jamais retourné.
+    await expect(hud(page)).toHaveAttribute('data-flipped', 'false');
     // Un objet présenté d'office ne laisse jamais partir la visite.
     await expect(hud(page)).toHaveAttribute('data-auto', 'false');
     await page.keyboard.press('Escape');
@@ -135,6 +137,8 @@ test.describe('Rejouer', () => {
 
 test.describe('la langue et la version express', () => {
   test('le bureau passe en anglais, scène comprise', async ({ page }) => {
+    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
+    test.slow();
     const errors = collectErrors(page);
     await page.goto('/fr?auto=0&heure=14');
     await waitForScene(page);
@@ -149,6 +153,8 @@ test.describe('la langue et la version express', () => {
   });
 
   test('l’aller-retour avec la version express relance la scène', async ({ page }) => {
+    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
+    test.slow();
     const errors = collectErrors(page);
     await page.goto('/fr?auto=0&heure=14');
     await waitForScene(page);

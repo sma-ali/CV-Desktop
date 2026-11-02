@@ -1,0 +1,175 @@
+import type { SheetsContent } from './schema';
+
+// Les fiches en anglais. Même structure que fr.ts ; source : le CV anglais.
+export const sheetsEn = {
+  ui: {
+    label: 'Object card',
+    prev: 'Prev.',
+    prevLabel: 'previous object',
+    next: 'Next',
+    nextLabel: 'next object',
+    close: 'Put back',
+    flip: 'Turn over',
+    flipKey: 'R',
+    contact: 'Get in touch',
+    repository: 'View the repository',
+    sound: 'Sound',
+    live: {
+      title: 'Signs of life',
+      sample: 'Sample data',
+      running: 'Projects running',
+      last: 'Last activity',
+      since: 'Running for',
+      chart: 'Activity over the last {days} days, oldest to today: {values}',
+      axisStart: '{days} days ago',
+      axisEnd: 'Today',
+      ago: {
+        now: 'just now',
+        minutes: '{n} min ago',
+        hours: '{h} h ago',
+        hoursMinutes: '{h} h {mm} min ago',
+        days: { one: '{n} day ago', other: '{n} days ago' },
+      },
+      age: { one: '{n} day', other: '{n} days' },
+    },
+  },
+  items: {
+    book: {
+      kicker: 'Sep 2020 - Aug 2023',
+      step: 'Step 1 of 3',
+      title: 'Web Developer',
+      meta: [
+        { term: 'At', value: 'DEFI-METIERS' },
+        { term: 'Agency', value: 'Greater Paris public agency for vocational training' },
+        { term: 'Stack', value: 'Drupal / PHP' },
+        { term: 'Contract', value: 'Apprenticeship' },
+      ],
+      body: "Developed and maintained the agency's public web platforms for training providers, jobseekers and career advisors.",
+      note: 'Open, the book shows the move from Dokelio to Ofeli.',
+    },
+    badge: {
+      kicker: 'Sep 2020 - Aug 2023',
+      step: 'Step 1 of 3',
+      title: 'Training catalogue migration',
+      meta: [
+        { term: 'From', value: 'Dokelio' },
+        { term: 'To', value: 'Ofeli' },
+        { term: 'Lever', value: 'Optimized SQL queries' },
+        { term: 'Volume', value: 'High-volume data' },
+      ],
+      body: "Migrated the regional training catalogue from Dokelio to Ofeli, the region's two public training databases. SQL queries were redesigned to cut response times.",
+    },
+    postit: {
+      kicker: 'Jan 2024 - Jun 2026',
+      step: 'Step 2 of 3',
+      title: 'Application & Data Management Engineer',
+      meta: [
+        { term: 'At', value: 'DARES' },
+        { term: 'Under', value: 'French Ministry of Labour' },
+        { term: 'Volume', value: '~100 tickets per month' },
+        { term: 'Tracking', value: 'KPI reporting' },
+      ],
+      body: 'Owned each ticket end to end: gathering and translating business requirements, qualification, tracking and validation.',
+    },
+    headset: {
+      kicker: 'Jan 2024 - Jun 2026',
+      step: 'Step 2 of 3',
+      title: 'L1/L2 support',
+      meta: [
+        { term: 'Users', value: '~300 users' },
+        { term: 'Audience', value: 'statisticians, economists' },
+        { term: 'Tools', value: 'R / RStudio' },
+        { term: 'Access', value: 'ODBC' },
+      ],
+      body: 'Access rights, application deployment, remote database access and statistical environments, in a high-criticality environment. Sensitive data exchanges with INSEE and France Travail go through the CASD secure data enclaves.',
+    },
+    netherbrain: {
+      kicker: '2026',
+      step: 'Step 3 of 3',
+      title: 'Netherbrain',
+      meta: [
+        { term: 'Project', value: 'self-hosted LLM platform' },
+        { term: 'Models', value: 'Ollama / GPU' },
+        { term: 'Server', value: 'FastAPI, PostgreSQL + pgvector' },
+        { term: 'Interface', value: 'Next.js / React / TypeScript' },
+        { term: 'Quality', value: '236 automated tests' },
+      ],
+      body: 'A chat platform orchestrating open-source LLMs, local or remote through any OpenAI-compatible API. Real-time SSE streaming, RAG across attached documents, and a coding agent with a diff and user approval before every write.',
+      note: 'Turned over, the jar shows its label.',
+    },
+    homelab: {
+      kicker: '2026',
+      step: 'Step 3 of 3',
+      title: 'Homelab',
+      meta: [
+        { term: 'Project', value: 'self-hosted infrastructure' },
+        { term: 'Server', value: 'Proxmox' },
+        { term: 'Firewall', value: 'OPNsense' },
+        { term: 'Access', value: 'WireGuard VPN' },
+        { term: 'Hardening', value: 'CrowdSec, 2FA and key-based SSH' },
+      ],
+      body: 'A dedicated server reachable only through a VPN. Automated VM backups with a tested restore path; architecture and procedures fully documented and version-controlled.',
+    },
+    laptop: {
+      kicker: 'Skills',
+      step: 'The stack',
+      title: 'Full-Stack Developer',
+      meta: [
+        { term: 'Programming languages', value: 'JavaScript, TypeScript, PHP, Python, SQL' },
+        { term: 'Frontend', value: 'React, Next.js, Tailwind, HTML5/CSS3' },
+        {
+          term: 'Backend & databases',
+          value:
+            'Node.js, Express, FastAPI, REST APIs, Drupal, PostgreSQL / pgvector, MySQL/MariaDB',
+        },
+        {
+          term: 'DevOps / Infrastructure',
+          value: 'Git, Docker Compose, Linux, Nginx, CI/CD, GitHub Actions, Proxmox',
+        },
+        {
+          term: 'Tools & methods',
+          value:
+            'Postman, Vitest / Jest, pytest, Jira, Agile / Scrum, Generative AI, Prompt engineering',
+        },
+      ],
+      body: 'The skills from the CV, from frontend to infrastructure.',
+    },
+    chest: {
+      kicker: 'Side projects',
+      step: 'Sealed',
+      title: "It runs. It's sealed.",
+      meta: [{ term: 'Contents', value: 'Sealed' }],
+      body: 'The contents do not open here. The chest, though, gives signs of life.',
+      note: 'The contents are for the interview.',
+    },
+    card: {
+      kicker: 'Business card',
+      step: 'Contact',
+      title: 'Ali Smaani',
+      meta: [
+        { term: 'Role', value: 'Full-Stack Developer' },
+        { term: 'Area', value: 'Paris, France · Open to remote' },
+        { term: 'Status', value: 'Available' },
+        { term: 'Email', value: 'smanali.pro@gmail.com', href: 'mailto:smanali.pro@gmail.com' },
+        {
+          term: 'LinkedIn',
+          value: 'linkedin.com/in/smaali',
+          href: 'https://www.linkedin.com/in/smaali',
+        },
+      ],
+      body: 'Looking for a full-stack developer, on site or remote? Write to me.',
+    },
+    monitor: {
+      kicker: 'The journey',
+      step: 'Profile',
+      title: 'Full-Stack Developer',
+      meta: [
+        { term: 'DEFI-METIERS', value: 'Sep 2020 - Aug 2023' },
+        { term: 'DARES', value: 'Jan 2024 - Jun 2026' },
+        { term: 'Projects', value: '2026' },
+        { term: 'Status', value: 'Available' },
+      ],
+      body: 'Full-stack developer (React, Node.js, TypeScript) with hands-on experience in application support and data management for high-criticality environments. Curious by nature, comfortable bridging code, infrastructure and security, from design to deployment.',
+    },
+  },
+} satisfies SheetsContent;

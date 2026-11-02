@@ -46,7 +46,8 @@ export function createPresentState(): PresentState {
 
 /**
  * Fait avancer la présentation d'une image. held : l'objet est-il présenté ;
- * hovered : est-il sous le pointeur. En mouvement réduit, tout est immédiat.
+ * hovered : est-il sous le pointeur ; flipped : son geste est-il demandé
+ * (store.flipped, vrai par défaut). En mouvement réduit, tout est immédiat.
  */
 export function stepPresentation(
   state: PresentState,
@@ -54,13 +55,14 @@ export function stepPresentation(
   hovered: boolean,
   dt: number,
   reduced: boolean,
+  flipped = true,
 ): PresentState {
   const target = held ? 1 : 0;
   state.p = reduced
     ? target
     : stepToward(state.p, target, dt * (held ? RATES.lift : RATES.putBack));
   // Le geste commence quand l'objet est à mi-chemin, et se défait aussitôt reposé.
-  const gesture = held && state.p > 0.55 ? 1 : 0;
+  const gesture = held && flipped && state.p > 0.55 ? 1 : 0;
   state.f = reduced ? gesture : stepToward(state.f, gesture, dt * RATES.flip);
   const hover = hovered && !held ? 1 : 0;
   state.hover = reduced ? hover : lerp(state.hover, hover, 1 - Math.pow(0.002, dt));
@@ -111,17 +113,33 @@ export function presentQuaternion(
       euler.set(0.25 - py * 0.15, Math.sin(t * 0.8) * 0.7 + px * 0.4 + f * Math.PI * 0.15, 0);
       return out.setFromEuler(euler);
     case 'shake': {
-      const shake = Math.sin(t * 28) * Math.max(0, Math.sin(t * 1.7)) * 0.06;
+      // Le coffret secoué quand il fait son geste (f), immobile remis à l'endroit.
+      const shake = Math.sin(t * 28) * Math.max(0, Math.sin(t * 1.7)) * 0.06 * f;
       euler.set(0.5 - py * 0.12, -0.35 + Math.sin(t * 0.6) * 0.25 + px * 0.3 + shake, shake * 0.5);
       return out.setFromEuler(euler);
     }
+    case 'spin':
+      // Un objet debout, penché vers la caméra, qui fait un demi-tour pour montrer son dos.
+      euler.set(
+        0.35 - py * 0.12 + wob * 0.4,
+        Math.PI * smooth(f) + px * 0.3 + wob,
+        Math.sin(t * 0.9) * 0.02,
+      );
+      return out.setFromEuler(euler);
     case 'screen':
       return out.identity();
   }
 }
 
+/**
+ * L'objet tenu suit un peu le pointeur : à un bord de l'écran, il se décale
+ * de cette part de sa distance à la caméra (en plus de pencher vers lui).
+ */
+export const HELD_FOLLOW = 0.025;
+
 const direction = new Vector3();
 const up = new Vector3();
+const right = new Vector3();
 const local = new Quaternion();
 
 /**
@@ -150,9 +168,13 @@ export function heldPose(
   distance = Math.min(distance, HELD_MAX_DISTANCE);
   direction.set(held.x, held.y, 0.5).unproject(camera).sub(camera.position).normalize();
   outPosition.copy(camera.position).addScaledVector(direction, distance);
-  if (pose.hold.oy) {
-    up.set(0, 1, 0).applyQuaternion(camera.quaternion);
-    outPosition.addScaledVector(up, -pose.hold.oy * scale);
+  up.set(0, 1, 0).applyQuaternion(camera.quaternion);
+  if (pose.hold.oy) outPosition.addScaledVector(up, -pose.hold.oy * scale);
+  if (input.pointerX || input.pointerY) {
+    right.set(1, 0, 0).applyQuaternion(camera.quaternion);
+    outPosition
+      .addScaledVector(right, input.pointerX * HELD_FOLLOW * distance)
+      .addScaledVector(up, input.pointerY * HELD_FOLLOW * distance);
   }
   presentQuaternion(pose.mode, f, seed, input, local);
   outQuaternion.copy(camera.quaternion).multiply(local);

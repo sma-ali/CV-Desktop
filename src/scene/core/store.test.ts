@@ -1,6 +1,9 @@
 import { describe, expect, it } from 'vitest';
 import { SETTLE } from './constants';
 import { parseTestParams } from './params';
+import { sampleLifeSigns } from '@/lib/life-signs/sample';
+import { homePlace } from './bodies';
+import { createSilentSound } from './sound';
 import { createSceneStore, REDUCED_START, settingsFromParams, updateFrame } from './store';
 
 function started(search = '', reduced = false) {
@@ -120,5 +123,141 @@ describe('le store de la scène', () => {
     expect(updateFrame(store.getState(), false).lamp).toBe(0);
     store.getState().toggleLamp();
     expect(store.getState().lamp).toEqual({ on: true, switchedAt: 11 });
+  });
+});
+
+describe('les gestes dans le store (étape 4)', () => {
+  function withSound(search = '') {
+    const sound = createSilentSound();
+    const store = createSceneStore('afternoon', { sound });
+    store.getState().init(settingsFromParams(parseTestParams(search), false), 'afternoon', false);
+    return { store, sound };
+  }
+
+  it('présente un objet retourné, comme le prototype, sauf avec ?recto', () => {
+    const store = started('?prendre=card');
+    expect(store.getState().flipped).toBe(true);
+    expect(started('?prendre=card&recto').getState().flipped).toBe(false);
+    store.getState().putBack();
+    expect(store.getState().flipped).toBe(false);
+    store.getState().present('book', 'click');
+    expect(store.getState().flipped).toBe(true);
+  });
+
+  it('retourne l’objet tenu et le remet à l’endroit, jamais l’écran', () => {
+    const store = started();
+    store.getState().toggleFlip();
+    expect(store.getState().flipped).toBe(false);
+    store.getState().present('badge', 'click');
+    store.getState().toggleFlip();
+    expect(store.getState()).toMatchObject({ presented: 'badge', flipped: false });
+    store.getState().toggleFlip();
+    expect(store.getState().flipped).toBe(true);
+    // Présenter de nouveau le même objet ne le retourne pas.
+    store.getState().toggleFlip();
+    store.getState().present('badge', 'keyboard');
+    expect(store.getState().flipped).toBe(false);
+    // L'écran n'a pas de geste : jamais retourné, même après toggleFlip.
+    store.getState().present('monitor', 'click');
+    expect(store.getState().flipped).toBe(false);
+    store.getState().toggleFlip();
+    expect(store.getState().flipped).toBe(false);
+  });
+
+  it('garde l’objet de la visite quand le visiteur le retourne', () => {
+    const store = started();
+    store.getState().setAutoOn(true);
+    store.getState().present('book', 'auto');
+    store.getState().toggleFlip();
+    expect(store.getState()).toMatchObject({
+      presented: 'book',
+      presentedBy: 'click',
+      flipped: false,
+      autoOn: false,
+    });
+  });
+
+  it('suit un glisser et retient les places des objets déplacés', () => {
+    const store = started('?t=11000');
+    store.getState().setAutoOn(true);
+    store.getState().startDrag('laptop');
+    expect(store.getState()).toMatchObject({ dragging: 'laptop', autoOn: false });
+    const { desk } = store.getState();
+    desk.laptop.x = -0.3;
+    desk.laptop.moved = true;
+    expect(store.getState().places).toEqual({});
+    store.getState().endDrag();
+    expect(store.getState().dragging).toBeNull();
+    expect(store.getState().places).toEqual({
+      laptop: { x: -0.3, z: desk.laptop.z, ry: desk.laptop.ry },
+    });
+    // Poussé par un autre, le livre bouge aussi : commitPlaces le recopie.
+    desk.book.moved = true;
+    store.getState().commitPlaces();
+    expect(Object.keys(store.getState().places)).toEqual(['book', 'laptop']);
+  });
+
+  it('remet tout en place à Rejouer', () => {
+    const store = started('?t=11000');
+    const { desk } = store.getState();
+    desk.card.x = 3;
+    desk.card.moved = true;
+    store.getState().startDrag('card');
+    store.getState().endDrag();
+    store.getState().replay(10);
+    expect(store.getState()).toMatchObject({ places: {}, dragging: null, flipped: false });
+    expect(store.getState().desk.card).toMatchObject({ ...homePlace('card', false), moved: false });
+  });
+
+  it('cale les objets non déplacés sur leur place du format courant', () => {
+    const store = started('?t=11000');
+    const state = store.getState();
+    state.desk.chest.x = 0;
+    updateFrame(state, true);
+    expect(state.desk.chest).toMatchObject(homePlace('chest', true));
+  });
+
+  it('reste muet tant que le visiteur n’a pas ouvert le son', () => {
+    const { store, sound } = withSound();
+    store.getState().present('book', 'click');
+    store.getState().toggleFlip();
+    store.getState().putBack();
+    expect(sound.played).toEqual([]);
+    expect(store.getState().soundOn).toBe(false);
+    store.getState().toggleSound();
+    expect(store.getState().soundOn).toBe(true);
+    store.getState().present('card', 'click');
+    store.getState().toggleFlip();
+    store.getState().putBack();
+    store.getState().toggleLamp();
+    store.getState().startDrag('mug');
+    expect(sound.played).toEqual(['blip', 'pick', 'flip', 'putBack', 'switch', 'slide']);
+    store.getState().toggleSound();
+    store.getState().present('monitor', 'click');
+    expect(sound.played).toHaveLength(6);
+  });
+
+  it('note ce qui sort du cadre seulement quand cela change', () => {
+    const store = started();
+    let changes = 0;
+    store.subscribe(() => (changes += 1));
+    store.getState().setOffscreen(['chest', 'mic']);
+    store.getState().setOffscreen(['chest', 'mic']);
+    expect(changes).toBe(1);
+    expect(store.getState().offscreen).toEqual(['chest', 'mic']);
+  });
+
+  it('reçoit les signes de vie du serveur', () => {
+    const signs = sampleLifeSigns(Date.UTC(2026, 9, 28));
+    const store = createSceneStore('afternoon', { lifeSigns: signs });
+    expect(store.getState().lifeSigns).toBe(signs);
+    store.getState().setLifeSigns(null);
+    expect(store.getState().lifeSigns).toBeNull();
+  });
+
+  it('ne lance jamais la visite avec ?glisse', () => {
+    const store = started('?glisse');
+    expect(store.getState().settings.initialDrag).toEqual({ item: 'laptop', x: -0.3, z: 2.15 });
+    expect(store.getState().lastUserAt).toBe(Infinity);
   });
 });

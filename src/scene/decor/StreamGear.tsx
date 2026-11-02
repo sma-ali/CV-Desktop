@@ -19,6 +19,7 @@ import {
 } from 'three';
 import { POINT_DECAY, STAND, legacyPointIntensity, type Vec3 } from '../core/constants';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
+import { DecorPiece } from './DecorPiece';
 import {
   DECK,
   GLOVES,
@@ -313,8 +314,9 @@ function Microphone() {
   useEffect(() => {
     open.current = false;
   }, [replays]);
-  const handlers = usePressable(() => {
+  const handlers = usePressable((_, state) => {
     open.current = !open.current;
+    state.sound.play('blip');
   });
   const aim = useMemo(() => alignY(MIC_AIM), []);
   const ringGeometry = useMemo(() => new TorusGeometry(MIC.body.radius * 0.82, 0.028, 5, 14), []);
@@ -503,8 +505,12 @@ function LightStand() {
 export function StreamGear() {
   return (
     <>
-      <StreamDeck />
-      <Microphone />
+      <DecorPiece id="deck">
+        <StreamDeck />
+      </DecorPiece>
+      <DecorPiece id="mic">
+        <Microphone />
+      </DecorPiece>
       <LightStand />
     </>
   );

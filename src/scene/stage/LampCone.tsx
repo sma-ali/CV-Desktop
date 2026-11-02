@@ -15,6 +15,7 @@ import {
 import { LAMP, LAMP_COLOR } from '../core/constants';
 import { useSceneStoreApi } from '../core/store-context';
 import { coneOpacity } from './lighting';
+import { DecorPiece } from '../decor/DecorPiece';
 import { STAGE_PRIORITY } from './priorities';
 import { noRaycast } from './shaders';
 
@@ -92,14 +93,16 @@ export function LampCone() {
   }, STAGE_PRIORITY.lights);
 
   return (
-    <mesh
-      ref={meshRef}
-      geometry={geometry}
-      material={material}
-      position={position}
-      quaternion={quaternion}
-      renderOrder={3}
-      raycast={noRaycast}
-    />
+    <DecorPiece id="lamp">
+      <mesh
+        ref={meshRef}
+        geometry={geometry}
+        material={material}
+        position={position}
+        quaternion={quaternion}
+        renderOrder={3}
+        raycast={noRaycast}
+      />
+    </DecorPiece>
   );
 }

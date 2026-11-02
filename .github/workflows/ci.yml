@@ -29,16 +29,20 @@ jobs:
       - run: npm test
 
   e2e:
-    name: Tests de bout en bout (${{ matrix.projet }})
+    name: Tests de bout en bout (${{ matrix.projet }}, ${{ matrix.part }}/3)
     runs-on: ubuntu-latest
-    # La 3D tourne par SwiftShader, sur le processeur : un profil par job, en
-    # parallèle, pour tenir dans le temps imparti (7.7 min en local sur 16
-    # cœurs pour les deux profils).
+    # La 3D tourne par SwiftShader, sur le processeur : chaque profil se
+    # découpe en trois parts, en parallèle, pour tenir dans le temps imparti.
+    # Étape 4 : 10.7 min (ordinateur) et 9.0 min (téléphone) en local sur 16
+    # cœurs et 4 pages ; un profil entier sur 4 cœurs et 2 pages, comme un
+    # exécuteur de GitHub, dépasse 30 min (36.6 min) ; la part la plus lourde
+    # y prend 16 min de tests.
     timeout-minutes: 30
     strategy:
       fail-fast: false
       matrix:
         projet: [ordinateur, telephone]
+        part: [1, 2, 3]
     steps:
       - uses: actions/checkout@v7
       - uses: actions/setup-node@v7
@@ -48,12 +52,12 @@ jobs:
       - run: npm ci
       - run: npx playwright install --with-deps chromium
       # WebGL par SwiftShader (arguments dans playwright.config.ts).
-      - run: npm run test:e2e -- --project=${{ matrix.projet }}
+      - run: npm run test:e2e -- --project=${{ matrix.projet }} --shard=${{ matrix.part }}/3
         env:
           E2E_PORT: 3100
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:
-          name: rapport-playwright-${{ matrix.projet }}
+          name: rapport-playwright-${{ matrix.projet }}-${{ matrix.part }}
           path: playwright-report/
           retention-days: 14

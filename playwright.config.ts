@@ -23,9 +23,11 @@ export default defineConfig({
   // scènes mettent plus de 45 s à démarrer. En CI, le défaut (la moitié des
   // cœurs) suffit.
   workers: isCI ? undefined : 4,
-  // La 3D logicielle est lente : le bureau a besoin de plus de temps.
-  timeout: 60_000,
-  expect: { timeout: 15_000 },
+  // La 3D logicielle est lente : le bureau a besoin de plus de temps. Un
+  // exécuteur de la CI (4 cœurs, 2 pages) dessine environ deux fois moins
+  // vite que la machine locale (16 cœurs, 4 pages) : tout y attend le double.
+  timeout: isCI ? 120_000 : 60_000,
+  expect: { timeout: isCI ? 30_000 : 15_000 },
   reporter: isCI ? [['github'], ['html', { open: 'never' }]] : 'list',
   use: {
     baseURL,

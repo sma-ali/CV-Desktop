@@ -5,9 +5,11 @@ export const sceneEn = {
   labels: {
     book: { mark: '2020', text: 'DEFI-METIERS' },
     postit: { mark: '2024', text: 'DARES' },
-    laptop: { mark: '2026', text: 'Projects' },
+    laptop: { mark: 'Stack', text: 'Skills' },
     card: { mark: 'Ali', text: 'Contact' },
     chest: { mark: 'Side projects', text: 'Sealed' },
+    netherbrain: { mark: '2026', text: 'Netherbrain' },
+    homelab: { mark: '2026', text: 'Homelab' },
   },
   screen: {
     fileName: 'career.ts',
@@ -101,4 +103,18 @@ export const sceneEn = {
   card: { contact: 'Contact' },
   laptop: { path: '~/projects' },
   chest: { kicker: 'SIDE PROJECTS', title: 'Sealed' },
+  netherbrain: {
+    label: {
+      name: 'Netherbrain',
+      tagline: 'self-hosted LLM platform',
+      year: '2026',
+      stack: ['Ollama / GPU', 'FastAPI', 'PostgreSQL + pgvector', 'Next.js / React / TypeScript'],
+      tests: '236 automated tests',
+    },
+  },
+  homelab: {
+    name: 'Homelab',
+    units: { server: 'Proxmox', firewall: 'OPNsense' },
+    access: 'WireGuard',
+  },
 } satisfies SceneContent;

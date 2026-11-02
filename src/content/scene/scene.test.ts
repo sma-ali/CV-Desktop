@@ -1,5 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { formatMonthPeriod, periodText } from '@/lib/dates';
+import { ITEM_POSES } from '@/scene/core/constants';
+import { ITEM_IDS } from '@/scene/core/ids';
 import { en } from '../en';
 import { fr } from '../fr';
 import type { Locale } from '../locales';
@@ -101,6 +103,38 @@ describe.each(cases)('scène %s', (locale, content, scene) => {
     const projectText = content.projects.flatMap((project) => project.highlights).join(' ');
     for (const chip of projects.chips) expect(projectText).toContain(chip);
     expect(projectText).toContain(projects.tests);
+  });
+
+  it('peint Netherbrain et Homelab tels que le CV les décrit', () => {
+    const project = (id: string) => {
+      const found = content.projects.find((entry) => entry.id === id);
+      if (!found) throw new Error(`projet absent : ${id}`);
+      return found;
+    };
+    const netherbrain = project('netherbrain');
+    const { label } = scene.netherbrain;
+    expect(label.name).toBe(netherbrain.name);
+    expect(label.tagline).toBe(netherbrain.tagline);
+    expect(label.year).toBe(String(netherbrain.year));
+    for (const line of [...label.stack, label.tests]) {
+      expect(netherbrain.highlights.join(' ')).toContain(line);
+    }
+    const homelab = project('homelab');
+    expect(scene.homelab.name).toBe(homelab.name);
+    for (const line of [...Object.values(scene.homelab.units), scene.homelab.access]) {
+      expect(homelab.highlights.join(' ')).toContain(line);
+    }
+  });
+
+  it('étiquette les deux projets et la pile technique', () => {
+    const { labels } = scene;
+    // Une étiquette par objet qui a un point d'accroche (TagLayer les pose d'office).
+    expect(Object.keys(labels)).toEqual(ITEM_IDS.filter((id) => ITEM_POSES[id].tag !== null));
+    for (const project of content.projects) {
+      const key = project.id as 'netherbrain' | 'homelab';
+      expect(labels[key]).toEqual({ mark: String(project.year), text: project.name });
+    }
+    expect(labels.laptop.text).toBe(content.sections.skills);
   });
 
   it('ne cite sur les objets que des outils du CV', () => {

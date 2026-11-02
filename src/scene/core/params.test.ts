@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { parseTestParams } from './params';
+import { DEFAULT_TEST_DRAG, parseTestParams } from './params';
 
 describe('paramètres de test', () => {
   it('donnent les valeurs par défaut sans paramètre', () => {
@@ -11,9 +11,26 @@ describe('paramètres de test', () => {
       reduced: false,
       present: null,
       mood: null,
+      recto: false,
+      drag: null,
       noShadow: false,
       noPost: false,
     });
+  });
+
+  it('lisent ?recto et ?glisse (étape 4)', () => {
+    expect(parseTestParams('?prendre=card&recto')).toMatchObject({ present: 'card', recto: true });
+    // ?glisse seul : le portable poussé sur la carte, comme le prototype.
+    expect(parseTestParams('?glisse').drag).toEqual(DEFAULT_TEST_DRAG);
+    expect(DEFAULT_TEST_DRAG).toEqual({ item: 'laptop', x: -0.3, z: 2.15 });
+    expect(parseTestParams('?glisse=mug:1.5,-0.25').drag).toEqual({
+      item: 'mug',
+      x: 1.5,
+      z: -0.25,
+    });
+    // Un objet qui ne glisse pas, ou une place mal écrite : rien.
+    expect(parseTestParams('?glisse=postit:1,1').drag).toBeNull();
+    expect(parseTestParams('?glisse=book:1').drag).toBeNull();
   });
 
   it('lisent ceux du prototype', () => {

@@ -3,7 +3,8 @@
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo } from 'react';
 import { CatmullRomCurve3, MeshBasicMaterial, TorusGeometry, TubeGeometry, Vector3 } from 'three';
-import { ARRIVAL, HEADSET_STAND, ITEM_POSES } from '../core/constants';
+import { ARRIVAL, headsetPose, headsetStand } from '../core/constants';
+import { usePortrait } from '../core/portrait';
 import { Cyl, Sph } from '../core/geometry';
 import { brass, standardMaterial } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
@@ -19,11 +20,11 @@ const dark = () => standardMaterial(0x2a2826, { roughness: 0.5, metalness: 0.2 }
 const sage = () => standardMaterial(0x86a07d, { roughness: 0.8 });
 
 /** Le support : pied, tige et crochet (fixe, hors de l'objet présenté). */
-function HeadsetStand() {
+function HeadsetStand({ portrait }: { portrait: boolean }) {
   const hook = useMemo(() => new TorusGeometry(0.22, 0.04, 5, 10, Math.PI), []);
   useEffect(() => () => hook.dispose(), [hook]);
   return (
-    <group position={HEADSET_STAND}>
+    <group position={headsetStand(portrait)} rotation={[0, portrait ? headsetPose(true).ry : 0, 0]}>
       <Cyl
         radiusTop={0.36}
         radiusBottom={0.4}
@@ -75,7 +76,9 @@ export function Headset() {
     [geometries, led],
   );
 
-  const rest = useMemo(() => deskRestPose(ITEM_POSES.headset), []);
+  // En portrait, le casque passe à droite de l'écran (bureau resserré).
+  const portrait = usePortrait();
+  const rest = useMemo(() => deskRestPose(headsetPose(portrait)), [portrait]);
   const { ref, handlers } = usePresentation({ id: 'headset', rest, seed: 0.9 });
 
   useFrame(() => {
@@ -85,7 +88,7 @@ export function Headset() {
 
   return (
     <>
-      <HeadsetStand />
+      <HeadsetStand portrait={portrait} />
       <group ref={ref} {...handlers}>
         <mesh geometry={geometries.band} material={dark()} castShadow />
         <mesh

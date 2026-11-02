@@ -1,6 +1,8 @@
 import { describe, expect, it } from 'vitest';
 import { getContent } from '@/content';
-import { buildDeskSteps, buildDeskTexts, buildSceneTexts } from './desk';
+import { SHEET_ORDER } from '@/scene/core/ids';
+import { laptopChips, laptopSkills } from '@/scene/items/paint';
+import { buildDeskSheets, buildDeskSteps, buildDeskTexts, buildSceneTexts } from './desk';
 
 describe('les étapes du bureau', () => {
   it('suivent le CV en français', () => {
@@ -18,7 +20,7 @@ describe('les étapes du bureau', () => {
       { id: 'dares', item: 'postit', title: '2024', detail: 'DARES', href: '/fr/express#dares' },
       {
         id: 'projects',
-        item: 'laptop',
+        item: 'netherbrain',
         title: '2026',
         detail: 'Netherbrain | Homelab',
         href: '/fr/express#projects',
@@ -71,7 +73,56 @@ describe('les textes du bureau', () => {
 
   it('ne passent à la scène que ses propres textes', () => {
     const texts = buildSceneTexts(getContent('en'), 'en');
-    expect(Object.keys(texts)).toEqual(['locale', 'canvasLabel', 'content']);
+    expect(Object.keys(texts)).toEqual(['locale', 'canvasLabel', 'content', 'skills']);
     expect(texts.content).toEqual(getContent('en').scene);
+  });
+
+  it('donnent au portable une pile tirée de la section compétences du CV', () => {
+    for (const locale of ['fr', 'en'] as const) {
+      const texts = buildSceneTexts(getContent(locale), locale);
+      expect(texts.skills).toEqual(getContent(locale).skills.flatMap((group) => group.items));
+      const chips = laptopChips(texts.content, texts.skills);
+      expect(chips.length).toBeGreaterThanOrEqual(5);
+      for (const chip of [...chips, ...laptopSkills(texts.content)]) {
+        expect(
+          texts.skills.some((skill) => skill === chip || skill.split(/\s*\/\s*/).includes(chip)),
+          chip,
+        ).toBe(true);
+      }
+    }
+  });
+});
+
+describe('les fiches du bureau', () => {
+  it('couvrent chaque objet et mènent au contact de la version express', () => {
+    const sheets = buildDeskSheets(getContent('fr'), 'fr');
+    expect(Object.keys(sheets.items)).toEqual([...SHEET_ORDER]);
+    expect(sheets.contactHref).toBe('/fr/express#contact');
+    expect(buildDeskSheets(getContent('en'), 'en').contactHref).toBe('/en/express#contact');
+  });
+
+  it('ne lient pas un dépôt privé', () => {
+    const content = getContent('fr');
+    expect(content.projects.every((project) => !project.repository.public)).toBe(true);
+    const sheets = buildDeskSheets(content, 'fr');
+    for (const id of SHEET_ORDER) expect(sheets.items[id].repository, id).toBeNull();
+  });
+
+  it('lient le dépôt d’un projet public', () => {
+    const content = getContent('fr');
+    const opened = {
+      ...content,
+      projects: content.projects.map((project) =>
+        project.id === 'homelab'
+          ? { ...project, repository: { ...project.repository, public: true } }
+          : project,
+      ),
+    };
+    const sheets = buildDeskSheets(opened, 'fr');
+    expect(sheets.items.homelab.repository).toEqual({
+      label: 'Voir le dépôt',
+      href: 'https://github.com/sma-ali/Homelab',
+    });
+    expect(sheets.items.netherbrain.repository).toBeNull();
   });
 });

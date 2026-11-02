@@ -18,6 +18,7 @@ import { brass, standardMaterial } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
 import { addScaled, normalize, springPoints } from './layout';
 import type { Part } from './merge';
+import { DecorPiece } from './DecorPiece';
 import { alignY, box, cyl, MergedParts, rodPart, sph, tube, usePressable } from './shared';
 
 // La lampe d'architecte : pied lesté, bras en deux tiges, rotules en laiton,
@@ -151,16 +152,18 @@ export function Lamp() {
   });
 
   return (
-    <group name="decor-lamp" {...handlers}>
-      <MergedParts build={armParts} />
-      <group position={LAMP.head} quaternion={headQuaternion}>
-        <mesh geometry={geometries.shade} material={shadeMaterial} castShadow />
-        <mesh geometry={geometries.inner} material={glow.inner} scale={[0.985, 1, 0.985]} />
-        <mesh position={[0, 0.17, 0]} material={brass()}>
-          <cylinderGeometry args={[0.05, 0.07, 0.08, 6]} />
-        </mesh>
-        <mesh geometry={geometries.bulb} material={glow.bulb} position={[0, -0.3, 0]} />
+    <DecorPiece id="lamp">
+      <group name="decor-lamp" {...handlers}>
+        <MergedParts build={armParts} />
+        <group position={LAMP.head} quaternion={headQuaternion}>
+          <mesh geometry={geometries.shade} material={shadeMaterial} castShadow />
+          <mesh geometry={geometries.inner} material={glow.inner} scale={[0.985, 1, 0.985]} />
+          <mesh position={[0, 0.17, 0]} material={brass()}>
+            <cylinderGeometry args={[0.05, 0.07, 0.08, 6]} />
+          </mesh>
+          <mesh geometry={geometries.bulb} material={glow.bulb} position={[0, -0.3, 0]} />
+        </group>
       </group>
-    </group>
+    </DecorPiece>
   );
 }

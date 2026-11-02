@@ -1,12 +1,17 @@
 'use client';
 
-import { useEffect, useMemo } from 'react';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
+import { useCallback, useEffect, useMemo, useRef } from 'react';
+import type { Group } from 'three';
 import { ITEM_POSES } from '../core/constants';
 import { Box, flatPlaneGeometry } from '../core/geometry';
 import { standardMaterial } from '../core/materials';
+import { useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
+import { claimBody } from '../gestures/pointer';
 import { TagAnchor } from './TagLayer';
-import { MergedBoxes, type BoxPiece } from './merged';
+import { CARD_PILE, CARD_SIZE } from './cardPile';
+import { MergedBoxes } from './merged';
 import { CARD_TEXTURE, paintCardBack, paintCardFront } from './paint';
 import { deskRestPose } from './presentation';
 import { usePaintedMaterial } from './usePaintedMaterial';
@@ -16,16 +21,44 @@ import { usePresentation } from './usePresentation';
 // localisation au recto ; disponibilité, e-mail et LinkedIn au verso.
 // Présentée, elle se retourne.
 
-const W = 1.7;
-const D = 1.0;
+const W = CARD_SIZE.w;
+const D = CARD_SIZE.d;
 
-// La pile sous la carte : deux cartes fixes, fusionnées.
-const PILE: BoxPiece[] = [0, 1].map((i) => ({
-  size: [W, 0.022, D],
-  position: [0.52 + i * 0.05, 0.011 + i * 0.022, 2.12 - i * 0.03],
-  rotationY: 0.08 - i * 0.12,
-  color: 0xe9e0cf,
-}));
+/**
+ * La pile sous la carte : elle suit la place de la carte sur le bureau
+ * (store.desk.card), soulèvement du glisser compris, mais reste sur le
+ * bureau quand la carte est présentée. Son encombrement fait partie de
+ * celui de la carte (BODY_FOOTPRINTS.card).
+ */
+function CardPile() {
+  const store = useSceneStoreApi();
+  const ref = useRef<Group>(null);
+
+  useFrame(() => {
+    const group = ref.current;
+    if (!group) return;
+    const body = store.getState().desk.card;
+    group.position.set(body.x, body.lift, body.z);
+    group.rotation.set(body.tiltX, body.ry, body.tiltZ);
+    const squash = 1 + Math.sin(body.squash * Math.PI) * 0.06;
+    group.scale.set(squash, 1 / squash, squash);
+  });
+
+  // Prendre la pile, c'est prendre la carte, sauf quand elle est tenue.
+  const onPointerDown = useCallback(
+    (event: ThreeEvent<PointerEvent>) => {
+      if (store.getState().presented === 'card') return;
+      claimBody(store, event, 'card');
+    },
+    [store],
+  );
+
+  return (
+    <group ref={ref} onPointerDown={onPointerDown}>
+      <MergedBoxes pieces={CARD_PILE} roughness={0.8} />
+    </group>
+  );
+}
 
 export function Card({ texts }: { texts: SceneTexts }) {
   const { content, locale } = texts;
@@ -46,7 +79,7 @@ export function Card({ texts }: { texts: SceneTexts }) {
 
   return (
     <>
-      <MergedBoxes pieces={PILE} roughness={0.8} />
+      <CardPile />
       <group ref={ref} {...handlers}>
         <Box
           size={[W, 0.024, D]}

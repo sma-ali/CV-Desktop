@@ -3,6 +3,7 @@
 import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { DeskHudTexts } from '@/lib/desk';
+import { rebaseLifeSigns, type LifeSigns } from '@/lib/life-signs';
 import { moodOfHour, hourOffset, visitorNow } from '@/scene/core/mood';
 import { parseTestParams } from '@/scene/core/params';
 import { createSceneStore, settingsFromParams } from '@/scene/core/store';
@@ -11,6 +12,7 @@ import type { SceneTexts } from '@/scene/core/texts';
 import { Grain } from './Grain';
 import { Hud } from './Hud';
 import { SceneBoundary } from './SceneBoundary';
+import { createWebAudioSound } from './sound';
 import styles from './Desk.module.css';
 
 // La scène 3D, dans son propre fichier JavaScript : chargée seulement dans le
@@ -47,6 +49,8 @@ function hasWebGL(): boolean {
 export interface DeskShellProps {
   hud: DeskHudTexts;
   scene: SceneTexts;
+  /** Les signes de vie du coffret, lus par le serveur (données d'exemple à l'étape 4). */
+  lifeSigns: LifeSigns | null;
   /** Le repli : la version express, rendue par le serveur. */
   children: ReactNode;
 }
@@ -56,9 +60,18 @@ export interface DeskShellProps {
 // montre le repli (@media (scripting: none)) ; sans WebGL, ou si la scène
 // plante ou perd son contexte, data-fallback le montre et cache le HUD et le
 // canvas : un seul h1 à la fois.
-export function DeskShell({ hud, scene, children }: DeskShellProps) {
-  const [store] = useState(() => createSceneStore());
+export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
+  const [store] = useState(() =>
+    createSceneStore('afternoon', { sound: createWebAudioSound(), lifeSigns }),
+  );
   const [status, setStatus] = useState<Status>('idle');
+
+  // Les données d'exemple se recalent sur l'heure du visiteur (la page est
+  // rendue au build) ; le son se ferme avec la page.
+  useEffect(() => {
+    if (lifeSigns) store.getState().setLifeSigns(rebaseLifeSigns(lifeSigns, Date.now()));
+  }, [lifeSigns, store]);
+  useEffect(() => () => store.getState().sound.dispose(), [store]);
 
   useEffect(() => {
     const params = parseTestParams(window.location.search);

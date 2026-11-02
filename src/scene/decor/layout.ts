@@ -9,6 +9,7 @@ import {
   type Vec3,
 } from '../core/constants';
 import { clamp, deckLedOn, seg } from '../core/arrival';
+import { DECOR_BODY_HOMES, type DeskObstacle } from '../core/bodies';
 import { rng } from '../core/rng';
 
 // Le décor en données pures, sans three : positions, couleurs et petites
@@ -429,8 +430,14 @@ export const FIGURES: readonly FigureSpec[] = [
 // Les petites choses posées : tasse, manette, bandes, gants
 // ------------------------------------------------------------------
 
-export const MUG = { position: [4.55, 0, -0.62] as Vec3 } as const;
-export const PAD = { position: [5.1, 0, 1.95] as Vec3, ry: 0.45 } as const;
+/** La tasse et la manette glissent (étape 4) : leur place de repos vient du socle. */
+export const MUG = {
+  position: [DECOR_BODY_HOMES.mug.x, 0, DECOR_BODY_HOMES.mug.z] as Vec3,
+} as const;
+export const PAD = {
+  position: [DECOR_BODY_HOMES.pad.x, 0, DECOR_BODY_HOMES.pad.z] as Vec3,
+  ry: DECOR_BODY_HOMES.pad.ry,
+} as const;
 export const STEAM_COUNT = 6;
 
 /** Le panneau de lumière : centre sur le pied (repère du monde) et point qu'il regarde. */
@@ -541,26 +548,262 @@ export function micRingColor(t: number, open: boolean): [number, number, number]
 // ------------------------------------------------------------------
 
 /**
- * Ce que le décor occupe sur le plateau, en cercles (x, z, rayon). Sert aux
- * tests (aucun objet du CV n'est posé sur le décor) et servira aux
- * collisions de l'étape 4.
+ * Ce que le décor fixe occupe sur le plateau, en rectangles orientés (étape
+ * 4) : les obstacles des glissers (solveur de la partie « gestes ») et des
+ * tests de disposition. La tasse et la manette n'y sont plus : elles
+ * glissent (BODY_FOOTPRINTS dans core/bodies.ts). Les objets plats (tapis,
+ * câbles) ne comptent pas.
  */
-export const DECOR_FOOTPRINTS: readonly { id: string; x: number; z: number; r: number }[] = [
-  { id: 'lamp', x: LAMP.base[0], z: LAMP.base[2], r: 0.48 },
-  { id: 'mic-clamp', x: MIC.clamp[0], z: MIC.clamp[2], r: 0.3 },
-  // Le pavé (1.38 x 0.95) : son cercle inscrit en profondeur, il touche presque le livre.
-  { id: 'deck', x: DECK.position[0], z: DECK.position[2], r: 0.48 },
-  { id: 'mouse', x: 3.35, z: -0.48, r: 0.32 },
-  { id: 'rope', x: ROPE.center[0], z: ROPE.center[2], r: 0.6 },
-  { id: 'wraps', x: 5.7, z: 0.75, r: 0.4 },
-  { id: 'plant', x: PLANT.position[0], z: PLANT.position[2], r: 0.36 },
-  { id: 'manga', x: MANGA.position[0], z: MANGA.position[2], r: 0.72 },
-  { id: 'mug', x: MUG.position[0], z: MUG.position[2], r: 0.38 },
-  { id: 'pad', x: PAD.position[0], z: PAD.position[2], r: 0.66 },
-  ...FIGURES.filter((figure) => figure.position[1] === 0).map((figure) => ({
-    id: `figure-${figure.kind}`,
-    x: figure.position[0],
-    z: figure.position[2],
-    r: 0.22,
-  })),
+const square = (id: string, [x, , z]: Vec3, half: number): DeskObstacle => ({
+  id,
+  x,
+  z,
+  ry: 0,
+  hw: half,
+  hd: half,
+});
+
+export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
+  // Le clavier (boîtier de la rangée de touches), comme le prototype.
+  { id: 'keyboard', x: KEYBOARD[0], z: KEYBOARD[2], ry: 0, hw: 2.15, hd: 0.72 },
+  { id: 'deck', x: DECK.position[0], z: DECK.position[2], ry: DECK.ry, hw: 0.69, hd: 0.48 },
+  { id: 'mouse', x: 3.35, z: -0.48, ry: 0, hw: 0.24, hd: 0.34 },
+  square('lamp', LAMP.base, 0.48),
+  square('mic-clamp', MIC.clamp, 0.3),
+  { id: 'rope', x: ROPE.center[0], z: ROPE.center[2], ry: 0, hw: 0.55, hd: 0.48 },
+  { id: 'wraps', x: 5.7, z: 0.75, ry: 0, hw: 0.4, hd: 0.4 },
+  square('plant', PLANT.position, 0.36),
+  {
+    id: 'manga',
+    x: MANGA.position[0],
+    z: MANGA.position[2],
+    ry: MANGA.ry,
+    hw: MANGA_SIZE.w / 2,
+    hd: MANGA_SIZE.d / 2,
+  },
+  ...FIGURES.filter((figure) => figure.position[1] === 0).map((figure) =>
+    square(`figure-${figure.kind}`, figure.position, 0.22),
+  ),
 ];
+
+// ------------------------------------------------------------------
+// Le bureau resserré du téléphone en portrait
+// ------------------------------------------------------------------
+
+/**
+ * Les morceaux du décor qui changent de place en portrait (décision d'Ali
+ * du 29/10, voir BOUNDS_PORTRAIT). Chacun bouge d'un bloc : il tourne de ry
+ * autour de son ancre (DECOR_ANCHORS, sa place en paysage), puis l'ancre va
+ * en (x, z). Le clavier, le tapis, la pièce et le pied des gants ne
+ * bougent pas (le pied des gants reste hors du cadre, à droite).
+ */
+export type DecorPieceId =
+  'lamp' | 'mic' | 'deck' | 'mouse' | 'rope' | 'wraps' | 'plant' | 'manga' | 'fox' | 'wanderer';
+
+export const DECOR_PIECE_IDS = [
+  'lamp',
+  'mic',
+  'deck',
+  'mouse',
+  'rope',
+  'wraps',
+  'plant',
+  'manga',
+  'fox',
+  'wanderer',
+] as const satisfies readonly DecorPieceId[];
+
+const figureAt = (kind: FigureKind): readonly [number, number] => {
+  const figure = FIGURES.find((spec) => spec.kind === kind);
+  return figure ? [figure.position[0], figure.position[2]] : [0, 0];
+};
+
+/** L'ancre de chaque morceau : sa place en paysage, vue de dessus (x, z). */
+export const DECOR_ANCHORS: Readonly<Record<DecorPieceId, readonly [number, number]>> = {
+  lamp: [LAMP.base[0], LAMP.base[2]],
+  mic: [MIC.clamp[0], MIC.clamp[2]],
+  deck: [DECK.position[0], DECK.position[2]],
+  mouse: [3.35, -0.48],
+  rope: [ROPE.center[0], ROPE.center[2]],
+  wraps: [5.7, 0.75],
+  plant: [PLANT.position[0], PLANT.position[2]],
+  manga: [MANGA.position[0], MANGA.position[2]],
+  fox: figureAt('fox'),
+  wanderer: figureAt('wanderer'),
+};
+
+/** Où va un morceau : son ancre en (x, z), tournée de ry ; caché s'il ne trouve pas sa place. */
+export interface DecorPlacement {
+  x: number;
+  z: number;
+  ry: number;
+  hidden: boolean;
+}
+
+/**
+ * Les places du décor en portrait. La lampe passe derrière le bord gauche
+ * de l'écran, sa tête vers l'avant gauche (elle éclaire le livre), au-dessus
+ * de la plante ; le pavé de boutons se pose devant le clavier ; la souris se
+ * rapproche du clavier ; la plante, les mangas et leur robot se serrent
+ * dans le coin du fond à gauche, sous la fenêtre (le casque passe à droite
+ * de l'écran, HEADSET_PORTRAIT). Le micro sur son bras, la corde, les bandes et
+ * deux figurines ne trouvent pas de place sans entasser le plateau ou
+ * cacher un objet du CV : cachés en portrait.
+ */
+export const PORTRAIT_DECOR: Readonly<
+  Record<DecorPieceId, { x: number; z: number; ry?: number; hidden?: boolean }>
+> = {
+  lamp: { x: -2.4, z: -3.0, ry: -0.75 },
+  mic: { x: MIC.clamp[0], z: MIC.clamp[2], hidden: true },
+  deck: { x: -1.2, z: -1.8, ry: -0.06 },
+  mouse: { x: 2.85, z: -0.5 },
+  rope: { x: ROPE.center[0], z: ROPE.center[2], hidden: true },
+  wraps: { x: 5.7, z: 0.75, hidden: true },
+  plant: { x: -3.5, z: -3.15 },
+  manga: { x: 1.6, z: 0.9, ry: 0.12 },
+  fox: { ...pointXZ(figureAt('fox')), hidden: true },
+  wanderer: { ...pointXZ(figureAt('wanderer')), hidden: true },
+};
+
+function pointXZ([x, z]: readonly [number, number]) {
+  return { x, z };
+}
+
+/** La place d'un morceau du décor pour un format (en paysage, son ancre, sans rotation). */
+export function decorPlacement(id: DecorPieceId, portrait: boolean): DecorPlacement {
+  if (!portrait) {
+    const [x, z] = DECOR_ANCHORS[id];
+    return { x, z, ry: 0, hidden: false };
+  }
+  const place = PORTRAIT_DECOR[id];
+  return { x: place.x, z: place.z, ry: place.ry ?? 0, hidden: place.hidden ?? false };
+}
+
+/**
+ * Ce que DecorPiece pose dans la scène : un groupe placé sur la nouvelle
+ * ancre et tourné de ry, qui porte un groupe décalé de moins l'ancre (les
+ * enfants sont dessinés à leur place en paysage). En paysage, l'identité.
+ */
+export function decorPieceTransform(id: DecorPieceId, portrait: boolean) {
+  const place = decorPlacement(id, portrait);
+  const [ax, az] = DECOR_ANCHORS[id];
+  return {
+    position: [place.x, 0, place.z] as Vec3,
+    ry: place.ry,
+    offset: [-ax, 0, -az] as Vec3,
+    hidden: place.hidden,
+  };
+}
+
+/**
+ * Un point du morceau (repère du monde, à sa place en paysage) vu à sa place
+ * du format : tourné de ry autour de l'ancre (sens de three, comme
+ * rotation.y), puis posé sur la nouvelle ancre.
+ */
+export function placeDecorPoint(id: DecorPieceId, portrait: boolean, [x, y, z]: Vec3): Vec3 {
+  if (!portrait) return [x, y, z];
+  const [ax, az] = DECOR_ANCHORS[id];
+  const place = decorPlacement(id, true);
+  const lx = x - ax;
+  const lz = z - az;
+  const cos = Math.cos(place.ry);
+  const sin = Math.sin(place.ry);
+  return [place.x + lx * cos + lz * sin, y, place.z - lx * sin + lz * cos];
+}
+
+/** Le morceau qui porte chaque obstacle du décor (le clavier ne bouge pas). */
+const OBSTACLE_PIECES: Readonly<Record<string, DecorPieceId | null>> = {
+  keyboard: null,
+  deck: 'deck',
+  mouse: 'mouse',
+  lamp: 'lamp',
+  'mic-clamp': 'mic',
+  rope: 'rope',
+  wraps: 'wraps',
+  plant: 'plant',
+  manga: 'manga',
+  'figure-fox': 'fox',
+  'figure-wanderer': 'wanderer',
+};
+
+/** Le morceau du décor d'un obstacle, ou null s'il ne bouge jamais. */
+export const obstaclePiece = (id: string): DecorPieceId | null => OBSTACLE_PIECES[id] ?? null;
+
+/**
+ * Les obstacles ronds (pied de la lampe, pot de la plante, socle des
+ * figurines) : leur carré ne tourne pas avec le morceau, il reste le même
+ * autour du centre (tourné, il dépasserait du plateau sans raison).
+ */
+const ROUND_OBSTACLES: ReadonlySet<string> = new Set([
+  'lamp',
+  'mic-clamp',
+  'plant',
+  'figure-fox',
+  'figure-wanderer',
+]);
+
+/** La rotation qu'un obstacle prend avec son morceau (0 pour un obstacle rond). */
+export const obstacleTurn = (id: string, pieceRy: number): number =>
+  ROUND_OBSTACLES.has(id) ? 0 : pieceRy;
+
+/** Les obstacles du décor en portrait : à la place de leur morceau, sans les morceaux cachés. */
+export const DECOR_OBSTACLES_PORTRAIT: readonly DeskObstacle[] = DECOR_OBSTACLES.flatMap(
+  (obstacle) => {
+    const piece = obstaclePiece(obstacle.id);
+    if (!piece) return [obstacle];
+    const place = decorPlacement(piece, true);
+    if (place.hidden) return [];
+    const [x, , z] = placeDecorPoint(piece, true, [obstacle.x, 0, obstacle.z]);
+    return [{ ...obstacle, x, z, ry: obstacle.ry + obstacleTurn(obstacle.id, place.ry) }];
+  },
+);
+
+/** Les obstacles du décor du format. */
+export const decorObstacles = (portrait: boolean): readonly DeskObstacle[] =>
+  portrait ? DECOR_OBSTACLES_PORTRAIT : DECOR_OBSTACLES;
+
+/**
+ * Hauteur de chaque obstacle du décor (le robot debout sur les mangas, les
+ * feuilles de la plante) : le cadrage portrait fait tenir le décor entier,
+ * pas seulement son pied. La lampe et le micro ont leurs propres points
+ * (FIXED_EXTENT, stage/framing.ts).
+ */
+export const DECOR_HEIGHTS: Readonly<Record<string, number>> = {
+  keyboard: 0.25,
+  deck: 0.35,
+  mouse: 0.25,
+  lamp: 0.3,
+  'mic-clamp': 0.3,
+  rope: 0.15,
+  wraps: 0.35,
+  plant: 1.45,
+  manga: MANGA_TOP + 0.55,
+  'figure-fox': 0.5,
+  'figure-wanderer': 0.6,
+};
+
+/**
+ * Les coins du décor posé en portrait (au ras du plateau et à sa hauteur) :
+ * le cadrage portrait les fait tenir à l'écran, en plus du bureau utile.
+ */
+export function decorExtentPortrait(): Vec3[] {
+  const points: Vec3[] = [];
+  for (const obstacle of DECOR_OBSTACLES_PORTRAIT) {
+    const height = DECOR_HEIGHTS[obstacle.id] ?? 0.3;
+    const cos = Math.cos(obstacle.ry);
+    const sin = Math.sin(obstacle.ry);
+    for (const [sx, sz] of [
+      [-1, -1],
+      [1, -1],
+      [1, 1],
+      [-1, 1],
+    ] as const) {
+      const lx = sx * obstacle.hw;
+      const lz = sz * obstacle.hd;
+      const x = obstacle.x + lx * cos + lz * sin;
+      const z = obstacle.z - lx * sin + lz * cos;
+      points.push([x, 0, z], [x, height, z]);
+    }
+  }
+  return points;
+}

@@ -16,6 +16,7 @@ import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js
 import type { Vec3 } from '../core/constants';
 import { useSceneStoreApi } from '../core/store-context';
 import { useCanvasTexture } from '../core/textures';
+import { DecorPiece } from './DecorPiece';
 import { KEY_COUNT, KEY_TRAVEL, KEY_Y, KEYBOARD_POSITION, keyDips, keyLayout } from './layout';
 import type { Part } from './merge';
 import { paintFelt } from './paint';
@@ -28,7 +29,7 @@ import { box, cyl, MergedParts, sph, tube } from './shared';
 const [kx, , kz] = KEYBOARD_POSITION;
 const KEYS = keyLayout();
 
-/** Le corps du clavier, la souris et les câbles, fusionnés (repère du monde). */
+/** Le corps du clavier et le câble de l'écran, fusionnés (repère du monde). */
 function staticParts(): Part[] {
   return [
     // Le boîtier du clavier, et sa molette de volume en laiton.
@@ -49,16 +50,7 @@ function staticParts(): Part[] {
       finish: 'brass',
       position: [kx - 1.78, 0.17, kz - 0.73],
     },
-    // La souris et sa molette.
-    {
-      geometry: sph(0.3, 1),
-      color: 0xe9dcc2,
-      finish: 'satin',
-      position: [3.35, 0.11, -0.48],
-      scale: [0.72, 0.42, 1.05],
-    },
-    { geometry: box(0.03, 0.04, 0.12), color: 0x3a2a1f, position: [3.35, 0.24, -0.66] },
-    // Le câble de l'écran et celui de la souris.
+    // Le câble de l'écran.
     {
       geometry: tube(
         [
@@ -73,6 +65,25 @@ function staticParts(): Part[] {
       color: 0x241d18,
       finish: 'satin',
     },
+  ];
+}
+
+/**
+ * La souris et son câble (repère du monde) : un morceau du décor, qui se
+ * rapproche du clavier en portrait (DecorPiece).
+ */
+function mouseParts(): Part[] {
+  return [
+    // La souris et sa molette.
+    {
+      geometry: sph(0.3, 1),
+      color: 0xe9dcc2,
+      finish: 'satin',
+      position: [3.35, 0.11, -0.48],
+      scale: [0.72, 0.42, 1.05],
+    },
+    { geometry: box(0.03, 0.04, 0.12), color: 0x3a2a1f, position: [3.35, 0.24, -0.66] },
+    // Le câble de la souris, jusque derrière l'écran.
     {
       geometry: tube(
         [
@@ -189,6 +200,9 @@ export function Workspace() {
         receiveShadow
       />
       <MergedParts build={staticParts} />
+      <DecorPiece id="mouse">
+        <MergedParts build={mouseParts} />
+      </DecorPiece>
       <group position={KEYBOARD_POSITION}>
         <mesh
           geometry={geometries.backlight}

@@ -101,3 +101,36 @@
     animation: none;
   }
 }
+
+/*
+ * Sur téléphone (en portrait, le bureau tient dans un quart de la hauteur ;
+ * à l'horizontale, dans 390 px), les étiquettes entières se chevauchent et
+ * cachent les objets qu'on veut toucher ou glisser. Elles ne gardent que
+ * leur mot (DEFI-METIERS, NETHERBRAIN...), les années restant sur les puces
+ * du bas de page.
+ */
+@media (max-aspect-ratio: 9/10), (max-height: 500px) {
+  .tag {
+    gap: 5px;
+    padding: 3px 7px 3px 5px;
+    font-size: 9px;
+    letter-spacing: 0.12em;
+  }
+
+  .tag b {
+    display: none;
+  }
+
+  /* Le point vert du coffret passe après son mot. */
+  .tag[data-live] span::after {
+    content: '';
+    display: inline-block;
+    width: 6px;
+    height: 6px;
+    margin-left: 6px;
+    border-radius: 50%;
+    background: #2fbf6a;
+    box-shadow: 0 0 6px #2fbf6a;
+    vertical-align: 1px;
+  }
+}

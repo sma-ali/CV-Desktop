@@ -23,24 +23,46 @@ export interface BoxPiece {
   color: number;
 }
 
-/** Fusionne des boîtes en une géométrie, avec leur couleur par sommet. */
-export function mergeBoxes(pieces: readonly BoxPiece[]): BufferGeometry {
+/** Une pièce quelconque (cylindre, tube...) déjà placée, et sa couleur. */
+export interface ColoredPart {
+  geometry: BufferGeometry;
+  color: number;
+}
+
+/**
+ * Fusionne des géométries placées en une seule, avec leur couleur par
+ * sommet. Les pièces sont libérées. Si certaines sont indexées et d'autres
+ * non (un tube et une boîte), toutes passent en triangles non indexés.
+ */
+export function mergeColored(parts: readonly ColoredPart[]): BufferGeometry {
   const color = new Color();
-  const parts = pieces.map(({ size, position, rotationY = 0, color: hex }) => {
-    const box = new BoxGeometry(...size);
-    if (rotationY) box.rotateY(rotationY);
-    box.translate(...position);
+  const indexed = parts.every(({ geometry }) => geometry.index !== null);
+  const prepared = parts.map(({ geometry, color: hex }) => {
+    const flat = indexed || !geometry.index ? geometry : geometry.toNonIndexed();
+    if (flat !== geometry) geometry.dispose();
     color.setHex(hex);
-    const count = box.attributes.position?.count ?? 0;
+    const count = flat.attributes.position?.count ?? 0;
     const colors = new Float32Array(count * 3);
     for (let i = 0; i < count; i++) colors.set([color.r, color.g, color.b], i * 3);
-    box.setAttribute('color', new BufferAttribute(colors, 3));
-    return box;
+    flat.setAttribute('color', new BufferAttribute(colors, 3));
+    return flat;
   });
-  const merged = mergeGeometries(parts);
-  parts.forEach((part) => part.dispose());
-  if (!merged) throw new Error('fusion des boîtes impossible');
+  const merged = mergeGeometries(prepared);
+  prepared.forEach((part) => part.dispose());
+  if (!merged) throw new Error('fusion des pièces impossible');
   return merged;
+}
+
+/** Fusionne des boîtes en une géométrie, avec leur couleur par sommet. */
+export function mergeBoxes(pieces: readonly BoxPiece[]): BufferGeometry {
+  return mergeColored(
+    pieces.map(({ size, position, rotationY = 0, color }) => {
+      const box = new BoxGeometry(...size);
+      if (rotationY) box.rotateY(rotationY);
+      box.translate(...position);
+      return { geometry: box, color };
+    }),
+  );
 }
 
 const materials = new Map<string, MeshStandardMaterial>();
@@ -62,6 +84,26 @@ export function vertexColorMaterial(roughness = 0.8, metalness = 0): MeshStandar
 }
 
 type MeshProps = Omit<ThreeElements['mesh'], 'geometry' | 'args'>;
+
+/** Des pièces fusionnées, dessinées en une fois. build doit rester stable (fonction du module). */
+export function MergedParts({
+  build,
+  roughness,
+  metalness,
+  ...props
+}: MeshProps & { build: () => ColoredPart[]; roughness?: number; metalness?: number }) {
+  const geometry = useMemo(() => mergeColored(build()), [build]);
+  useEffect(() => () => geometry.dispose(), [geometry]);
+  return (
+    <mesh
+      geometry={geometry}
+      material={vertexColorMaterial(roughness, metalness)}
+      castShadow
+      receiveShadow
+      {...props}
+    />
+  );
+}
 
 /** Des boîtes fusionnées, dessinées en une fois. pieces doit rester stable (constante ou useMemo). */
 export function MergedBoxes({

@@ -79,12 +79,13 @@ describe.each(locales)('contenu %s', (locale) => {
   });
 
   // Le coffret scellé ne dit jamais ce qu'il contient : ni le sujet, ni une
-  // plateforme. Vaut pour tout ce que la scène et le bureau affichent.
+  // plateforme. Vaut pour tout ce que la scène, le bureau et les fiches
+  // affichent.
   it('ne trahit pas le contenu du coffret scellé', () => {
     const forbidden =
       /automatisation|automation|\busines?\b|factory|vid[ée]os?|tiktok|youtube|instagram|twitch|\bcha[iî]nes?\b|channel/i;
     const leaked = textLeaves(content).filter(
-      (leaf) => /^(desk|scene)\./.test(leaf.path) && forbidden.test(leaf.value),
+      (leaf) => /^(desk|scene|sheets)\./.test(leaf.path) && forbidden.test(leaf.value),
     );
     expect(leaked.map((leaf) => leaf.path)).toEqual([]);
   });
@@ -99,7 +100,8 @@ describe.each(locales)('contenu %s', (locale) => {
     const { labels } = content.scene;
     expect(labels.book.mark).toBe(start('defi-metiers'));
     expect(labels.postit.mark).toBe(start('dares'));
-    expect(labels.laptop.mark).toBe(String(content.projects[0]?.year));
+    expect(labels.netherbrain.mark).toBe(String(content.projects[0]?.year));
+    expect(labels.homelab.mark).toBe(String(content.projects[1]?.year));
   });
 
   it('est servi tel quel par getContent', () => {

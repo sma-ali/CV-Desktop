@@ -31,7 +31,7 @@ test.describe('les objets du CV', () => {
     test.slow();
     await page.goto(SETTLED);
     await waitForScene(page);
-    for (const item of ['book', 'postit', 'laptop', 'card', 'chest']) {
+    for (const item of ['book', 'postit', 'laptop', 'card', 'chest', 'netherbrain', 'homelab']) {
       await expect(tag(page, item)).toHaveAttribute('data-shown', 'true');
     }
     await expect(tag(page, 'book')).toHaveText(/2020\s*DEFI-METIERS/);
@@ -52,15 +52,16 @@ test.describe('les objets du CV', () => {
   test('présentent l’objet d’une puce, puis le reposent', async ({ page }) => {
     await page.goto(SETTLED);
     await waitForScene(page);
+    // La puce des projets présente Netherbrain (étape 4).
     await page.getByRole('link', { name: /2026/ }).click();
-    await expect(hud(page)).toHaveAttribute('data-presented', 'laptop');
+    await expect(hud(page)).toHaveAttribute('data-presented', 'netherbrain');
     // Pendant la présentation, les étiquettes s'effacent.
-    await expect(tag(page, 'laptop')).toHaveAttribute('data-shown', 'false');
+    await expect(tag(page, 'netherbrain')).toHaveAttribute('data-shown', 'false');
     await expect(tag(page, 'card')).toHaveAttribute('data-shown', 'false');
     await page.keyboard.press('Escape');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     // Une fois l'objet reposé, son étiquette revient.
-    await expect(tag(page, 'laptop')).toHaveAttribute('data-shown', 'true');
+    await expect(tag(page, 'netherbrain')).toHaveAttribute('data-shown', 'true');
   });
 
   test('présentent l’objet de son étiquette', async ({ page }) => {
@@ -81,8 +82,20 @@ test.describe('les objets du CV', () => {
     await expect(canvas).toHaveCSS('cursor', 'pointer');
     await page.mouse.click(point.x, point.y);
     await expect(hud(page)).toHaveAttribute('data-presented', 'book');
-    // Un clic sur l'objet tenu le repose.
-    await page.mouse.click(point.x, point.y + 1);
+    await expect(hud(page)).toHaveAttribute('data-flipped', 'true');
+    // Étape 4 : un clic sur l'objet tenu (à gauche du centre, HELD.landscape)
+    // le retourne au lieu de le reposer. Quelques images d'abord : le
+    // pointeur se teste contre le livre tel qu'il a été dessiné.
+    await page.evaluate(async () => {
+      for (let i = 0; i < 3; i++) await new Promise((resolve) => requestAnimationFrame(resolve));
+    });
+    const viewport = page.viewportSize();
+    if (!viewport) throw new Error('pas de fenêtre');
+    await page.mouse.click(viewport.width * 0.35, viewport.height * 0.47);
+    await expect(hud(page)).toHaveAttribute('data-flipped', 'false');
+    await expect(hud(page)).toHaveAttribute('data-presented', 'book');
+    // Un clic hors des objets (le sol sous le bureau) le repose.
+    await page.mouse.click(Math.round(viewport.width * 0.66), viewport.height - 20);
     await expect(hud(page)).toHaveAttribute('data-presented', '');
   });
 

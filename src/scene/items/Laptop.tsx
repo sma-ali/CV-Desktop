@@ -22,7 +22,7 @@ const D = 1.85;
 const aluminium = () => standardMaterial(0x8f8a82, { roughness: 0.45, metalness: 0.5 });
 
 export function Laptop({ texts }: { texts: SceneTexts }) {
-  const { content, locale } = texts;
+  const { content, locale, skills } = texts;
   const lid = useRef<Group>(null);
 
   const stickers = usePaintedMaterial(
@@ -37,7 +37,7 @@ export function Laptop({ texts }: { texts: SceneTexts }) {
   });
   const screenTexture = useCanvasTexture({
     ...LAPTOP_TEXTURE,
-    draw: useMemo(() => paintLaptopScreen(content), [content]),
+    draw: useMemo(() => paintLaptopScreen(content, skills), [content, skills]),
     redrawKey: locale,
   });
   const screen = useMemo(

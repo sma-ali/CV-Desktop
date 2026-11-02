@@ -106,6 +106,7 @@ export const INTERACT_FROM = 1.2;
 /**
  * Un élément du décor qui réagit au clic : ses gestionnaires d'événements, et
  * l'instant (T de l'horloge) du dernier clic, null tant qu'on n'a pas cliqué.
+ * Le clic sonne (store.sound, muet tant que le son est coupé).
  * « Rejouer » le remet à zéro. at se lit dans useFrame, jamais au rendu.
  */
 export function usePressTime(): {
@@ -117,8 +118,10 @@ export function usePressTime(): {
   useEffect(() => {
     at.current = null;
   }, [replays]);
-  const handlers = usePressable((t) => {
+  const handlers = usePressable((t, state) => {
     at.current = t;
+    // Un petit clic (muet tant que le son est coupé).
+    state.sound.play('tick');
   });
   return { at, handlers };
 }

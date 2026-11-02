@@ -13,11 +13,21 @@ import {
   type ArrivalPhase,
   type HudFlags,
 } from './arrival';
+import type { LifeSigns } from '@/lib/life-signs/types';
+import {
+  createDeskBodies,
+  movedPlaces,
+  syncDeskBodies,
+  resetDeskBodies,
+  type DeskBodies,
+  type DeskPlaces,
+} from './bodies';
 import { createClock, type Clock } from './clock';
 import { ARRIVAL, SETTLE, TYPING_END_DEFAULT } from './constants';
-import type { ItemId, MoodId } from './ids';
+import type { BodyId, ItemId, MoodId } from './ids';
 import { moodValues, type MoodValues } from './mood-values';
-import type { TestParams } from './params';
+import type { TestDrag, TestParams } from './params';
+import { createSilentSound, type SoundPlayer } from './sound';
 
 // L'état partagé de la scène et du HUD (zustand, sans React : le store se
 // crée et se teste hors de tout composant). Deux sortes de valeurs :
@@ -28,8 +38,11 @@ import type { TestParams } from './params';
 //   avec useSceneStoreApi().getState(). Ne jamais s'y abonner ni les copier
 //   dans un état React ; les relire à chaque image (init() remplace clock).
 
-/** D'où vient la demande de présenter un objet. */
-export type PresentSource = 'auto' | 'click' | 'chip' | 'tag' | 'keyboard' | 'test';
+/**
+ * D'où vient la demande de présenter un objet : visite automatique, clic dans
+ * la scène, puce, étiquette, clavier, fiche (Préc. et Suiv.), adresse (?prendre=).
+ */
+export type PresentSource = 'auto' | 'click' | 'chip' | 'tag' | 'keyboard' | 'sheet' | 'test';
 
 /** Réglages fixés au démarrage, d'après l'adresse et les préférences du visiteur. */
 export interface SceneSettings {
@@ -45,6 +58,10 @@ export interface SceneSettings {
   autoAllowed: boolean;
   /** Objet présenté d'office (?prendre=). */
   initialPresent: ItemId | null;
+  /** ?recto : l'objet de ?prendre= reste à l'endroit. */
+  recto: boolean;
+  /** ?glisse= : un glisser à jouer dès le départ (partie gestes). */
+  initialDrag: TestDrag | null;
   /** ?noshadow et ?nopost, pour les mesures et les machines lentes. */
   noShadow: boolean;
   noPost: boolean;
@@ -57,6 +74,8 @@ export const DEFAULT_SETTINGS: SceneSettings = {
   hourOffsetMs: 0,
   autoAllowed: true,
   initialPresent: null,
+  recto: false,
+  initialDrag: null,
   noShadow: false,
   noPost: false,
 };
@@ -78,6 +97,8 @@ export function settingsFromParams(
     hourOffsetMs,
     autoAllowed: params.auto && !reducedMotion,
     initialPresent: params.present,
+    recto: params.recto,
+    initialDrag: params.drag,
     noShadow: params.noShadow,
     noPost: params.noPost,
   };
@@ -130,6 +151,15 @@ export interface SceneState {
   clock: Clock;
   /** Valeurs par image, mutables (voir FrameState). */
   frame: FrameState;
+  /**
+   * Les corps du plateau (places, soulèvement, inclinaison), mutables : écrits
+   * par les gestes à chaque image, lus par les objets et le décor dans
+   * useFrame. Le socle cale ceux qui n'ont pas bougé sur leur place de repos
+   * du format courant (syncDeskBodies), avant tout le monde.
+   */
+  desk: DeskBodies;
+  /** Le son : play(cue) ne fait rien tant qu'il est coupé (voir sound.ts). */
+  sound: SoundPlayer;
 
   // --- État réactif ---
   /** La scène a dessiné ses premières images. */
@@ -144,6 +174,22 @@ export interface SceneState {
   /** L'objet présenté devant la caméra (ou l'écran regardé de près). */
   presented: ItemId | null;
   presentedBy: PresentSource | null;
+  /**
+   * L'objet présenté a fait son geste (retourné, ouvert, tourné) : vrai dès
+   * qu'il est présenté, comme dans le prototype, sauf avec ?recto. Un clic sur
+   * l'objet tenu, le bouton « Retourner » ou son raccourci l'inversent.
+   */
+  flipped: boolean;
+  /** Le corps que le visiteur fait glisser (null : aucun glisser en cours). */
+  dragging: BodyId | null;
+  /** Places des corps déplacés, copiées à la fin de chaque glisser (data-places). */
+  places: DeskPlaces;
+  /** Le son est ouvert (bouton « Son » du HUD). */
+  soundOn: boolean;
+  /** Ce qui sort du cadre au repos (identifiants d'objets ou de décor), vu par la caméra. */
+  offscreen: readonly string[];
+  /** Les signes de vie du coffret (données d'exemple à l'étape 4). */
+  lifeSigns: LifeSigns | null;
   /** L'objet sous le pointeur. */
   hovered: ItemId | null;
   /** T de la dernière action du visiteur (-Infinity : aucune ; Infinity : jamais de mode auto). */
@@ -165,6 +211,20 @@ export interface SceneState {
   present(item: ItemId, source: PresentSource): void;
   /** Repose l'objet présenté. */
   putBack(): void;
+  /** Retourne l'objet présenté, ou le remet à l'endroit (sans effet sur l'écran). */
+  toggleFlip(): void;
+  /** Un glisser commence (partie gestes) : compte comme une action du visiteur. */
+  startDrag(body: BodyId): void;
+  /** Le glisser finit : places reprend les corps déplacés (desk). */
+  endDrag(): void;
+  /** Recopie dans places les corps déplacés (après une poussée, sans glisser en cours). */
+  commitPlaces(): void;
+  /** Ouvre ou coupe le son ; appelée seulement par un clic du visiteur. */
+  toggleSound(): void;
+  /** Réservé au cadrage (partie objets) : ce qui sort du cadre. */
+  setOffscreen(ids: readonly string[]): void;
+  /** Les signes de vie reçus du serveur (étape 5 : rafraîchis par /api/signes-de-vie). */
+  setLifeSigns(signs: LifeSigns | null): void;
   setHovered(item: ItemId | null): void;
   /** Note une action du visiteur : coupe le mode auto et repose ce qu'il tenait. */
   markUser(): void;
@@ -211,18 +271,35 @@ export function updateFrame(state: SceneState, portrait: boolean): FrameState {
   frame.ambient = ambientLevel(t);
   frame.camera = settings.reducedMotion ? 1 : cameraProgress(t);
   frame.portrait = portrait;
+  syncDeskBodies(state.desk, portrait);
   return frame;
 }
 
 const sameFlags = (a: HudFlags, b: HudFlags) =>
   (Object.keys(a) as (keyof HudFlags)[]).every((key) => a[key] === b[key]);
 
-export function createSceneStore(mood: MoodId = 'afternoon'): SceneStore {
+const sameList = (a: readonly string[], b: readonly string[]) =>
+  a.length === b.length && a.every((value, index) => value === b[index]);
+
+export interface SceneStoreOptions {
+  /** Le lecteur de sons (DeskShell passe la synthèse WebAudio ; muet par défaut). */
+  sound?: SoundPlayer;
+  /** Les signes de vie reçus du serveur. */
+  lifeSigns?: LifeSigns | null;
+}
+
+export function createSceneStore(
+  mood: MoodId = 'afternoon',
+  options: SceneStoreOptions = {},
+): SceneStore {
+  const sound = options.sound ?? createSilentSound();
   return createStore<SceneState>()((set, get) => ({
     initialized: false,
     settings: DEFAULT_SETTINGS,
     clock: createClock(),
     frame: initialFrame(mood),
+    desk: createDeskBodies(),
+    sound,
 
     ready: false,
     phase: arrivalPhase(0),
@@ -232,13 +309,19 @@ export function createSceneStore(mood: MoodId = 'afternoon'): SceneStore {
     autoOn: false,
     presented: null,
     presentedBy: null,
+    flipped: false,
+    dragging: null,
+    places: {},
+    soundOn: false,
+    offscreen: [],
+    lifeSigns: options.lifeSigns ?? null,
     hovered: null,
     lastUserAt: -Infinity,
     lamp: { on: true, switchedAt: ARRIVAL.lampOn },
     replays: 0,
 
     init(settings, nextMood, moodPinned) {
-      const { initialPresent, startAt, frozen } = settings;
+      const { initialPresent, startAt, frozen, recto } = settings;
       set({
         initialized: true,
         settings,
@@ -250,8 +333,11 @@ export function createSceneStore(mood: MoodId = 'afternoon'): SceneStore {
         autoOn: false,
         presented: initialPresent,
         presentedBy: initialPresent ? 'test' : null,
-        // Un objet présenté d'office (capture, test) ne laisse jamais démarrer le mode auto.
-        lastUserAt: initialPresent ? Infinity : -Infinity,
+        // L'écran n'a pas de geste : il n'est jamais retourné.
+        flipped: initialPresent !== null && initialPresent !== 'monitor' && !recto,
+        // Un objet présenté d'office ou un glisser demandé (capture, test) ne
+        // laisse jamais démarrer le mode auto.
+        lastUserAt: initialPresent || settings.initialDrag ? Infinity : -Infinity,
       });
     },
 
@@ -272,11 +358,58 @@ export function createSceneStore(mood: MoodId = 'afternoon'): SceneStore {
 
     present(item, source) {
       if (source !== 'auto') get().markUser();
-      set({ presented: item, presentedBy: source });
+      const same = get().presented === item;
+      if (!same) sound.play(item === 'monitor' ? 'hum' : 'pick');
+      set({
+        presented: item,
+        presentedBy: source,
+        flipped: same ? get().flipped : item !== 'monitor',
+      });
     },
 
     putBack() {
-      if (get().presented !== null) set({ presented: null, presentedBy: null });
+      if (get().presented === null) return;
+      sound.play('putBack');
+      set({ presented: null, presentedBy: null, flipped: false });
+    },
+
+    toggleFlip() {
+      const { presented, flipped } = get();
+      if (presented === null || presented === 'monitor') return;
+      // L'objet de la visite passe au visiteur au lieu d'être reposé par markUser.
+      if (get().presentedBy === 'auto') set({ presentedBy: 'click' });
+      get().markUser();
+      sound.play('flip');
+      set({ flipped: !flipped });
+    },
+
+    startDrag(body) {
+      get().markUser();
+      sound.play('slide');
+      if (get().dragging !== body) set({ dragging: body });
+    },
+
+    endDrag() {
+      if (get().dragging === null) return;
+      set({ dragging: null, places: movedPlaces(get().desk) });
+    },
+
+    commitPlaces() {
+      set({ places: movedPlaces(get().desk) });
+    },
+
+    toggleSound() {
+      const next = sound.setEnabled(!get().soundOn);
+      set({ soundOn: next });
+      if (next) sound.play('blip');
+    },
+
+    setOffscreen(ids) {
+      if (!sameList(get().offscreen, ids)) set({ offscreen: [...ids] });
+    },
+
+    setLifeSigns(signs) {
+      set({ lifeSigns: signs });
     },
 
     setHovered(item) {
@@ -291,6 +424,7 @@ export function createSceneStore(mood: MoodId = 'afternoon'): SceneStore {
       if (presentedBy === 'auto') {
         next.presented = null;
         next.presentedBy = null;
+        next.flipped = false;
       }
       set(next);
     },
@@ -301,11 +435,15 @@ export function createSceneStore(mood: MoodId = 'afternoon'): SceneStore {
 
     toggleLamp() {
       const { lamp, clock } = get();
+      sound.play('switch');
+      if (!lamp.on) sound.play('lampOn');
       set({ lamp: lamp.on ? { ...lamp, on: false } : { on: true, switchedAt: clock.t } });
     },
 
     replay(now) {
-      const { clock, settings, replays } = get();
+      const { clock, settings, replays, desk, frame } = get();
+      // Les objets déplacés reprennent leur place de repos.
+      resetDeskBodies(desk, frame.portrait);
       // En mouvement réduit, rien ne bouge : l'arrivée reste finie.
       const startAt = settings.reducedMotion ? REDUCED_START : 0;
       clock.restart(now, startAt);
@@ -315,6 +453,9 @@ export function createSceneStore(mood: MoodId = 'afternoon'): SceneStore {
         autoOn: false,
         presented: null,
         presentedBy: null,
+        flipped: false,
+        dragging: null,
+        places: {},
         hovered: null,
         lastUserAt: -Infinity,
         lamp: { on: true, switchedAt: ARRIVAL.lampOn },

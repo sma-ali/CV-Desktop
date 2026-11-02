@@ -29,7 +29,7 @@ export default async function DeskPage({ params }: PageProps<'/[locale]'>) {
       scene={buildSceneTexts(content, locale)}
       lifeSigns={lifeSigns}
     >
-      <ExpressCv locale={locale} />
+      <ExpressCv locale={locale} from="desk" />
     </DeskShell>
   );
 }

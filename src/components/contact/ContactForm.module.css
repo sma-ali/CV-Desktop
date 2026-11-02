@@ -1,0 +1,255 @@
+/* Le formulaire de contact. Ses couleurs viennent de jetons locaux : ceux du
+   thème dans la version express, ceux du papier clair dans la fiche (le
+   bristol reste clair en thème sombre). Contraste AA sur chaque fond. */
+
+.root {
+  --cf-ink: var(--ink);
+  --cf-soft: var(--ink-soft);
+  --cf-muted: var(--muted);
+  --cf-accent: var(--accent);
+  --cf-on-accent: var(--on-accent);
+  --cf-field: var(--paper);
+  --cf-border: var(--rule-strong);
+
+  margin-top: 1rem;
+  color: var(--cf-ink);
+}
+
+.bristol {
+  --cf-ink: #1f1710;
+  --cf-soft: #2c2116;
+  --cf-muted: #5e4e3c;
+  --cf-accent: #8d2a20;
+  --cf-on-accent: #f3e9d4;
+  --cf-field: #fbf6ea;
+  --cf-border: rgb(31 23 16 / 0.6);
+
+  margin-top: 14px;
+}
+
+/* Replié dans la version express : un bouton « Écrire un message ». */
+.summary {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.6em;
+  min-height: 44px;
+  padding: 0.55rem 0.9rem 0.5rem;
+  border: 1px solid var(--cf-ink);
+  border-radius: 2px;
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  cursor: pointer;
+  list-style: none;
+}
+
+.summary::-webkit-details-marker {
+  display: none;
+}
+
+.summary::after {
+  content: '+';
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.details[open] > .summary::after {
+  content: '-';
+}
+
+.summary:hover {
+  border-color: var(--cf-accent);
+  color: var(--cf-accent);
+}
+
+.form {
+  display: grid;
+  gap: 0.9rem;
+}
+
+.details .form {
+  margin-top: 1rem;
+}
+
+.intro {
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.45;
+  color: var(--cf-soft);
+}
+
+.field {
+  display: grid;
+  gap: 0.3rem;
+}
+
+.field label {
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: var(--cf-ink);
+}
+
+.field input,
+.field textarea {
+  box-sizing: border-box;
+  width: 100%;
+  min-height: 44px;
+  padding: 0.55rem 0.65rem;
+  border: 1px solid var(--cf-border);
+  border-radius: 2px;
+  background: var(--cf-field);
+  color: var(--cf-ink);
+  font: inherit;
+  font-family: var(--serif);
+  /* 16 px au moins : Safari sur iPhone ne zoome pas sur le champ. */
+  font-size: max(1rem, 16px);
+  line-height: 1.4;
+}
+
+.field textarea {
+  min-height: 8.5rem;
+  resize: vertical;
+}
+
+.field input[aria-invalid='true'],
+.field textarea[aria-invalid='true'] {
+  border-color: var(--cf-accent);
+  border-width: 2px;
+}
+
+.hintRow {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: 0.2rem 1rem;
+  margin: 0;
+}
+
+.hint,
+.counter {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  line-height: 1.4;
+  color: var(--cf-muted);
+}
+
+.counter[data-over] {
+  color: var(--cf-accent);
+  font-weight: 600;
+}
+
+.error {
+  margin: 0;
+  font-size: 0.9rem;
+  line-height: 1.4;
+  font-weight: 600;
+  color: var(--cf-accent);
+}
+
+/* Le piège : hors de l'écran (jamais display: none, que certains robots
+   savent repérer). */
+.trap {
+  position: absolute;
+  left: -10000px;
+  width: 1px;
+  height: 1px;
+  overflow: hidden;
+}
+
+.actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.6rem 1rem;
+}
+
+.submit {
+  min-width: 44px;
+  min-height: 44px;
+  padding: 0.6rem 1.2rem 0.55rem;
+  border: 1px solid var(--cf-ink);
+  border-radius: 2px;
+  background: var(--cf-ink);
+  color: var(--cf-field);
+  font-family: var(--mono);
+  font-weight: 600;
+  font-size: 0.75rem;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  cursor: pointer;
+}
+
+.submit:hover:not(:disabled) {
+  border-color: var(--cf-accent);
+  background: var(--cf-accent);
+  color: var(--cf-on-accent);
+}
+
+.submit:disabled {
+  cursor: progress;
+  opacity: 0.75;
+}
+
+.status {
+  flex: 1 1 12rem;
+  margin: 0;
+  font-size: 0.95rem;
+  line-height: 1.4;
+  color: var(--cf-ink);
+}
+
+.status:empty {
+  display: none;
+}
+
+.status[data-contact-status='sent'] {
+  font-weight: 600;
+}
+
+.status a,
+.targetStatus a {
+  color: var(--cf-accent);
+}
+
+.privacy {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.75rem;
+  line-height: 1.5;
+  color: var(--cf-muted);
+}
+
+/* L'état d'un envoi sans JavaScript : visible seulement quand l'ancre le vise. */
+.targetStatus {
+  display: none;
+  margin: 0 0 0.75rem;
+  padding: 0.6rem 0.75rem;
+  border-left: 3px solid var(--cf-ink);
+  background: var(--cf-field);
+  font-size: 0.95rem;
+  line-height: 1.4;
+}
+
+.targetStatus[data-error] {
+  border-left-color: var(--cf-accent);
+}
+
+.targetStatus:target {
+  display: block;
+}
+
+.targetStatus:focus {
+  outline: none;
+}
+
+@media print {
+  .root {
+    display: none;
+  }
+}

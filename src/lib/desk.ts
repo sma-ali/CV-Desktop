@@ -1,4 +1,4 @@
-import type { Content, SheetContent, SheetsContent } from '@/content';
+import type { ContactFormContent, Content, SheetContent, SheetsContent } from '@/content';
 import { localeNames, type Locale } from '@/content/locales';
 import { SHEET_ORDER, STEP_ITEM, type ItemId, type MoodId, type StepId } from '@/scene/core/ids';
 import type { SceneTexts } from '@/scene/core/texts';
@@ -38,6 +38,8 @@ export interface DeskSheets {
   contactHref: string;
   /** Une fiche par objet, dans l'ordre de SHEET_ORDER. */
   items: Record<ItemId, DeskSheet>;
+  /** Le formulaire de contact de la carte de visite, et l'adresse proposée s'il échoue. */
+  contactForm: { texts: ContactFormContent; email: string };
 }
 
 /** Les textes du HUD et du repli. */
@@ -147,6 +149,7 @@ export function buildDeskSheets(content: Content, locale: Locale): DeskSheets {
   return {
     ui,
     contactHref: `${expressPath(locale)}#contact`,
+    contactForm: { texts: content.contactForm, email: content.contact.email },
     items: Object.fromEntries(
       SHEET_ORDER.map((id) => [id, { ...items[id], repository: repositoryOf(id) }]),
     ) as Record<ItemId, DeskSheet>,

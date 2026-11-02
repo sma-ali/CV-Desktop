@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useRef, useSyncExternalStore, type CSSProperties } from 'react';
+import { ContactForm } from '@/components/contact/ContactForm';
 import type { DeskHudTexts, DeskSheets } from '@/lib/desk';
 import { ITEM_STEP, neighborItem, type ItemId } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
@@ -59,7 +60,8 @@ export interface SheetProps {
 
 // La fiche de l'objet présenté : le bristol du prototype (papier ligné,
 // marge rouge, légère rotation). Sur-titre, étape, titre, méta, texte,
-// note, signes de vie du coffret, Retourner, appel au contact, dépôt public,
+// note, formulaire de contact (carte de visite), signes de vie du coffret,
+// Retourner, appel au contact, dépôt public,
 // Préc. / Reposer / Suiv. Elle s'ouvre avec l'objet présenté
 // (store.presented), quelle qu'en soit la source : puce, clic, étiquette,
 // visite. Flèches gauche et droite, R pour retourner ; Échap repose (dans
@@ -225,6 +227,17 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
           </dl>
           <p className={styles.sheetBody}>{sheet.body}</p>
           {sheet.note ? <p className={styles.sheetNote}>{sheet.note}</p> : null}
+
+          {/* La carte de visite porte le formulaire de contact. */}
+          {presented === 'card' ? (
+            <ContactForm
+              texts={texts.contactForm.texts}
+              email={texts.contactForm.email}
+              locale={locale}
+              from="desk"
+              variant="bristol"
+            />
+          ) : null}
 
           {live ? (
             <section className={styles.lifeSigns} aria-labelledby="sheet-live-title" data-live="">

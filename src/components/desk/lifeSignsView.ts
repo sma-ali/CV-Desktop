@@ -7,7 +7,7 @@ import {
 } from '@/lib/life-signs';
 
 // Ce que la fiche du coffret affiche des signes de vie, à l'abri des données
-// mal formées : l'étape 5 les lira dans un JSON public, qui peut arriver
+// mal formées : elles viennent d'un JSON public, qui peut arriver
 // incomplet. Fonction pure : la fiche l'appelle avec Date.now(), les tests
 // avec un instant fixe.
 

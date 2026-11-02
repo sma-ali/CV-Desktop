@@ -1,3 +1,4 @@
+import { contactFormEn } from './contact/en';
 import type { Content } from './schema';
 import { sceneEn } from './scene/en';
 import { sheetsEn } from './sheets/en';
@@ -217,4 +218,5 @@ export const en = {
   },
   scene: sceneEn,
   sheets: sheetsEn,
+  contactForm: contactFormEn,
 } satisfies Content;

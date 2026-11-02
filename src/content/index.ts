@@ -5,6 +5,7 @@ import { contentSchema, type Content } from './schema';
 
 export * from './locales';
 export type { Content, DeskUi, Education, Experience, Project, Ui } from './schema';
+export type { ContactFormContent } from './contact/schema';
 export type { SceneContent } from './scene/schema';
 export type { SheetContent, SheetsContent } from './sheets/schema';
 

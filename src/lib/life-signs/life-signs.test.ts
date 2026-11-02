@@ -21,8 +21,11 @@ describe('les données d’exemple', () => {
     expect(Date.parse(signs.measuredAt)).toBe(NOW);
   });
 
-  it('sont ce que le serveur renvoie à l’étape 4', async () => {
-    expect(await getLifeSigns(NOW)).toEqual(sampleLifeSigns(NOW));
+  it('sont ce que le serveur renvoie sans adresse du JSON public', async () => {
+    const log = () => undefined;
+    expect(await getLifeSigns(NOW, { url: undefined, log, cache: false })).toEqual(
+      sampleLifeSigns(NOW),
+    );
   });
 
   it('se recalent sur l’heure du visiteur, pas les vraies données', () => {

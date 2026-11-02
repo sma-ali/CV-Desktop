@@ -1,9 +1,9 @@
 import { LIFE_SIGNS_DAYS, type LifeSigns } from './types';
 
 // DONNÉES D'EXEMPLE. Le site les affiche avec la mention « Données
-// d'exemple » tant que /api/signes-de-vie (étape 5) ne lit pas le vrai JSON
-// public, qui ne contiendra que ces chiffres. Les valeurs reprennent celles
-// du prototype ; Ali valide ce qui s'affiche.
+// d'exemple » quand le JSON public n'est pas lisible (LIFE_SIGNS_URL absente,
+// réseau, format faux : source.ts). Les valeurs reprennent celles du
+// prototype ; Ali valide ce qui s'affiche.
 
 const MINUTE = 60_000;
 const HOUR = 60 * MINUTE;

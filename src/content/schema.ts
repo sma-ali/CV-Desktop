@@ -1,4 +1,5 @@
 import { z } from 'zod';
+import { contactFormSchema } from './contact/schema';
 import { sceneContentSchema } from './scene/schema';
 import { sheetsSchema } from './sheets/schema';
 import { text, texts } from './text';
@@ -164,6 +165,7 @@ export const contentSchema = z.strictObject({
   desk: deskSchema,
   scene: sceneContentSchema,
   sheets: sheetsSchema,
+  contactForm: contactFormSchema,
 });
 
 export type Content = z.infer<typeof contentSchema>;

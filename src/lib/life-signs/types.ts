@@ -1,14 +1,14 @@
 // Les signes de vie du coffret scellé : des chiffres d'activité, jamais ce
 // que sont les projets. Aucune dépendance (ni zod ni contenu) : le serveur,
-// le HUD et la scène partagent ces types et ces fonctions pures.
+// le HUD et la scène partagent ces types et ces fonctions pures. Le schéma
+// zod du JSON public, côté serveur seulement, est dans schema.ts.
 
 /** Nombre de jours du graphique d'activité. */
 export const LIFE_SIGNS_DAYS = 14;
 
 /**
- * Ce que /api/signes-de-vie renverra à l'étape 5 (et ce que le site lit dès
- * l'étape 4, en données d'exemple). Horodatages en ISO 8601 : l'objet passe
- * tel quel du serveur au navigateur, en props.
+ * Ce que /api/signes-de-vie renvoie et ce que la page passe au navigateur,
+ * en props. Horodatages en ISO 8601 (UTC).
  */
 export interface LifeSigns {
   /** Projets en marche. */

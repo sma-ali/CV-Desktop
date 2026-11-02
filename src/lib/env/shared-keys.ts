@@ -11,7 +11,9 @@ import { join } from 'node:path';
 // Seules les variables connues du site sont reprises : les autres clés du
 // dossier n'entrent pas dans le processus. Rien de tout cela ne tourne sur
 // Vercel (VERCEL défini), où les variables viennent du projet. Aucune valeur
-// n'est jamais affichée ni journalisée.
+// n'est jamais affichée ni journalisée. Les commentaires turbopackIgnore
+// empêchent le build de tracer tout le projet dans les fonctions serveur à
+// cause de ces lectures, qui visent un dossier hors du dépôt.
 
 /** Les variables que ce dossier peut fournir au site. */
 export const SHARED_KEY_NAMES = [
@@ -62,7 +64,7 @@ export function loadSharedKeys(options: LoadSharedKeysOptions = {}): string[] {
 
   let files: string[];
   try {
-    files = readdirSync(dir)
+    files = readdirSync(/*turbopackIgnore: true*/ dir)
       .filter((file) => file.endsWith('.env'))
       .sort();
   } catch {
@@ -73,7 +75,7 @@ export function loadSharedKeys(options: LoadSharedKeysOptions = {}): string[] {
   for (const file of files) {
     let source: string;
     try {
-      source = readFileSync(join(dir, file), 'utf8');
+      source = readFileSync(join(/*turbopackIgnore: true*/ dir, file), 'utf8');
     } catch {
       continue;
     }

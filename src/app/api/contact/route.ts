@@ -2,7 +2,7 @@ import { handleContactPost, methodNotAllowed, type MailerResolution } from '@/li
 import { createDryRunMailer, createMailjetMailer, type Mailer } from '@/lib/contact/mailer';
 import {
   createMemoryRateLimiter,
-  DEFAULT_GLOBAL,
+  defaultWindows,
   type RateLimiter,
 } from '@/lib/contact/rate-limit';
 import { readContactConfig, readRateLimitMax } from '@/lib/env/server';
@@ -17,14 +17,8 @@ const logger = console;
 // envoi, puis gardée tant que l'instance vit.
 let limiter: RateLimiter | null = null;
 function getLimiter(): RateLimiter {
-  if (!limiter) {
-    const perIp = readRateLimitMax();
-    limiter = createMemoryRateLimiter({
-      perKey: { max: perIp, windowMs: 10 * 60_000 },
-      // Le plafond global suit un maximum par IP relevé (tests de bout en bout).
-      global: { max: Math.max(DEFAULT_GLOBAL.max, perIp), windowMs: DEFAULT_GLOBAL.windowMs },
-    });
-  }
+  // Les plafonds suivent un maximum par IP relevé (tests de bout en bout).
+  limiter ??= createMemoryRateLimiter(defaultWindows(readRateLimitMax()));
   return limiter;
 }
 

@@ -97,12 +97,19 @@ export function ContactForm({
   });
   const honeypot = useRef<HTMLInputElement>(null);
   const details = useRef<HTMLDetailsElement>(null);
-  /** Instant de la première frappe (horloge du navigateur). */
-  const startedAt = useRef<number | null>(null);
+  /**
+   * Instant où le formulaire est affiché (horloge du navigateur). La durée
+   * envoyée part de là, pas de la première frappe : un message collé et des
+   * champs remplis par le navigateur ne doivent pas passer pour un robot.
+   */
+  const shownAt = useRef<number | null>(null);
 
   // Hydraté : le formulaire valide lui-même (noValidate) et envoie par fetch.
-  // eslint-disable-next-line react-hooks/set-state-in-effect
-  useEffect(() => setHydrated(true), []);
+  useEffect(() => {
+    shownAt.current = Date.now();
+    // eslint-disable-next-line react-hooks/set-state-in-effect
+    setHydrated(true);
+  }, []);
 
   // Arrivé par le lien du contact (#contact), le formulaire replié s'ouvre.
   useEffect(() => {
@@ -128,7 +135,6 @@ export function ContactForm({
   };
 
   const onChange = (field: ContactField, value: string) => {
-    startedAt.current ??= Date.now();
     setValues((current) => ({ ...current, [field]: value }));
     if (errors[field]) setErrors((current) => ({ ...current, [field]: undefined }));
     if (status.kind === 'sent') setStatus({ kind: 'idle' });
@@ -153,7 +159,7 @@ export function ContactForm({
       locale,
       from,
       [HONEYPOT_FIELD]: honeypot.current?.value ?? '',
-      ...(startedAt.current !== null ? { typingMs: Date.now() - startedAt.current } : {}),
+      typingMs: Date.now() - (shownAt.current ?? Date.now()),
     };
 
     let response: Response;
@@ -177,7 +183,7 @@ export function ContactForm({
 
     if (response.ok && result?.ok) {
       setValues(EMPTY);
-      startedAt.current = null;
+      shownAt.current = Date.now();
       setStatus({ kind: 'sent' });
       return;
     }

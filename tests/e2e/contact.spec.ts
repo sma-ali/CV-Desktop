@@ -1,6 +1,7 @@
 import AxeBuilder from '@axe-core/playwright';
-import { expect, test, type Locator, type Page } from '@playwright/test';
+import { expect, test, type Locator, type Page, type Response } from '@playwright/test';
 import { getContent, type Locale } from '../../src/content';
+import { MIN_TYPING_MS } from '../../src/lib/contact/rules';
 
 // Le formulaire de contact : dans la version express (replié sous « Écrire
 // un message ») et dans la fiche de la carte de visite du bureau. Le serveur
@@ -30,6 +31,23 @@ async function fillValid(scope: Page | Locator, locale: Locale = 'fr') {
 
 const status = (scope: Page | Locator) => form(scope).locator('[role="status"]');
 
+/**
+ * Le formulaire envoie la durée depuis son affichage, et la route prend un
+ * envoi de moins de 3 s pour un robot : succès de façade, rien n'est envoyé.
+ * fill() étant instantané, un test qui veut un vrai envoi attend d'abord.
+ */
+async function waitPastTypingTrap(page: Page) {
+  await page.waitForTimeout(MIN_TYPING_MS + 250);
+}
+
+/** Le message est passé par l'envoi (dry run), pas par un succès de façade. */
+function expectReallySent(response: Response) {
+  expect(response.status()).toBe(200);
+  expect(response.headers()['x-contact-dry-run']).toBe('sent');
+  const body = response.request().postDataJSON() as { typingMs?: number };
+  expect(body.typingMs).toBeGreaterThanOrEqual(MIN_TYPING_MS);
+}
+
 test.describe('formulaire de la version express', () => {
   for (const locale of ['fr', 'en'] as const) {
     test(`envoie un message et le dit (${locale})`, async ({ page }) => {
@@ -38,10 +56,11 @@ test.describe('formulaire de la version express', () => {
       await fillValid(page, locale);
       const counter = form(page).locator('[data-contact-counter]');
       await expect(counter).toHaveText(locale === 'fr' ? '41 sur 5000' : '41 of 5000');
+      await waitPastTypingTrap(page);
 
       const sent = page.waitForResponse('**/api/contact');
       await form(page).getByRole('button', { name: t.submit }).click();
-      expect((await sent).status()).toBe(200);
+      expectReallySent(await sent);
       await expect(status(page)).toHaveText(t.status.sent);
       await expect(page.getByLabel(t.name.label)).toHaveValue('');
       await expect(page.getByLabel(t.message.label)).toHaveValue('');
@@ -192,7 +211,15 @@ test.describe('formulaire sans JavaScript', () => {
     await openExpress(page);
     await expect(page.locator('#contact-envoye')).toBeHidden();
     await fillValid(page);
+    const posted = page.waitForResponse(
+      (response) =>
+        response.url().endsWith('/api/contact') && response.request().method() === 'POST',
+    );
     await form(page).getByRole('button', { name: t.submit }).click();
+    // Sans JavaScript, pas de durée : le message passe par l'envoi (dry run).
+    const response = await posted;
+    expect(response.status()).toBe(303);
+    expect(response.headers()['x-contact-dry-run']).toBe('sent');
     await expect(page).toHaveURL(/\/fr\/express\?contact=envoye#contact-envoye$/);
     await expect(page.locator('#contact-envoye')).toBeVisible();
     await expect(page.locator('#contact-envoye')).toHaveText(t.status.sent);
@@ -228,10 +255,11 @@ test.describe('formulaire de la carte de visite', () => {
       // R dans un champ s'écrit, il ne retourne pas la carte.
       await expect(page.locator('#hud')).toHaveAttribute('data-flipped', 'false');
 
+      await waitPastTypingTrap(page);
       const sent = page.waitForResponse('**/api/contact');
       await sheet(page).getByRole('button', { name: t.submit }).click();
       const response = await sent;
-      expect(response.status()).toBe(200);
+      expectReallySent(response);
       expect(JSON.parse(response.request().postData() ?? '{}')).toMatchObject({
         locale,
         from: 'desk',

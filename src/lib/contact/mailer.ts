@@ -13,6 +13,8 @@ export interface ContactMessage {
 export interface Mailer {
   /** Envoie le message ; lève une MailerError en cas d'échec. */
   send(message: ContactMessage): Promise<void>;
+  /** Vrai pour le dry run : rien ne part vraiment. */
+  readonly dryRun?: boolean;
 }
 
 export type MailerFailure = 'timeout' | 'network' | 'rejected' | 'unexpected';
@@ -161,6 +163,7 @@ export function createMailjetMailer(options: MailjetOptions): Mailer {
 /** N'envoie rien : journalise seulement l'acceptation et la longueur du message. */
 export function createDryRunMailer(logger: Logger): Mailer {
   return {
+    dryRun: true,
     async send(message) {
       logger.info(`contact : message accepté (dry run), ${message.message.length} caractères`);
     },

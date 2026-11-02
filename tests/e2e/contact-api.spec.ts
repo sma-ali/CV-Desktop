@@ -3,7 +3,9 @@ import { expect, test } from '@playwright/test';
 // La route /api/contact par le fixture request, sans navigateur ni 3D. Le
 // serveur de test tourne en CONTACT_DRY_RUN=1 (playwright.config.ts) : un
 // envoi accepté n'envoie rien. Le 429 se vérifie en Vitest (la limite est
-// relevée ici, toutes les requêtes venant de localhost).
+// relevée ici, toutes les requêtes venant de localhost). La durée typingMs
+// dépasse 3 s : sans elle, un JSON serait pris pour un robot et recevrait un
+// succès de façade, sans passer par l'envoi.
 
 const ROUTE = '/api/contact';
 
@@ -12,6 +14,7 @@ const valid = {
   email: 'camille@exemple.fr',
   message: 'Bonjour, une question sur votre parcours.',
   locale: 'fr',
+  typingMs: 5000,
 };
 
 test.beforeEach(({}, testInfo) => {
@@ -24,9 +27,27 @@ test('accepte un message valide en JSON', async ({ request, baseURL }) => {
   expect(await response.json()).toEqual({ ok: true });
   const headers = response.headers();
   expect(headers['cache-control']).toBe('no-store');
+  // Passé par l'envoi (dry run), pas par un succès de façade.
+  expect(headers['x-contact-dry-run']).toBe('sent');
   expect(headers['access-control-allow-origin']).toBeUndefined();
   expect(headers['content-security-policy']).toContain("default-src 'self'");
   expect(headers['x-content-type-options']).toBe('nosniff');
+});
+
+test('prend un JSON sans durée de saisie pour un robot (succès de façade)', async ({ request }) => {
+  const withoutTyping: Partial<typeof valid> = { ...valid };
+  delete withoutTyping.typingMs;
+  const response = await request.post(ROUTE, { data: withoutTyping });
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toEqual({ ok: true });
+  expect(response.headers()['x-contact-dry-run']).toBeUndefined();
+});
+
+test('répond comme un succès à un piège non textuel', async ({ request }) => {
+  const response = await request.post(ROUTE, { data: { ...valid, website: 1 } });
+  expect(response.status()).toBe(200);
+  expect(await response.json()).toEqual({ ok: true });
+  expect(response.headers()['x-contact-dry-run']).toBeUndefined();
 });
 
 test('refuse les champs invalides avec un code par champ', async ({ request }) => {
@@ -83,6 +104,8 @@ test('redirige un formulaire HTML (303) avec son état', async ({ request }) => 
   });
   expect(response.status()).toBe(303);
   expect(response.headers()['location']).toBe('/en/express?contact=envoye#contact-envoye');
+  // Sans JavaScript, pas de durée de saisie : le message passe par l'envoi.
+  expect(response.headers()['x-contact-dry-run']).toBe('sent');
 
   const invalid = await request.post(ROUTE, {
     form: { ...valid, email: 'x', locale: 'fr', from: 'desk' },
@@ -100,4 +123,5 @@ test('répond comme un succès quand le piège est rempli', async ({ request }) 
   });
   expect(response.status()).toBe(200);
   expect(await response.json()).toEqual({ ok: true });
+  expect(response.headers()['x-contact-dry-run']).toBeUndefined();
 });

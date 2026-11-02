@@ -40,6 +40,14 @@ const STATUS: Record<ContactErrorCode, number> = {
   send_failed: 502,
 };
 
+/**
+ * En dry run seulement, l'en-tête posé sur un envoi passé par le mailer :
+ * les tests de bout en bout distinguent ainsi un vrai envoi d'un succès de
+ * façade (piège, saisie trop rapide), qui ne le porte jamais. Hors dry run,
+ * il n'existe pas : rien ne renseigne un robot.
+ */
+export const DRY_RUN_HEADER = 'X-Contact-Dry-Run';
+
 /** Méthodes acceptées, pour l'en-tête Allow des réponses 405. */
 export const ALLOWED_METHODS = 'POST';
 
@@ -99,8 +107,8 @@ function fail(
   return json(body, STATUS[error], extra.headers);
 }
 
-function succeed(kind: BodyKind, target: Target) {
-  return kind === 'form' ? redirect(target, null) : json({ ok: true }, 200);
+function succeed(kind: BodyKind, target: Target, headers: Record<string, string> = {}) {
+  return kind === 'form' ? redirect(target, null, headers) : json({ ok: true }, 200, headers);
 }
 
 /**
@@ -169,6 +177,12 @@ function parseBody(kind: BodyKind, text: string): Record<string, unknown> | null
   }
 }
 
+/** Le piège contient-il quelque chose ? Absent, null ou texte blanc : non. */
+function isTrapFilled(value: unknown): boolean {
+  if (value === undefined || value === null) return false;
+  return typeof value !== 'string' || value.trim() !== '';
+}
+
 /** Où renvoyer un formulaire sans JavaScript, même quand le reste est invalide. */
 function targetOf(raw: Record<string, unknown> | null): Target {
   const locale = typeof raw?.locale === 'string' && isLocale(raw.locale) ? raw.locale : 'fr';
@@ -196,9 +210,10 @@ export async function handleContactPost(request: Request, deps: ContactDeps): Pr
   const target = targetOf(raw);
   if (raw === null) return fail(kind, target, 'validation');
 
-  // Le piège rempli : même réponse qu'un succès, rien n'est envoyé.
-  const honeypot = raw[HONEYPOT_FIELD];
-  if (typeof honeypot === 'string' && honeypot.trim() !== '') {
+  // Le piège rempli : même réponse qu'un succès, rien n'est envoyé. Toute
+  // valeur compte, quel que soit son type : une erreur de validation sur ce
+  // champ dirait au robot lequel éviter.
+  if (isTrapFilled(raw[HONEYPOT_FIELD])) {
     logger.info('contact : piège à robots rempli, rien envoyé');
     return succeed(kind, target);
   }
@@ -210,7 +225,10 @@ export async function handleContactPost(request: Request, deps: ContactDeps): Pr
   const data = parsed.data;
 
   // Saisie trop rapide pour un humain : succès apparent, rien n'est envoyé.
-  if (data.typingMs !== undefined && data.typingMs < MIN_TYPING_MS) {
+  // Le formulaire envoie toujours la durée en JSON : son absence trahit un
+  // robot. Sans JavaScript (formulaire HTML), elle manque forcément.
+  const typingMs = data.typingMs ?? (kind === 'json' ? 0 : undefined);
+  if (typingMs !== undefined && typingMs < MIN_TYPING_MS) {
     logger.info('contact : saisie trop rapide, rien envoyé');
     return succeed(kind, target);
   }
@@ -241,5 +259,5 @@ export async function handleContactPost(request: Request, deps: ContactDeps): Pr
     logger.error(`contact : ${reason}`);
     return fail(kind, target, 'send_failed');
   }
-  return succeed(kind, target);
+  return succeed(kind, target, resolved.mailer.dryRun ? { [DRY_RUN_HEADER]: 'sent' } : {});
 }

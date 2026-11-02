@@ -1,5 +1,11 @@
 import { describe, expect, it, vi } from 'vitest';
-import { handleContactPost, isAllowedOrigin, methodNotAllowed, type ContactDeps } from './handler';
+import {
+  DRY_RUN_HEADER,
+  handleContactPost,
+  isAllowedOrigin,
+  methodNotAllowed,
+  type ContactDeps,
+} from './handler';
 import { MailerError, type Mailer } from './mailer';
 import { createMemoryRateLimiter } from './rate-limit';
 import { MAX_BODY_BYTES } from './rules';
@@ -159,6 +165,47 @@ describe('POST /api/contact en JSON', () => {
     // Même un envoi par ailleurs invalide : on ne renseigne pas le robot.
     const invalid = await handleContactPost(post({ website: 'x' }), deps);
     expect(await invalid.json()).toEqual({ ok: true });
+  });
+
+  it('traite tout piège non vide comme rempli, quel que soit son type', async () => {
+    const { deps, send } = setup();
+    for (const website of [1, 0, true, false, ['x'], [], {}, { a: 1 }]) {
+      const response = await handleContactPost(post({ ...valid, website }), deps);
+      expect(response.status, JSON.stringify(website)).toBe(200);
+      expect(await response.json()).toEqual({ ok: true });
+    }
+    expect(send).not.toHaveBeenCalled();
+    // Vide ou absent, le piège ne bloque rien.
+    for (const website of ['', '  ', null]) {
+      await handleContactPost(post({ ...valid, website }), deps);
+    }
+    expect(send).toHaveBeenCalledTimes(3);
+  });
+
+  it('marque un envoi passé par le dry run, jamais un succès de façade', async () => {
+    const { deps } = setup({
+      resolveMailer: () => ({ ok: true, mailer: { dryRun: true, send: async () => {} } }),
+    });
+    const sent = await handleContactPost(post(valid), deps);
+    expect(sent.headers.get(DRY_RUN_HEADER)).toBe('sent');
+    const trapped = await handleContactPost(post({ ...valid, website: 'x' }), deps);
+    expect(trapped.headers.get(DRY_RUN_HEADER)).toBeNull();
+    const tooFast = await handleContactPost(post({ ...valid, typingMs: 10 }), deps);
+    expect(tooFast.headers.get(DRY_RUN_HEADER)).toBeNull();
+    // Hors dry run, jamais.
+    const real = await handleContactPost(post(valid), setup().deps);
+    expect(real.headers.get(DRY_RUN_HEADER)).toBeNull();
+  });
+
+  it('prend un JSON sans durée de saisie pour un robot', async () => {
+    const { deps, send, logger } = setup();
+    const withoutTyping: Partial<typeof valid> = { ...valid };
+    delete withoutTyping.typingMs;
+    const response = await handleContactPost(post(withoutTyping), deps);
+    expect(response.status).toBe(200);
+    expect(await response.json()).toEqual({ ok: true });
+    expect(send).not.toHaveBeenCalled();
+    expect(logged(logger)).toContain('trop rapide');
   });
 
   it('fait comme si de rien n’était quand la saisie est trop rapide', async () => {

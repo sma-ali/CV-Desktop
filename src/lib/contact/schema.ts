@@ -51,9 +51,9 @@ export const contactRequestSchema = z.object({
   from: z.preprocess(undefinedIfBlank, z.enum(CONTACT_SOURCES).optional()),
   // Le piège : n'importe quel texte, borné. Rempli, le message est ignoré.
   [HONEYPOT_FIELD]: z.preprocess(undefinedIfBlank, z.string().max(500).optional()),
-  // Durée de saisie mesurée par le navigateur (ms), depuis la première frappe.
+  // Durée mesurée par le navigateur (ms), depuis l'affichage du formulaire.
   // Une durée plutôt qu'un horodatage : l'horloge du visiteur peut différer
-  // de celle du serveur. Absente sans JavaScript.
+  // de celle du serveur. Absente sans JavaScript ; toujours là en JSON.
   typingMs: z.preprocess(
     undefinedIfBlank,
     z.coerce.number().int().min(0).max(86_400_000).optional(),

@@ -190,8 +190,10 @@ describe('le bureau utile', () => {
         Object.values(FIXED_EXTENT).reduce((n, list) => n + list.length, 0),
     );
     expect(Object.keys(FIXED_EXTENT).sort()).toEqual(['edge', 'headset', 'lamp', 'monitor']);
-    // Le bord gauche (l'ancien micro) est le point le plus à gauche.
-    expect(Math.min(...points.map(([x]) => x))).toBeLessThan(-6.3);
+    // Le bord gauche (la corde à sauter) est le point le plus à gauche.
+    const left = Math.min(...points.map(([x]) => x));
+    expect(left).toBeLessThan(-6.1);
+    expect(Math.min(...FIXED_EXTENT.edge.map(([x]) => x))).toBe(left);
   });
 });
 

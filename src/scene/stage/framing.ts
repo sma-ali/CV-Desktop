@@ -26,7 +26,7 @@ import {
   type Vec3,
   type View,
 } from '../core/constants';
-import { decorExtentPortrait, decorPlacement, placeDecorPoint } from '../decor/layout';
+import { decorExtentPortrait, decorPlacement, placeDecorPoint, ROPE_EXTENT } from '../decor/layout';
 
 // Le cadrage de la caméra, en fonctions pures (testées) : la vue de repos
 // calculée d'après le format de la fenêtre (layout() du prototype), la montée
@@ -138,16 +138,10 @@ export const FIXED_EXTENT: Readonly<
     [monitorX + monitorHalf, monitorTop, monitorZ],
   ],
   headset: [[HEADSET_STAND[0], ITEM_POSES.headset.y + 0.9, HEADSET_STAND[2]]],
-  // Le bord gauche du cadre en paysage : les points de l'ancien micro sur
-  // son bras (retiré à l'étape 6), gardés pour ne pas changer la vue de
-  // l'étape 4. La partie décor les recale avec la nouvelle disposition.
-  edge: [
-    [-6.42, 0, -2.0],
-    [-6.38, 0.95, -1.95],
-    [-6.25, 2.85, -1.05],
-    [-5.62, 2.7, 0.15],
-    [-5.3266, 2.4291, 0.4099],
-  ],
+  // Le bord gauche du cadre en paysage : la corde à sauter enroulée et ses
+  // poignées, le morceau du décor le plus à gauche depuis que le micro sur
+  // son bras est retiré (étape 6).
+  edge: ROPE_EXTENT,
   lamp: [LAMP.base, LAMP.head],
 };
 

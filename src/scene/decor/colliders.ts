@@ -1,7 +1,7 @@
 import { LAMP, type Vec3 } from '../core/constants';
 import type { DecorBodyId } from '../core/ids';
 import type { BodySpec, ShapeSpec } from '../physics/shapes';
-import { KIMONO, MANGA, MANGA_SIZE, MANGA_TOP } from './layout';
+import { KIMONO, KIMONO_FOOTPRINT, MANGA, MANGA_SIZE, MANGA_TOP } from './layout';
 
 // Les formes de collision du décor (étape 6) : une boîte, un cylindre ou
 // quelques gélules par morceau, dans le repère du corps. L'origine d'un
@@ -60,5 +60,15 @@ export const DECOR_BODY_SPECS: Readonly<Record<DecorBodyId, BodySpec>> = {
   wanderer: { shapes: [box([0.18, 0.3, 0.18])], density: 0.6 },
   rope: { shapes: [box([0.55, 0.06, 0.46])], density: 0.5 },
   wraps: { shapes: [box([0.38, 0.17, 0.38])], density: 0.5 },
-  kimono: { shapes: [box([0.64, 0.13, 0.44], [0, 0.13, 0], [0, KIMONO.ry, 0])], density: 0.5 },
+  // Le paquet plié, ceinture comprise (le nœud dépasse à peine).
+  kimono: {
+    shapes: [
+      box(
+        [KIMONO_FOOTPRINT.hw, KIMONO_FOOTPRINT.height / 2, KIMONO_FOOTPRINT.hd],
+        [0, KIMONO_FOOTPRINT.height / 2, 0],
+        [0, KIMONO.ry, 0],
+      ),
+    ],
+    density: 0.5,
+  },
 };

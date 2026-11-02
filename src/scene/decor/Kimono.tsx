@@ -1,35 +1,38 @@
 'use client';
 
+import { BoxGeometry, Euler, Quaternion, Vector3 } from 'three';
+import type { Vec3 } from '../core/constants';
 import { DecorPiece } from './DecorPiece';
+import { kimonoBlocks } from './kimono';
 import { KIMONO } from './layout';
 import type { Part } from './merge';
-import { box, MergedParts } from './shared';
+import { MergedParts } from './shared';
 
 // Le kimono de grappling plié, bleu marine, et sa ceinture blanche nouée
-// posée dessus : aucune marque, aucun écusson. Version provisoire du socle
-// de l'étape 6 (des pavés), que la partie décor remplace : forme, plis,
-// nœud, lisibilité vue de dessus (voir docs/bureau-vivant.md).
+// posée dessus : aucune marque, aucun écusson (pièces dans kimono.ts). Un
+// morceau du décor comme les autres : il se glisse, se lance, se renverse.
 
-const NAVY = 0x1f2a44;
-const WHITE = 0xe9e4d8;
-
-const [x, , z] = KIMONO.position;
-
-/** Les pièces, dans le repère du monde (le morceau du décor les place). */
+/** Les pièces, dans le repère du monde à sa place en paysage (le morceau du décor les place). */
 function kimonoParts(): Part[] {
-  return [
-    { geometry: box(1.28, 0.16, 0.88), color: NAVY, finish: 'satin', position: [x, 0.08, z] },
-    { geometry: box(1.2, 0.06, 0.8), color: 0x26324f, position: [x, 0.19, z - 0.02] },
-    // La ceinture, en travers, et son nœud.
-    { geometry: box(0.16, 0.03, 0.9), color: WHITE, position: [x + 0.18, 0.235, z] },
-    { geometry: box(0.24, 0.06, 0.2), color: WHITE, position: [x + 0.18, 0.25, z + 0.05] },
-  ];
+  const turn = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), KIMONO.ry);
+  const [ax, , az] = KIMONO.position;
+  return kimonoBlocks().map((block) => {
+    const at = new Vector3(...block.at).applyQuaternion(turn);
+    const own = new Quaternion().setFromEuler(new Euler(...(block.rotation ?? [0, 0, 0])));
+    return {
+      geometry: new BoxGeometry(...block.size),
+      color: block.color,
+      finish: block.finish,
+      position: [ax + at.x, at.y, az + at.z] as Vec3,
+      quaternion: turn.clone().multiply(own),
+    };
+  });
 }
 
 export function Kimono() {
   return (
     <DecorPiece id="kimono">
-      <group name="decor-kimono" rotation={[0, KIMONO.ry, 0]}>
+      <group name="decor-kimono">
         <MergedParts build={kimonoParts} />
       </group>
     </DecorPiece>

@@ -2,7 +2,9 @@ import { expect, test, type Page } from '@playwright/test';
 
 // Le décor du bureau : ses petites animations suivent l'horloge de la scène.
 // ?fige les gèle toutes (deux images identiques) ; sans ?fige, il vit (la
-// vapeur monte, les feuilles bougent, les LED respirent).
+// vapeur monte, les feuilles bougent, les LED respirent). Étape 6 : le
+// kimono plié, à la place du matériel de stream, est un corps du bureau
+// comme les autres.
 
 const SETTLED = '/fr?t=11000&auto=0&heure=14&nopost';
 
@@ -83,5 +85,23 @@ test.describe('le décor', () => {
     await waitForScene(page);
     await page.waitForTimeout(1000);
     expect(errors).toEqual([]);
+  });
+});
+
+test.describe('le kimono plié', () => {
+  test.slow();
+
+  test('se glisse comme le reste du décor, sans rien chevaucher', async ({ page }) => {
+    await page.goto(`${SETTLED}&fige&glisse=kimono:-2.6,-1.5`);
+    await waitForScene(page);
+    await expect(page.locator('#hud')).toHaveAttribute('data-physics', 'ready', {
+      timeout: 30_000,
+    });
+    await expect(page.locator('#hud')).toHaveAttribute('data-places', /kimono:/);
+    const fallen = (await page.locator('#hud').getAttribute('data-fallen')) ?? '';
+    expect(fallen.split(' ')).not.toContain('kimono');
+    const canvas = page.locator('canvas');
+    await expect(canvas).toHaveAttribute('data-penetration', /^\d/, { timeout: 30_000 });
+    expect(Number(await canvas.getAttribute('data-penetration'))).toBeLessThan(0.05);
   });
 });

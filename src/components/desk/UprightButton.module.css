@@ -1,0 +1,5 @@
+/* « Remettre droit » prend l'allure de « Retourner » (.sheetFlip, Desk.module.css) ;
+   caché, il ne prend pas de place. */
+.upright[hidden] {
+  display: none;
+}

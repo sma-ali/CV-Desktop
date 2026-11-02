@@ -2,8 +2,13 @@ import { describe, expect, it } from 'vitest';
 import { decorObstacles } from '../decor/layout';
 import {
   BODY_FOOTPRINTS,
+  bodyHidden,
   bodyObb,
   createDeskBodies,
+  fallenIds,
+  FOOTPRINT_IDS,
+  homePose,
+  isMoved,
   fixedItemObstacles,
   formatPlaces,
   homePlace,
@@ -13,10 +18,11 @@ import {
   obbPenetration,
   resetDeskBodies,
   syncDeskBodies,
+  yawOf,
   type Obb,
 } from './bodies';
-import { BOUNDS, BOUNDS_PORTRAIT, deskBounds, ITEM_POSES } from './constants';
-import { BODY_IDS, ITEM_IDS } from './ids';
+import { BOUNDS, BOUNDS_PORTRAIT, deskBounds, headsetPose, ITEM_POSES } from './constants';
+import { BODY_IDS, ITEM_BODY_IDS, ITEM_IDS } from './ids';
 
 // La disposition du plateau vue de dessus : chaque corps glissable et
 // chaque obstacle fixe a son rectangle, et rien ne se chevauche au repos,
@@ -29,7 +35,7 @@ describe.each([
   ['paysage', false],
   ['portrait', true],
 ] as const)('la disposition en %s', (_, portrait) => {
-  const bodies = BODY_IDS.map((id) => ({ id, box: bodyObb(id, homePlace(id, portrait)) }));
+  const bodies = FOOTPRINT_IDS.map((id) => ({ id, box: bodyObb(id, homePlace(id, portrait)) }));
   // Le décor et les objets fixes du format (le bureau resserré en portrait).
   const obstacles = [...decorObstacles(portrait), ...fixedItemObstacles(portrait)];
 
@@ -68,7 +74,7 @@ describe('le bureau resserré du portrait', () => {
     expect(BOUNDS_PORTRAIT.x1 - BOUNDS_PORTRAIT.x0).toBeLessThan((BOUNDS.x1 - BOUNDS.x0) * 0.65);
     expect(BOUNDS_PORTRAIT.z1 - BOUNDS_PORTRAIT.z0).toBeGreaterThan(BOUNDS.z1 - BOUNDS.z0);
     const span = (portrait: boolean) => {
-      const xs = BODY_IDS.flatMap((id) =>
+      const xs = FOOTPRINT_IDS.flatMap((id) =>
         obbCorners(bodyObb(id, homePlace(id, portrait))).map(([x]) => x),
       );
       return Math.max(...xs) - Math.min(...xs);
@@ -92,17 +98,26 @@ describe('le bureau resserré du portrait', () => {
 
 describe('les corps du plateau', () => {
   it('reprennent les poses des objets du CV', () => {
-    for (const id of BODY_IDS) {
-      if (id === 'mug' || id === 'pad') continue;
-      const { x, z, ry } = ITEM_POSES[id];
-      expect(homePlace(id, false)).toEqual({ x, z, ry });
-      expect(BODY_FOOTPRINTS[id].hw).toBeGreaterThan(0);
+    for (const id of ITEM_BODY_IDS) {
+      const { x, y, z, ry } = id === 'headset' ? headsetPose(false) : ITEM_POSES[id];
+      expect(homePose(id, false)).toEqual({ x, y, z, ry });
     }
-    // Le post-it, le casque et l'écran ne glissent pas.
+    for (const id of FOOTPRINT_IDS) expect(BODY_FOOTPRINTS[id].hw).toBeGreaterThan(0);
+    // Seuls le post-it (collé à l'écran) et l'écran ne sont pas des corps.
     expect(ITEM_IDS.filter((id) => !(BODY_IDS as readonly string[]).includes(id))).toEqual([
       'postit',
-      'headset',
       'monitor',
+    ]);
+  });
+
+  it('cachent en portrait le décor qui n’a pas de place, jamais un objet du CV', () => {
+    for (const id of ITEM_BODY_IDS) expect(bodyHidden(id, true)).toBe(false);
+    for (const id of BODY_IDS) expect(bodyHidden(id, false)).toBe(false);
+    expect(BODY_IDS.filter((id) => bodyHidden(id, true))).toEqual([
+      'fox',
+      'wanderer',
+      'rope',
+      'wraps',
     ]);
   });
 
@@ -112,12 +127,30 @@ describe('les corps du plateau', () => {
     desk.book.moved = true;
     desk.chest.x = 3;
     syncDeskBodies(desk, true);
-    expect(desk.chest).toMatchObject(homePlace('chest', true));
+    expect(desk.chest).toMatchObject(homePose('chest', true));
     expect(desk.book.x).toBe(1);
     expect(movedPlaces(desk)).toEqual({ book: { x: 1, z: desk.book.z, ry: desk.book.ry } });
+    expect(desk.rope.hidden).toBe(true);
     resetDeskBodies(desk, false);
-    expect(desk.book).toMatchObject({ ...homePlace('book', false), moved: false, lift: 0 });
+    expect(desk.book).toMatchObject({ ...homePose('book', false), moved: false, fallen: false });
+    expect(desk.rope.hidden).toBe(false);
     expect(movedPlaces(desk)).toEqual({});
+  });
+
+  it('portent une orientation complète, droite au repos', () => {
+    const desk = createDeskBodies(false);
+    const { book } = desk;
+    expect(yawOf(book.qx, book.qy, book.qz, book.qw)).toBeCloseTo(ITEM_POSES.book.ry);
+    expect(isMoved(book, homePose('book', false))).toBe(false);
+    // Renversé sur place : il a bougé.
+    Object.assign(book, { qx: Math.SQRT1_2, qy: 0, qz: 0, qw: Math.SQRT1_2 });
+    expect(isMoved(book, homePose('book', false))).toBe(true);
+  });
+
+  it('listent les corps tombés', () => {
+    const desk = createDeskBodies(false);
+    desk.mug.fallen = true;
+    expect(fallenIds(desk)).toEqual(['mug']);
   });
 
   it('écrivent leurs places pour data-places', () => {

@@ -1,13 +1,22 @@
-import { headsetStand, HEADSET_STAND, ITEM_POSES, MONITOR } from './constants';
+import { decorPlacement } from '../decor/layout';
+import {
+  DECOR_BODY_HOMES,
+  headsetPose,
+  headsetStand,
+  HEADSET_STAND,
+  ITEM_POSES,
+  MONITOR,
+} from './constants';
 import { PORTRAIT_PLACES } from './framing';
-import { BODY_IDS, type BodyId, type DecorBodyId } from './ids';
+import { BODY_IDS, isDecorBodyId, type BodyId } from './ids';
 
-// Les corps posés sur le plateau, vus de dessus (étape 4) : où ils reposent,
-// ce qu'ils occupent (un rectangle orienté, OBB), et leur état mutable
-// pendant un glisser. Données pures, sans three : le solveur des collisions
-// (partie « gestes ») et les tests les lisent. Repère du prototype : x vers
-// la droite, z vers le visiteur, ry autour de l'axe vertical (sens de three :
-// un point local (lx, lz) va en x = lx cos ry + lz sin ry,
+// Les corps du bureau, vus de dessus et en 3D : où ils reposent (leur place
+// d'origine, selon le format), ce qu'ils occupent au repos (un rectangle
+// orienté, OBB, pour le cadrage et les tests de disposition), et leur pose
+// mutable, écrite à chaque image par le moteur physique (étape 6). Données
+// pures, sans three. Repère du prototype : x vers la droite, z vers le
+// visiteur, y vers le haut, ry autour de l'axe vertical (sens de three : un
+// point local (lx, lz) va en x = lx cos ry + lz sin ry,
 // z = -lx sin ry + lz cos ry).
 
 /** Une place sur le plateau : centre de l'objet et rotation autour de y. */
@@ -43,7 +52,27 @@ export interface DeskObstacle extends Obb {
 }
 
 /**
- * Encombrement de chaque corps glissable, d'après sa géométrie (les lanières
+ * Les corps dont l'encombrement au repos compte pour le cadrage et pour les
+ * tests de disposition : ceux de l'étape 4. Le décor a ses propres
+ * rectangles (DECOR_OBSTACLES, decor/layout.ts), le casque pend à son
+ * support (FIXED_ITEM_OBSTACLES).
+ */
+export const FOOTPRINT_IDS = [
+  'book',
+  'badge',
+  'laptop',
+  'card',
+  'chest',
+  'netherbrain',
+  'homelab',
+  'mug',
+  'pad',
+] as const satisfies readonly BodyId[];
+
+export type FootprintId = (typeof FOOTPRINT_IDS)[number];
+
+/**
+ * Encombrement de chaque corps posé à plat, d'après sa géométrie (les lanières
  * et les câbles plats ne comptent pas). Le coffret est décalé de -0.2 en z
  * dans son repère (Chest.tsx), comme sa boîte.
  */
@@ -59,13 +88,10 @@ export const BODY_FOOTPRINTS = {
   // La tasse et son anse (à droite), la manette et ses poignées (vers l'avant).
   mug: { cx: 0.08, cz: 0, hw: 0.4, hd: 0.31 },
   pad: { cx: 0, cz: 0.08, hw: 0.68, hd: 0.38 },
-} as const satisfies Record<BodyId, Footprint>;
+} as const satisfies Record<FootprintId, Footprint>;
 
 /** Places de repos de la tasse et de la manette (le décor les pose là). */
-export const DECOR_BODY_HOMES = {
-  mug: { x: 4.55, z: -0.62, ry: 0 },
-  pad: { x: 5.1, z: 1.95, ry: 0.45 },
-} as const satisfies Record<DecorBodyId, DeskPlace>;
+export { DECOR_BODY_HOMES };
 
 /**
  * Les objets du CV qui ne glissent pas mais occupent le plateau : le pied de
@@ -97,19 +123,54 @@ export const FIXED_ITEM_OBSTACLES_PORTRAIT: readonly DeskObstacle[] = FIXED_ITEM
 export const fixedItemObstacles = (portrait: boolean): readonly DeskObstacle[] =>
   portrait ? FIXED_ITEM_OBSTACLES_PORTRAIT : FIXED_ITEM_OBSTACLES;
 
-/** La place de repos d'un corps, selon le format (voir PORTRAIT_PLACES). */
-export function homePlace(id: BodyId, portrait: boolean): DeskPlace {
-  const base: DeskPlace =
-    id === 'mug' || id === 'pad'
-      ? { ...DECOR_BODY_HOMES[id] }
-      : { x: ITEM_POSES[id].x, z: ITEM_POSES[id].z, ry: ITEM_POSES[id].ry };
+/** Une pose de repos : la place, et la hauteur de l'origine du corps. */
+export interface DeskPose extends DeskPlace {
+  y: number;
+}
+
+/**
+ * La place d'origine d'un corps, selon le format (le bureau resserré en
+ * portrait : PORTRAIT_PLACES, PORTRAIT_DECOR). L'origine d'un objet du CV
+ * est celle de son groupe (ITEM_POSES) ; celle d'un morceau du décor, son
+ * ancre (DECOR_ANCHORS), au ras du plateau.
+ */
+export function homePose(id: BodyId, portrait: boolean): DeskPose {
+  if (id === 'headset') {
+    const { x, y, z, ry } = headsetPose(portrait);
+    return { x, y, z, ry };
+  }
+  if (id === 'mug' || id === 'pad') {
+    const base = DECOR_BODY_HOMES[id];
+    const override = portrait ? PORTRAIT_PLACES[id] : undefined;
+    return override
+      ? { x: override.x, y: 0, z: override.z, ry: override.ry ?? base.ry }
+      : { ...base, y: 0 };
+  }
+  if (isDecorBodyId(id)) {
+    const { x, z, ry } = decorPlacement(id, portrait);
+    return { x, y: 0, z, ry };
+  }
+  const pose = ITEM_POSES[id];
   const override = portrait ? PORTRAIT_PLACES[id] : undefined;
-  if (!override) return base;
-  return { x: override.x, z: override.z, ry: override.ry ?? base.ry };
+  return override
+    ? { x: override.x, y: pose.y, z: override.z, ry: override.ry ?? pose.ry }
+    : { x: pose.x, y: pose.y, z: pose.z, ry: pose.ry };
+}
+
+/** La place de repos d'un corps vue de dessus, selon le format. */
+export function homePlace(id: BodyId, portrait: boolean): DeskPlace {
+  const { x, z, ry } = homePose(id, portrait);
+  return { x, z, ry };
+}
+
+/** Le corps est-il absent de ce format (décor caché en portrait, faute de place) ? */
+export function bodyHidden(id: BodyId, portrait: boolean): boolean {
+  if (!portrait || !isDecorBodyId(id) || id === 'mug' || id === 'pad') return false;
+  return decorPlacement(id, true).hidden;
 }
 
 /** Le rectangle d'un corps posé à une place. */
-export function bodyObb(id: BodyId, place: DeskPlace): Obb {
+export function bodyObb(id: FootprintId, place: DeskPlace): Obb {
   const { cx, cz, hw, hd } = BODY_FOOTPRINTS[id];
   const cos = Math.cos(place.ry);
   const sin = Math.sin(place.ry);
@@ -190,60 +251,111 @@ export function obbOutside(
 }
 
 /**
- * L'état d'un corps sur le plateau, mutable, mis à jour à chaque image par
- * les gestes (jamais réactif : le lire dans useFrame avec getState()).
+ * La pose d'un corps, mutable, écrite à chaque image par le moteur physique
+ * (jamais réactive : la lire dans useFrame avec getState()). Avant que le
+ * moteur ne soit chargé, et pour tout corps jamais touché, c'est sa place
+ * d'origine du format courant.
  */
-export interface DeskBodyState extends DeskPlace {
-  /** Le visiteur l'a déplacé (ou il a été poussé) : il ne suit plus sa place de repos. */
+export interface DeskBodyState extends DeskPose {
+  /** L'orientation complète (quaternion) : un corps peut être renversé. */
+  qx: number;
+  qy: number;
+  qz: number;
+  qw: number;
+  /** Le corps n'est plus à sa place d'origine (déplacé, poussé, renversé, tombé). */
   moved: boolean;
-  /** Hauteur au-dessus du plateau (soulevé pendant le glisser, rebond au lâcher). */
-  lift: number;
-  /** Inclinaison selon la vitesse (radians, autour de x et de z). */
-  tiltX: number;
-  tiltZ: number;
-  /** Écrasement au rebond (0 : aucun, 1 : le plus fort). */
-  squash: number;
+  /** Le corps est tombé du plateau (sous le dessus du bureau). */
+  fallen: boolean;
+  /** Le corps n'existe pas dans ce format (décor caché en portrait). */
+  hidden: boolean;
 }
 
-/** Les corps du plateau : un état par corps glissable. */
+/** Les corps du bureau : un état par corps. */
 export type DeskBodies = Record<BodyId, DeskBodyState>;
+
+/** Sous cette hauteur (origine du corps), il est tombé du plateau. */
+export const FALLEN_Y = -0.6;
+
+/** Écarts au-delà desquels un corps a quitté sa place d'origine. */
+export const MOVED = { distance: 0.03, angle: 0.04 } as const;
+
+/** Pose un corps à une pose de repos (orientation : ry seul). */
+export function setHomePose(body: DeskBodyState, pose: DeskPose): void {
+  body.x = pose.x;
+  body.y = pose.y;
+  body.z = pose.z;
+  body.ry = pose.ry;
+  body.qx = 0;
+  body.qy = Math.sin(pose.ry / 2);
+  body.qz = 0;
+  body.qw = Math.cos(pose.ry / 2);
+  body.moved = false;
+  body.fallen = false;
+}
+
+/** L'angle autour de y d'une orientation (le cap, même renversé). */
+export function yawOf(qx: number, qy: number, qz: number, qw: number): number {
+  return Math.atan2(2 * (qw * qy + qx * qz), 1 - 2 * (qy * qy + qx * qx));
+}
+
+/** L'angle (radians) entre l'orientation d'un corps et sa pose d'origine. */
+export function angleFromHome(body: DeskBodyState, home: DeskPose): number {
+  const hy = Math.sin(home.ry / 2);
+  const hw = Math.cos(home.ry / 2);
+  const dot = Math.abs(body.qy * hy + body.qw * hw);
+  return 2 * Math.acos(Math.min(1, dot));
+}
+
+/** Le corps a-t-il quitté sa pose d'origine ? */
+export function isMoved(body: DeskBodyState, home: DeskPose): boolean {
+  const distance = Math.hypot(body.x - home.x, body.y - home.y, body.z - home.z);
+  return distance > MOVED.distance || angleFromHome(body, home) > MOVED.angle;
+}
+
+function newBody(pose: DeskPose, hidden: boolean): DeskBodyState {
+  const body: DeskBodyState = {
+    ...pose,
+    qx: 0,
+    qy: 0,
+    qz: 0,
+    qw: 1,
+    moved: false,
+    fallen: false,
+    hidden,
+  };
+  setHomePose(body, pose);
+  return body;
+}
 
 export function createDeskBodies(portrait = false): DeskBodies {
   return Object.fromEntries(
-    BODY_IDS.map((id) => [
-      id,
-      { ...homePlace(id, portrait), moved: false, lift: 0, tiltX: 0, tiltZ: 0, squash: 0 },
-    ]),
+    BODY_IDS.map((id) => [id, newBody(homePose(id, portrait), bodyHidden(id, portrait))]),
   ) as DeskBodies;
 }
 
-/** Remet tous les corps à leur place de repos (Rejouer), sans recréer l'objet. */
+/** Remet tous les corps à leur place d'origine (Rejouer, rangement), sans recréer l'objet. */
 export function resetDeskBodies(desk: DeskBodies, portrait = false): DeskBodies {
   for (const id of BODY_IDS) {
-    Object.assign(desk[id], homePlace(id, portrait), {
-      moved: false,
-      lift: 0,
-      tiltX: 0,
-      tiltZ: 0,
-      squash: 0,
-    });
+    setHomePose(desk[id], homePose(id, portrait));
+    desk[id].hidden = bodyHidden(id, portrait);
   }
   return desk;
 }
 
 /**
- * Cale les corps que personne n'a déplacés sur leur place de repos du format
- * courant (le coffret change de place en portrait). Appelé par le socle à
- * chaque image, avant les gestes.
+ * Cale les corps que personne n'a déplacés sur leur place d'origine du
+ * format courant (le bureau se resserre en portrait). Appelé par le socle à
+ * chaque image, avant le moteur physique.
  */
 export function syncDeskBodies(desk: DeskBodies, portrait: boolean): void {
   for (const id of BODY_IDS) {
     const body = desk[id];
+    body.hidden = bodyHidden(id, portrait);
     if (body.moved) continue;
-    const home = homePlace(id, portrait);
-    body.x = home.x;
-    body.z = home.z;
-    body.ry = home.ry;
+    const home = homePose(id, portrait);
+    if (body.x !== home.x || body.z !== home.z || body.ry !== home.ry || body.y !== home.y) {
+      setHomePose(body, home);
+    }
   }
 }
 
@@ -257,6 +369,11 @@ export function movedPlaces(desk: DeskBodies): DeskPlaces {
     if (moved) places[id] = { x, z, ry };
   }
   return places;
+}
+
+/** Les corps tombés du plateau, dans l'ordre de BODY_IDS. */
+export function fallenIds(desk: DeskBodies): BodyId[] {
+  return BODY_IDS.filter((id) => desk[id].fallen && !desk[id].hidden);
 }
 
 /** data-places du HUD : « id:x,z,ry » séparés par des espaces, au centième, dans l'ordre de BODY_IDS. */

@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { PerspectiveCamera, Vector3, type Camera } from 'three';
 import type { Vec3 } from '../core/constants';
-import { BODY_IDS } from '../core/ids';
+import { FOOTPRINT_IDS } from '../core/bodies';
 import { useSceneStoreApi } from '../core/store-context';
 import { bodyExtent, fixedExtent, restLimits, screenShare } from './framing';
 
@@ -54,7 +54,7 @@ export function OffscreenProbe() {
     }
     const ids: string[] = [];
     const all: Vec3[] = [];
-    for (const id of BODY_IDS) {
+    for (const id of FOOTPRINT_IDS) {
       const points = bodyExtent(id, desk[id]);
       all.push(...points);
       if (points.some((point) => outside(camera, point))) ids.push(id);

@@ -3,19 +3,15 @@
 import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useCallback, useRef, type ReactNode } from 'react';
 import type { Group } from 'three';
-import type { DecorBodyId } from '../core/ids';
 import { useSceneStoreApi } from '../core/store-context';
 import { claimBody } from './pointer';
 
-// Un objet du décor qui glisse (la tasse, la manette) : un groupe posé
-// chaque image à sa place du plateau (store.desk[id]), soulevé, incliné et
-// écrasé comme les objets du CV. Ses enfants gardent leurs propres
-// réactions au clic (vapeur, vibration).
-//
-// Un appui sur l'objet le désigne au glisser (claimBody) ; le glisser ne
-// commence qu'au-delà du seuil (Gestures), et un glisser n'est pas un clic :
-// la vapeur de la tasse ou la vibration de la manette ne partent qu'au clic.
-export function DeskBody({ id, children }: { id: DecorBodyId; children: ReactNode }) {
+// Un objet du décor dessiné dans son propre repère (la tasse, la manette) :
+// un groupe posé chaque image sur la pose de son corps (store.desk[id],
+// écrite par le moteur physique). Ses enfants gardent leurs propres
+// réactions au clic (vapeur, vibration). Un appui le désigne au glisser
+// (claimBody) ; un glisser n'est pas un clic.
+export function DeskBody({ id, children }: { id: 'mug' | 'pad'; children: ReactNode }) {
   const store = useSceneStoreApi();
   const ref = useRef<Group>(null);
 
@@ -23,10 +19,8 @@ export function DeskBody({ id, children }: { id: DecorBodyId; children: ReactNod
     const group = ref.current;
     if (!group) return;
     const body = store.getState().desk[id];
-    group.position.set(body.x, body.lift, body.z);
-    group.rotation.set(body.tiltX, body.ry, body.tiltZ);
-    const squash = 1 + Math.sin(body.squash * Math.PI) * 0.06;
-    group.scale.set(squash, 1 / squash, squash);
+    group.position.set(body.x, body.y, body.z);
+    group.quaternion.set(body.qx, body.qy, body.qz, body.qw);
   });
 
   const onPointerDown = useCallback(

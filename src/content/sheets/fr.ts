@@ -12,6 +12,7 @@ export const sheetsFr = {
     close: 'Reposer',
     flip: 'Retourner',
     flipKey: 'R',
+    upright: 'Remettre droit',
     contact: 'Me contacter',
     repository: 'Voir le dépôt',
     sound: 'Son',

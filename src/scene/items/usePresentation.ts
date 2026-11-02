@@ -2,21 +2,14 @@
 
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { createContext, useContext, useMemo, useRef } from 'react';
-import {
-  Euler,
-  Quaternion,
-  Vector3,
-  type Group,
-  type Material,
-  type PerspectiveCamera,
-} from 'three';
+import { Quaternion, Vector3, type Group, type Material, type PerspectiveCamera } from 'three';
 import { ease, easeOut, lerp } from '../core/arrival';
 import { ITEM_POSES } from '../core/constants';
 import { isBodyId, type ItemId } from '../core/ids';
 import type { FrameState } from '../core/store';
 import { useSceneStoreApi } from '../core/store-context';
 import { gestureHub } from '../gestures/hub';
-import { claimBody, GESTURES_AFTER } from '../gestures/pointer';
+import { claimBody, claimHeld, GESTURES_AFTER } from '../gestures/pointer';
 import {
   createPresentState,
   glowLevel,
@@ -34,12 +27,13 @@ import {
 // devant la caméra et pose de l'étiquette (TagLayer). Chaque objet appelle ce
 // hook et pose `ref` et `handlers` sur son groupe racine.
 //
-// Étape 4 : un objet glissable (BODY_IDS) repose à sa place du plateau,
-// store.desk[id], que les gestes déplacent ; son soulèvement, son
-// inclinaison et son écrasement en viennent aussi. Un appui le désigne au
-// glisser (claimBody) ; un glisser n'arrive jamais jusqu'au clic (Gestures
-// avale le clic qui le termine). Le geste de présentation suit
-// store.flipped ; tenu, l'objet suit un peu le pointeur (lissé par les gestes).
+// Étape 6 : un objet qui est un corps (BODY_IDS) repose à sa pose du
+// plateau, store.desk[id] (position et orientation complètes, écrites par le
+// moteur physique : il peut être renversé, ou tombé). Un appui le désigne
+// au glisser (claimBody) ; un glisser n'arrive jamais jusqu'au clic
+// (Gestures avale le clic qui le termine). Le geste de présentation suit
+// store.flipped ; tenu, l'objet suit un peu le pointeur (lissé par les
+// gestes) et prend la rotation libre du visiteur (store.heldSpin, partie A).
 
 /** Avancement de la présentation de chaque objet, lu par CvItems pour frame.presentLevel. */
 export class PresentProgress {
@@ -72,8 +66,8 @@ type Glowing = Material & { emissiveIntensity: number };
 export interface PresentationOptions {
   id: ItemId;
   /**
-   * Pose de repos sur le bureau. Pour un objet glissable, seule sa hauteur
-   * (rest.position.y) compte : x, z et la rotation viennent de store.desk.
+   * Pose de repos sur le bureau. Pour un corps (BODY_IDS), elle ne sert pas :
+   * la pose vient de store.desk.
    */
   rest: RestPose;
   /** false : l'objet ne se soulève pas (l'écran, que la caméra vient regarder). */
@@ -97,9 +91,9 @@ function setGlow(materials: readonly Glowing[], level: number): void {
 
 const restPosition = new Vector3();
 const restQuaternion = new Quaternion();
-const restEuler = new Euler();
 const heldPosition = new Vector3();
 const heldQuaternion = new Quaternion();
+const spinQuaternion = new Quaternion();
 const input: PresentInput = { t: 0, pointerX: 0, pointerY: 0 };
 
 export function usePresentation({
@@ -142,14 +136,12 @@ export function usePresentation({
     hub.progress.set(id, current.p);
 
     if (group && lift) {
-      // Un objet glissable repose à sa place du plateau (store.desk), qui
-      // suit le format (le coffret change de place en portrait).
+      // Un corps repose à sa pose du plateau (store.desk), qui suit le
+      // format tant que personne ne l'a déplacé.
       const body = isBodyId(id) ? scene.desk[id] : null;
-      let squash = 1;
       if (body) {
-        restPosition.set(body.x, rest.position.y + body.lift, body.z);
-        restQuaternion.setFromEuler(restEuler.set(body.tiltX, body.ry, body.tiltZ));
-        squash = 1 + Math.sin(body.squash * Math.PI) * 0.06;
+        restPosition.set(body.x, body.y, body.z);
+        restQuaternion.set(body.qx, body.qy, body.qz, body.qw);
       } else {
         restPosition.copy(rest.position);
         restQuaternion.copy(rest.quaternion);
@@ -158,7 +150,7 @@ export function usePresentation({
       if (current.p <= 0) {
         group.position.copy(restPosition);
         group.quaternion.copy(restQuaternion);
-        group.scale.set(squash, 1 / squash, squash);
+        group.scale.setScalar(1);
       } else {
         // Mouvement réduit : ni balancement ni suivi du pointeur.
         input.t = reduced ? 0 : frame.t;
@@ -174,6 +166,12 @@ export function usePresentation({
           heldPosition,
           heldQuaternion,
         );
+        // La rotation libre du visiteur (partie A), par-dessus la pose tenue.
+        const spin = scene.heldSpin;
+        if (scene.presented === id && spin.qw !== 1) {
+          spinQuaternion.set(spin.qx, spin.qy, spin.qz, spin.qw);
+          heldQuaternion.premultiply(spinQuaternion);
+        }
         const k = ease(current.p);
         group.position.lerpVectors(restPosition, heldPosition, k);
         group.position.y += Math.sin(Math.PI * k) * 1.2 * arc;
@@ -210,6 +208,11 @@ export function usePresentation({
       },
       onPointerDown(event: ThreeEvent<PointerEvent>) {
         const scene = store.getState();
+        // L'objet présenté : l'appui lui est réservé (rotation libre, partie A).
+        if (scene.presented === id && id !== 'monitor') {
+          claimHeld(store, event);
+          return;
+        }
         // Seul un corps posé sur le plateau glisse (pas l'objet tenu, ni celui qui revient).
         if (isBodyId(id) && scene.presented !== id && state.current.p < 0.05) {
           claimBody(store, event, id);

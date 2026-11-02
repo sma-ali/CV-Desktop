@@ -19,6 +19,13 @@ describe('GestureHub', () => {
     expect(hub.press).toMatchObject({ pointerId: 1, x: 100, y: 200, body: 'book', travel: 0 });
   });
 
+  it('note un appui sur l’objet présenté (rotation libre)', () => {
+    const hub = new GestureHub();
+    hub.down(1, 'mouse', 100, 200);
+    hub.claimHeld(1, 'mouse', 100, 200);
+    expect(hub.press).toMatchObject({ body: null, held: true });
+  });
+
   it('remplace un appui resté en plan (relâché hors de la fenêtre)', () => {
     const hub = new GestureHub();
     hub.claim(1, 'mouse', 100, 200, 'book');
@@ -31,6 +38,7 @@ describe('GestureHub', () => {
     const hub = new GestureHub();
     hub.claim(1, 'touch', 100, 200, 'card');
     hub.down(2, 'touch', 300, 300, true);
+    expect(hub.dragging).toBe(false);
     expect(hub.press).toMatchObject({ pointerId: 1, body: 'card' });
   });
 

@@ -72,6 +72,8 @@ const uiSchema = z.strictObject({
   flip: text,
   /** Le raccourci de « Retourner » (une touche, la même en FR et en EN). */
   flipKey: z.string().regex(/^[A-Z]$/, 'une lettre majuscule attendue'),
+  /** Étape 6 : remettre droit l'objet tourné par le visiteur (rotation libre). */
+  upright: text,
   /** L'appel au contact (lien vers la section contact de la version express). */
   contact: text,
   /** Le lien vers le dépôt d'un projet public. */

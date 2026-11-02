@@ -204,8 +204,9 @@ export const en = {
       auto: 'Guided tour. Tap an object to take over.',
       presented: 'Object shown up close. Press Escape to put it back.',
       held: {
-        pointer: 'Click the object to turn it over. Press Escape to put it back.',
-        touch: 'Tap the object to turn it over.',
+        pointer:
+          'Drag the object to rotate it, click it to turn it over. Press Escape to put it back.',
+        touch: 'Drag the object to rotate it, tap it to turn it over.',
       },
     },
     fallback: {
@@ -215,6 +216,12 @@ export const en = {
       contextLost: 'The 3D desk stopped. Here is the CV in its express version.',
       expressLink: 'Open the express version',
     },
+    tidy: {
+      offer: 'Oops, you broke everything. Shall I tidy up?',
+      tidying: 'Tidying up the desk.',
+      done: 'Desk tidied up.',
+    },
+    intro: { preparing: 'Setting up the desk' },
   },
   scene: sceneEn,
   sheets: sheetsEn,

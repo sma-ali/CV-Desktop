@@ -7,6 +7,7 @@ import { ITEM_STEP, neighborItem, type ItemId } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { chestLiveView } from './lifeSignsView';
 import styles from './Desk.module.css';
+import { UprightButton } from './UprightButton';
 
 /** L'instant présent à la minute près, pour « il y a 2 h 14 » (null côté serveur). */
 function useNowMinute(): number | null {
@@ -291,6 +292,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
                 <kbd aria-hidden="true">{ui.flipKey}</kbd>
               </button>
             ) : null}
+            {canFlip ? <UprightButton label={ui.upright} /> : null}
             <a href={texts.contactHref} className={styles.sheetCta}>
               {ui.contact}
             </a>

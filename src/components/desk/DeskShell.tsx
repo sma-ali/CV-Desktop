@@ -6,11 +6,12 @@ import type { DeskHudTexts } from '@/lib/desk';
 import { rebaseLifeSigns, type LifeSigns } from '@/lib/life-signs';
 import { moodOfHour, hourOffset, visitorNow } from '@/scene/core/mood';
 import { parseTestParams } from '@/scene/core/params';
-import { createSceneStore, settingsFromParams } from '@/scene/core/store';
+import { createSceneStore, settingsFromParams, type SceneStore } from '@/scene/core/store';
 import { SceneStoreProvider } from '@/scene/core/store-context';
 import type { SceneTexts } from '@/scene/core/texts';
 import { Grain } from './Grain';
 import { Hud } from './Hud';
+import { Intro } from './Intro';
 import { createLifeSignsRefresher } from './lifeSignsRefresh';
 import { SceneBoundary } from './SceneBoundary';
 import { createWebAudioSound } from './sound';
@@ -20,6 +21,14 @@ import styles from './Desk.module.css';
 // navigateur, après le premier affichage (ni three ni React Three Fiber dans
 // le JavaScript initial).
 const Scene = dynamic(() => import('@/scene/Scene'), { ssr: false });
+
+/** Le fichier de la scène est arrivé (étape « code » du chargement, core/loading.ts). */
+function markCodeLoaded(store: SceneStore) {
+  void import('@/scene/Scene').then(
+    () => store.getState().setLoad('code', 1),
+    () => undefined,
+  );
+}
 
 /**
  * Pourquoi la page montre la version express à la place du bureau : pas de
@@ -107,8 +116,10 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
       .init(settingsFromParams(params, prefersReduced, offset), mood, mood !== hourMood);
     // Le premier rendu côté client doit égaler celui du serveur : le choix
     // entre la scène et le repli se fait juste après.
+    const webgl = hasWebGL();
+    if (webgl) markCodeLoaded(store);
     // eslint-disable-next-line react-hooks/set-state-in-effect
-    setStatus(hasWebGL() ? 'loading' : 'no-webgl');
+    setStatus(webgl ? 'loading' : 'no-webgl');
   }, [store]);
 
   // Échap repose l'objet présenté.
@@ -158,6 +169,7 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
         <div className={styles.vignette} aria-hidden="true" />
         <Grain className={styles.grain} />
         <Hud texts={hud} loading={!fallback && status !== 'ready'} />
+        <Intro name={hud.name} texts={hud.intro} done={status === 'ready' || fallback !== null} />
 
         <section className={styles.fallback} aria-label={hud.fallback.expressLink}>
           <p className={styles.fallbackNotice}>

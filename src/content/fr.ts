@@ -205,8 +205,9 @@ export const fr = {
       auto: 'Visite automatique. Touchez un objet pour prendre la main.',
       presented: 'Objet vu de près. Échap pour le reposer.',
       held: {
-        pointer: "Cliquez sur l'objet pour le retourner. Échap pour le reposer.",
-        touch: "Touchez l'objet pour le retourner.",
+        pointer:
+          "Glissez l'objet pour le tourner, cliquez dessus pour le retourner. Échap pour le reposer.",
+        touch: "Glissez l'objet pour le tourner, touchez-le pour le retourner.",
       },
     },
     fallback: {
@@ -217,6 +218,12 @@ export const fr = {
       contextLost: "Le bureau en 3D s'est interrompu. Voici le CV en version express.",
       expressLink: 'Ouvrir la version express',
     },
+    tidy: {
+      offer: 'Oulala, vous avez tout cassé. Je range pour vous ?',
+      tidying: 'Je range le bureau.',
+      done: 'Bureau rangé.',
+    },
+    intro: { preparing: 'Préparation du bureau' },
   },
   scene: sceneFr,
   sheets: sheetsFr,

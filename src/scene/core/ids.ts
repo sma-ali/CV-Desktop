@@ -78,15 +78,12 @@ export function neighborItem(item: ItemId, direction: 1 | -1): ItemId {
   return order[index < 0 ? 0 : next] ?? 'book';
 }
 
-// Les corps posés sur le plateau qui se glissent (étape 4) : les objets du CV
-// à plat, les deux nouveaux objets, et deux objets du décor (la tasse et la
-// manette, comme dans le prototype). Le post-it (collé à l'écran), le casque
-// (sur son support) et l'écran ne glissent pas.
-export const DECOR_BODY_IDS = ['mug', 'pad'] as const;
-
-export type DecorBodyId = (typeof DECOR_BODY_IDS)[number];
-
-export const BODY_IDS = [
+// Les corps du bureau vivant (étape 6, moteur physique) : tout ce qui se
+// déplace, se lance, se renverse et tombe. Les objets du CV posés sur le
+// plateau, le casque (pendu à son support, il tombe si on le heurte), et
+// tout le décor posé. Restent fixes : l'écran (son gros plan et le post-it
+// collé dessus en dépendent), le support du casque, le plateau, le mur.
+export const ITEM_BODY_IDS = [
   'book',
   'badge',
   'laptop',
@@ -94,13 +91,41 @@ export const BODY_IDS = [
   'chest',
   'netherbrain',
   'homelab',
-  ...DECOR_BODY_IDS,
+  'headset',
 ] as const;
+
+/** Un objet du CV qui est un corps. */
+export type ItemBodyId = (typeof ITEM_BODY_IDS)[number];
+
+/**
+ * Les morceaux du décor qui sont des corps. Leurs enfants sont dessinés à
+ * leur place en paysage (repère du monde) ; l'origine du corps est l'ancre
+ * du morceau (DECOR_ANCHORS, decor/layout.ts), sauf la tasse et la manette,
+ * dessinées dans leur propre repère.
+ */
+export const DECOR_BODY_IDS = [
+  'mug',
+  'pad',
+  'keyboard',
+  'mouse',
+  'lamp',
+  'plant',
+  'manga',
+  'fox',
+  'wanderer',
+  'rope',
+  'wraps',
+  'kimono',
+] as const;
+
+export type DecorBodyId = (typeof DECOR_BODY_IDS)[number];
+
+export const BODY_IDS = [...ITEM_BODY_IDS, ...DECOR_BODY_IDS] as const;
 
 export type BodyId = (typeof BODY_IDS)[number];
 
-/** Un objet du CV qui glisse. */
-export type DraggableItemId = Extract<BodyId, ItemId>;
+/** Un objet du CV qui glisse (alias de l'étape 4). */
+export type DraggableItemId = ItemBodyId;
 
 // Les ambiances de lumière, de l'aube à la nuit.
 export const MOOD_IDS = ['morning', 'afternoon', 'evening', 'night'] as const;
@@ -113,6 +138,10 @@ export function isItemId(value: string): value is ItemId {
 
 export function isBodyId(value: string): value is BodyId {
   return (BODY_IDS as readonly string[]).includes(value);
+}
+
+export function isDecorBodyId(value: string): value is DecorBodyId {
+  return (DECOR_BODY_IDS as readonly string[]).includes(value);
 }
 
 export function isMoodId(value: string): value is MoodId {

@@ -11,6 +11,7 @@ export const sheetsEn = {
     close: 'Put back',
     flip: 'Turn over',
     flipKey: 'R',
+    upright: 'Set upright',
     contact: 'Get in touch',
     repository: 'View the repository',
     sound: 'Sound',

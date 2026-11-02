@@ -54,9 +54,6 @@ export const LAMP = {
   aim: [-2.35, 0, 0.95],
 } as const satisfies Record<string, Vec3>;
 
-/** Pied du panneau de lumière et des gants (bord droit, hors du plateau). */
-export const STAND: Vec3 = [6.95, 0, -1.15];
-
 /**
  * L'écran principal : position du pied, hauteur et inclinaison de la dalle.
  * La dalle (monTilt dans le prototype) est un groupe placé en (0, tiltY, 0)
@@ -211,6 +208,15 @@ export const POSTIT_ON_MONITOR = {
   rotation: [Math.PI / 2, -0.1, 0] as Vec3,
 } as const;
 
+/**
+ * Places de repos de la tasse et de la manette (dessinées dans leur propre
+ * repère, contrairement aux autres morceaux du décor).
+ */
+export const DECOR_BODY_HOMES = {
+  mug: { x: 4.55, z: -0.62, ry: 0 },
+  pad: { x: 5.1, z: 1.95, ry: 0.45 },
+} as const;
+
 /** Le support du casque, sur lequel le casque est posé. */
 export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
 
@@ -219,7 +225,7 @@ export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
  * l'écran, tourné vers le centre. À gauche, la lampe passe juste devant lui
  * et le cachait.
  */
-export const HEADSET_PORTRAIT = { x: 3.35, z: -2.4, ry: -0.25 } as const;
+export const HEADSET_PORTRAIT = { x: 3.5, z: -2.4, ry: -0.25 } as const;
 
 /** Le pied du support du casque, selon le format. */
 export const headsetStand = (portrait: boolean): Vec3 =>

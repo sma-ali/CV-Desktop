@@ -29,8 +29,8 @@ import { box, cyl, MergedParts, sph, tube } from './shared';
 const [kx, , kz] = KEYBOARD_POSITION;
 const KEYS = keyLayout();
 
-/** Le corps du clavier et le câble de l'écran, fusionnés (repère du monde). */
-function staticParts(): Part[] {
+/** Le corps du clavier, fusionné (repère du monde) : un morceau du décor, qui bouge. */
+function keyboardParts(): Part[] {
   return [
     // Le boîtier du clavier, et sa molette de volume en laiton.
     {
@@ -50,7 +50,12 @@ function staticParts(): Part[] {
       finish: 'brass',
       position: [kx - 1.78, 0.17, kz - 0.73],
     },
-    // Le câble de l'écran.
+  ];
+}
+
+/** Le câble de l'écran, fixe et plat (repère du monde). */
+function cableParts(): Part[] {
+  return [
     {
       geometry: tube(
         [
@@ -199,24 +204,28 @@ export function Workspace() {
         position={[0.9, 0.0125, -0.55]}
         receiveShadow
       />
-      <MergedParts build={staticParts} />
+      <MergedParts build={cableParts} />
       <DecorPiece id="mouse">
         <MergedParts build={mouseParts} />
       </DecorPiece>
-      <group position={KEYBOARD_POSITION}>
-        <mesh
-          geometry={geometries.backlight}
-          material={materials.backlight}
-          position={[0, 0.147, -0.02]}
-        />
-        <instancedMesh
-          ref={keys}
-          args={[geometries.key, materials.key, KEY_COUNT]}
-          castShadow
-          receiveShadow
-        />
-      </group>
-      <mesh geometry={geometries.leds} material={materials.leds} />
+      {/* Le clavier : un corps du bureau vivant, comme les autres morceaux. */}
+      <DecorPiece id="keyboard">
+        <MergedParts build={keyboardParts} />
+        <group position={KEYBOARD_POSITION}>
+          <mesh
+            geometry={geometries.backlight}
+            material={materials.backlight}
+            position={[0, 0.147, -0.02]}
+          />
+          <instancedMesh
+            ref={keys}
+            args={[geometries.key, materials.key, KEY_COUNT]}
+            castShadow
+            receiveShadow
+          />
+        </group>
+        <mesh geometry={geometries.leds} material={materials.leds} />
+      </DecorPiece>
     </group>
   );
 }

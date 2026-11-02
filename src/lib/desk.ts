@@ -77,6 +77,10 @@ export interface DeskHudTexts {
     contextLost: string;
     expressLink: string;
   };
+  /** Étape 6 : le bouton de rangement (partie B) et ses annonces. */
+  tidy: { offer: string; tidying: string; done: string };
+  /** Étape 6 : l'écran de chargement (partie C). */
+  intro: { preparing: string };
 }
 
 const otherLocale: Record<Locale, Locale> = { fr: 'en', en: 'fr' };
@@ -180,6 +184,8 @@ export function buildDeskTexts(content: Content, locale: Locale): DeskHudTexts {
     hint: desk.hint,
     sheets: buildDeskSheets(content, locale),
     fallback: desk.fallback,
+    tidy: desk.tidy,
+    intro: desk.intro,
   };
 }
 

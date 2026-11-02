@@ -1,16 +1,17 @@
 'use client';
 
+import { Kimono } from './Kimono';
 import { Lamp } from './Lamp';
 import { Props } from './Props';
 import { Room } from './Room';
-import { StreamGear } from './StreamGear';
 import { Workspace } from './Workspace';
 
 // Le décor du bureau : la pièce (plateau en noyer, sol, mur et fenêtre), la
 // lampe d'architecte, le poste de travail (tapis, clavier, souris, câbles),
-// le matériel de stream (pavé de boutons, micro sur bras, panneau de lumière
-// et gants) et les petites choses posées (corde, bandes, plante, mangas,
-// figurines, tasse, manette). Tout est inventé : aucune marque, aucun logo,
+// le kimono plié et sa ceinture, et les petites choses posées (corde,
+// bandes, plante, mangas, figurines, tasse, manette). Étape 6 : le matériel
+// de stream et les gants sont retirés, et chaque morceau posé est un corps
+// du moteur physique (DecorPiece suit sa pose). Tout est inventé : aucune marque, aucun logo,
 // aucun jeu, anime ou pseudo réel.
 //
 // Lumières, ciel derrière la vitre, cône et poussière de la lampe : mise en
@@ -23,7 +24,7 @@ export function Decor() {
       <Room />
       <Lamp />
       <Workspace />
-      <StreamGear />
+      <Kimono />
       <Props />
     </group>
   );

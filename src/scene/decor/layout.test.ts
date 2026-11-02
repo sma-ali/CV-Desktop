@@ -1,17 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { Group, Vector3 } from 'three';
+import { ARRIVAL, BOUNDS_PORTRAIT, DESK, DESK_PORTRAIT_Z1, WALL_Z, WIN } from '../core/constants';
 import {
-  ARRIVAL,
-  BOUNDS_PORTRAIT,
-  DESK,
-  DESK_PORTRAIT_Z1,
-  ITEM_POSES,
-  STAND,
-  WALL_Z,
-  WIN,
-} from '../core/constants';
-import {
-  DECK_PALETTE,
   DECOR_ANCHORS,
   DECOR_OBSTACLES,
   DECOR_OBSTACLES_PORTRAIT,
@@ -31,16 +21,12 @@ import {
   MANGA,
   MANGA_SIZE,
   MANGA_TOP,
-  MIC,
-  MIC_LOCAL,
   SPINE_PALETTE,
   STEAM_COUNT,
   TYPING_END_ESTIMATE,
   WINDOW_BACKSTOP,
   WINDOW_SKY,
   damped,
-  deckButtonLevel,
-  deckLayout,
   hop,
   keyColor,
   keyDips,
@@ -48,9 +34,6 @@ import {
   keyLayout,
   leafLayout,
   mangaStack,
-  micPoint,
-  micRingColor,
-  panelLevel,
   ropeCoil,
   rumble,
   shake,
@@ -132,32 +115,6 @@ describe('le clavier', () => {
   });
 });
 
-describe('le pavé de boutons', () => {
-  it('a 15 boutons aux couleurs de la palette', () => {
-    const buttons = deckLayout();
-    expect(buttons).toHaveLength(15);
-    for (const button of buttons) expect(DECK_PALETTE).toContain(button.color);
-  });
-
-  it('s’allume bouton par bouton pendant l’arrivée', () => {
-    expect(deckButtonLevel(ARRIVAL.deckLedsStart - 0.01, 0, null, false)).toBe(0);
-    expect(deckButtonLevel(ARRIVAL.deckLedsStart + 0.01, 0, null, false)).toBeGreaterThan(0.4);
-    expect(deckButtonLevel(ARRIVAL.deckLedsStart + 0.01, 14, null, false)).toBe(0);
-    expect(deckButtonLevel(SETTLED, 14, null, false)).toBeGreaterThan(0.4);
-  });
-
-  it('respire sauf en mouvement réduit, et réagit au clic', () => {
-    const values = [11, 11.5, 12, 12.5].map((t) => deckButtonLevel(t, 3, null, false));
-    expect(new Set(values).size).toBeGreaterThan(1);
-    const reduced = [11, 11.5, 12].map((t) => deckButtonLevel(t, 3, null, true));
-    expect(new Set(reduced).size).toBe(1);
-    const at = 20;
-    expect(deckButtonLevel(at + 0.05, 0, at, false)).toBeGreaterThan(
-      deckButtonLevel(at + 0.05, 0, null, false),
-    );
-  });
-});
-
 describe('les petites animations', () => {
   it('ne bougent pas sans clic ni en mouvement réduit', () => {
     expect(damped(12, null, 1, false)).toBe(0);
@@ -178,16 +135,6 @@ describe('les petites animations', () => {
     expect(shake(12.5, 11, false)).toBe(0);
     expect(rumble(11.1, 11, false)).toBeGreaterThan(0);
     expect(rumble(11.7, 11, false)).toBe(0);
-  });
-
-  it('allument le panneau et l’anneau du micro à leur heure', () => {
-    expect(panelLevel(ARRIVAL.panelOn - 0.1)).toBe(0);
-    expect(panelLevel(ARRIVAL.panelFull + 0.1)).toBe(1);
-    expect(micRingColor(ARRIVAL.micRing - 0.1, false)).toEqual([0, 0, 0]);
-    const [closedR] = micRingColor(ARRIVAL.micRing + 0.1, false);
-    const [openR, openG] = micRingColor(ARRIVAL.micRing + 0.1, true);
-    expect(openR).toBeGreaterThan(closedR);
-    expect(openG).toBeLessThan(0.3);
   });
 
   it('fait monter la vapeur seulement quand il y a de la lumière', () => {
@@ -220,30 +167,15 @@ describe('la place du décor', () => {
     expect(WINDOW_BACKSTOP.size[0]).toBeGreaterThan(WINDOW_SKY.size[0]);
   });
 
-  it('pose tout sur le plateau, sauf le pied des gants', () => {
+  it('pose tout sur le plateau', () => {
     for (const obstacle of DECOR_OBSTACLES) {
       expect(onDesk(obstacle.x, obstacle.z), obstacle.id).toBe(true);
     }
     for (const [x, , z] of ropeCoil()) expect(onDesk(x, z, 0.05)).toBe(true);
-    expect(STAND[0]).toBeGreaterThan(DESK.x1);
   });
 
   // Que rien ne se chevauche (décor, objets du CV, tasse, manette), en
   // paysage comme en portrait : core/bodies.test.ts.
-
-  it('suspend le micro à gauche du coffret, au-dessus du plateau', () => {
-    const tip = micPoint(MIC_LOCAL.tipY);
-    const back = micPoint(MIC_LOCAL.backY);
-    // Il pointe vers l'avant et vers la droite (la chaise), en descendant un peu.
-    expect(tip[0]).toBeGreaterThan(back[0]);
-    expect(tip[2]).toBeGreaterThan(back[2]);
-    expect(tip[1]).toBeLessThan(back[1]);
-    expect(tip[1]).toBeGreaterThan(1.5);
-    // De haut, il reste à gauche du coffret.
-    expect(tip[0]).toBeLessThan(ITEM_POSES.chest.x - 0.3);
-    // La pince tient sur le bord gauche.
-    expect(MIC.clamp[0]).toBeLessThan(DESK.x0 + 0.3);
-  });
 
   it('dessine des ressorts qui suivent leur axe', () => {
     const points = springPoints([0, 0, 0], [0, 2, 0], 0.05, 4, 8);
@@ -375,6 +307,6 @@ describe('le décor du bureau resserré (portrait)', () => {
 
   it('ne cache que du décor qui ne trouve pas sa place, jamais la lampe ni la plante', () => {
     const hidden = DECOR_PIECE_IDS.filter((id) => decorPlacement(id, true).hidden);
-    expect(hidden).toEqual(['mic', 'rope', 'wraps', 'fox', 'wanderer']);
+    expect(hidden).toEqual(['rope', 'wraps', 'fox', 'wanderer']);
   });
 });

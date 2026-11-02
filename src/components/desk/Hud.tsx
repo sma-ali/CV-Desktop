@@ -9,6 +9,7 @@ import { ITEM_STEP, MOOD_IDS, type MoodId } from '@/scene/core/ids';
 import { formatVisitorTime, moodOfHour, visitorNow } from '@/scene/core/mood';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { Sheet } from './Sheet';
+import { TidyButton } from './TidyButton';
 import styles from './Desk.module.css';
 
 /** L'heure du visiteur à la minute près (null avant l'hydratation : le serveur ne la connaît pas). */
@@ -41,7 +42,9 @@ function useCoarsePointer(): boolean {
 // d'arrivée, indication, fiche de l'objet présenté. Rendu par le serveur,
 // visible avant la 3D. Expose l'état de la scène aux tests par des attributs
 // data-* (phase, ambiance, objet présenté, mode auto, objet retourné, glisser,
-// son, places des objets déplacés, ce qui sort du cadre...).
+// son, places des objets déplacés, ce qui sort du cadre, et depuis l'étape 6
+// le moteur physique, les corps tombés, le désordre, le rangement, l'objet
+// tourné).
 export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean }) {
   const store = useSceneStoreApi();
   const coarse = useCoarsePointer();
@@ -58,6 +61,11 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
   const places = useSceneStore((state) => state.places);
   const soundOn = useSceneStore((state) => state.soundOn);
   const offscreen = useSceneStore((state) => state.offscreen);
+  const fallen = useSceneStore((state) => state.fallen);
+  const physics = useSceneStore((state) => state.physics);
+  const disorder = useSceneStore((state) => state.disorder);
+  const tidying = useSceneStore((state) => state.tidying);
+  const heldTurned = useSceneStore((state) => state.heldTurned);
   const settings = useSceneStore((state) => state.settings);
   const minute = useVisitorMinute(settings.hourOffsetMs);
   // Ce que la région d'état annonce : seulement les gestes du visiteur
@@ -126,6 +134,11 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
       data-sound={soundOn ? 'on' : 'off'}
       data-places={formatPlaces(places)}
       data-offscreen={offscreen.join(' ')}
+      data-physics={physics}
+      data-fallen={fallen.join(' ')}
+      data-disorder={disorder.toFixed(2)}
+      data-tidying={tidying ? 'true' : 'false'}
+      data-turned={presented && heldTurned ? 'true' : 'false'}
     >
       <p className={styles.carton} data-on={hud.carton ? 'true' : undefined} aria-hidden="true">
         <span className={styles.cartonKicker}>{texts.arrivalKicker}</span>
@@ -266,6 +279,7 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
       </footer>
 
       <Sheet texts={texts.sheets} locale={texts.locale} onAnnounce={setAnnouncement} />
+      <TidyButton texts={texts.tidy} />
 
       <p className="visually-hidden" role="status">
         {announcement}

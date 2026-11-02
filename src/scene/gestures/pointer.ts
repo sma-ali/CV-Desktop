@@ -26,6 +26,20 @@ export function claimBody(store: SceneStore, event: ThreeEvent<PointerEvent>, bo
   const scene = store.getState();
   if (!scene.settings.reducedMotion && scene.frame.t < GESTURES_AFTER) return;
   if (!isNearest(event)) return;
+  // Le moteur physique se charge après l'arrivée ; un appui sur un corps le
+  // demande plus tôt (ce glisser-là reste un clic s'il n'est pas prêt).
+  if (scene.physics === 'off') scene.setPhysics('loading');
   const { pointerId, pointerType, clientX, clientY } = event.nativeEvent;
   gestureHub(store).claim(pointerId, pointerType, clientX, clientY, body);
+}
+
+/**
+ * onPointerDown de l'objet présenté : l'appui lui est réservé (rotation
+ * libre, partie A). Sans arrêter la propagation : le clic qui suit, s'il en
+ * est un, le retourne comme avant.
+ */
+export function claimHeld(store: SceneStore, event: ThreeEvent<PointerEvent>): void {
+  if (!isNearest(event)) return;
+  const { pointerId, pointerType, clientX, clientY } = event.nativeEvent;
+  gestureHub(store).claimHeld(pointerId, pointerType, clientX, clientY);
 }

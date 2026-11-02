@@ -148,6 +148,10 @@ const deskSchema = z.strictObject({
     contextLost: text,
     expressLink: text,
   }),
+  /** Étape 6 : le bureau dézingué. offer est le bouton, tidying et done s'annoncent. */
+  tidy: z.strictObject({ offer: text, tidying: text, done: text }),
+  /** Étape 6 : l'écran de chargement (le nom vient du profil). */
+  intro: z.strictObject({ preparing: text }),
 });
 
 export const contentSchema = z.strictObject({

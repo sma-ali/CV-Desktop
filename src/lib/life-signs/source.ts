@@ -1,3 +1,4 @@
+import { unstable_cache } from 'next/cache';
 import { readLifeSignsUrl } from '@/lib/env/server';
 import { sampleLifeSigns } from './sample';
 import { parsePublicLifeSigns } from './schema';
@@ -12,14 +13,27 @@ import type { LifeSigns } from './types';
 
 // La variable vient du module d'environnement du serveur (src/lib/env), dont
 // la garde empêche aussi ce module d'entrer dans le navigateur.
+//
+// Le cache : la lecture elle-même passe hors du cache de fetch de Next
+// (cache: 'no-store'), qui lirait tout le corps avant notre borne de taille,
+// retirerait le délai pendant un renouvellement en arrière-plan et citerait
+// l'adresse dans ses messages. C'est le résultat validé, quelques centaines
+// d'octets, qui est gardé 10 minutes (unstable_cache). Un échec n'est jamais
+// gardé : la lecture suivante réessaie.
 
-/** Durée de vie du JSON public dans le cache de Next, en secondes. */
+/** Durée de vie des signes de vie validés dans le cache de Next, en secondes. */
 export const LIFE_SIGNS_REVALIDATE_S = 600;
 /**
  * L'en-tête de cache de /api/signes-de-vie : le CDN garde la réponse 10
  * minutes, puis la sert encore un jour le temps de la renouveler.
  */
 export const LIFE_SIGNS_CACHE_CONTROL = `public, max-age=0, s-maxage=${LIFE_SIGNS_REVALIDATE_S}, stale-while-revalidate=86400`;
+/**
+ * L'en-tête des données d'exemple servies après un échec : 30 secondes au
+ * CDN seulement, pour qu'une panne passagère de la source ne reste pas
+ * affichée 10 minutes.
+ */
+export const LIFE_SIGNS_FALLBACK_CACHE_CONTROL = 'public, max-age=0, s-maxage=30';
 /** Délai maximal de la lecture, en millisecondes. */
 export const LIFE_SIGNS_TIMEOUT_MS = 3000;
 /** Taille maximale lue, en octets (le JSON attendu en fait quelques centaines). */
@@ -34,7 +48,9 @@ export type LifeSignsFailure =
   | 'network'
   | 'too_large'
   | 'invalid_json'
-  | 'invalid_format';
+  | 'invalid_format'
+  /** Le cache de Next a échoué (rien à voir avec la source). */
+  | 'cache';
 
 export type LifeSignsRead =
   { ok: true; signs: LifeSigns } | { ok: false; reason: LifeSignsFailure; detail?: string };
@@ -42,8 +58,13 @@ export type LifeSignsRead =
 export interface LifeSignsSourceOptions {
   /** L'adresse du JSON public ; par défaut LIFE_SIGNS_URL (src/lib/env/server.ts). */
   url?: string;
-  /** Pour les tests ; par défaut le fetch global (patché par Next pour le cache). */
+  /** Pour les tests ; par défaut le fetch global. */
   fetch?: typeof fetch;
+  /**
+   * Passer par le cache de Next (par défaut). false : lecture directe, pour
+   * les tests qui passent leur fetch ou leur adresse.
+   */
+  cache?: boolean;
   timeoutMs?: number;
   maxBytes?: number;
   /** Où écrire la cause d'un repli ; par défaut console.warn. */
@@ -107,9 +128,9 @@ export async function readLifeSigns(
       // Une redirection pourrait mener hors de https : on la refuse.
       redirect: 'error',
       signal: AbortSignal.timeout(options.timeoutMs ?? LIFE_SIGNS_TIMEOUT_MS),
-      // Cache de Next : une lecture toutes les 10 minutes au plus, partagée
-      // par la page et la route.
-      next: { revalidate: LIFE_SIGNS_REVALIDATE_S },
+      // Hors du cache de fetch de Next : c'est le résultat validé qui est
+      // gardé (voir plus haut).
+      cache: 'no-store',
     });
     if (!response.ok) {
       await response.body?.cancel().catch(() => undefined);
@@ -132,18 +153,52 @@ export async function readLifeSigns(
   return { ok: true, signs: parsed.signs };
 }
 
+/** Un échec de lecture, levé dans le cache pour qu'il ne soit jamais gardé. */
+class LifeSignsReadFailure extends Error {
+  constructor(readonly failure: Extract<LifeSignsRead, { ok: false }>) {
+    // Le message peut finir dans le journal de Next : la cause, jamais l'adresse.
+    super(`signes de vie : lecture échouée, cause ${failure.reason}`);
+    this.name = 'LifeSignsReadFailure';
+  }
+}
+
+/**
+ * La lecture par le cache de Next, partagée par la page et la route : une
+ * lecture du JSON public toutes les 10 minutes au plus. La clé ne contient
+ * pas l'adresse.
+ */
+const readCachedLifeSigns = unstable_cache(
+  async (): Promise<LifeSigns> => {
+    const result = await readLifeSigns(Date.now());
+    if (!result.ok) throw new LifeSignsReadFailure(result);
+    return result.signs;
+  },
+  ['life-signs'],
+  { revalidate: LIFE_SIGNS_REVALIDATE_S },
+);
+
+async function read(now: number, options: LifeSignsSourceOptions): Promise<LifeSignsRead> {
+  if (options.cache === false) return readLifeSigns(now, options);
+  try {
+    return { ok: true, signs: await readCachedLifeSigns() };
+  } catch (error) {
+    if (error instanceof LifeSignsReadFailure) return error.failure;
+    return { ok: false, reason: 'cache' };
+  }
+}
+
 // Sans adresse (en local, en CI), on ne le dit qu'une fois par processus.
 let missingUrlLogged = false;
 
 /**
  * Les signes de vie à montrer : le JSON public, ou les données d'exemple
- * mesurées à l'instant now (ms) si la lecture échoue.
+ * mesurées à l'instant now (ms) si la lecture échoue (sample à true).
  */
 export async function getLifeSigns(
   now: number = Date.now(),
   options: LifeSignsSourceOptions = {},
 ): Promise<LifeSigns> {
-  const result = await readLifeSigns(now, options);
+  const result = await read(now, options);
   if (result.ok) return result.signs;
   const log = options.log ?? ((message: string) => console.warn(message));
   if (result.reason !== 'missing_url' || options.log || !missingUrlLogged) {

@@ -14,14 +14,13 @@ test.describe('la route des signes de vie', () => {
   // Les réponses ne dépendent pas de l'écran : un seul projet suffit.
   test.skip(({ isMobile }) => isMobile, 'route seulement');
 
-  test('sert les données d’exemple, en cache public, sans CORS', async ({ request }) => {
+  test('sert les données d’exemple, en cache public court, sans CORS', async ({ request }) => {
     const response = await request.get(ENDPOINT, { headers: { Origin: 'https://ailleurs.test' } });
     expect(response.status()).toBe(200);
     const headers = response.headers();
     expect(headers['content-type']).toContain('application/json');
-    expect(headers['cache-control']).toContain('public');
-    expect(headers['cache-control']).toContain('s-maxage=600');
-    expect(headers['cache-control']).toContain('stale-while-revalidate');
+    // Les données d'exemple ne restent que 30 s au CDN (repli sur une panne).
+    expect(headers['cache-control']).toBe('public, max-age=0, s-maxage=30');
     expect(headers['access-control-allow-origin']).toBeUndefined();
     expect(headers['content-security-policy']).toContain("default-src 'self'");
     expect(headers['x-content-type-options']).toBe('nosniff');
@@ -39,7 +38,7 @@ test.describe('la route des signes de vie', () => {
   test('répond à HEAD sans corps', async ({ request }) => {
     const response = await request.head(ENDPOINT);
     expect(response.status()).toBe(200);
-    expect(response.headers()['cache-control']).toContain('s-maxage=600');
+    expect(response.headers()['cache-control']).toContain('s-maxage=30');
     expect(await response.body()).toHaveLength(0);
   });
 

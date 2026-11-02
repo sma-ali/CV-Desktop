@@ -23,7 +23,9 @@ describe('les données d’exemple', () => {
 
   it('sont ce que le serveur renvoie sans adresse du JSON public', async () => {
     const log = () => undefined;
-    expect(await getLifeSigns(NOW, { url: undefined, log })).toEqual(sampleLifeSigns(NOW));
+    expect(await getLifeSigns(NOW, { url: undefined, log, cache: false })).toEqual(
+      sampleLifeSigns(NOW),
+    );
   });
 
   it('se recalent sur l’heure du visiteur, pas les vraies données', () => {

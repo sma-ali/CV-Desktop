@@ -1,4 +1,4 @@
-import { describe, expect, it, vi } from 'vitest';
+import { afterEach, describe, expect, it, vi } from 'vitest';
 import { sampleLifeSigns } from './sample';
 import { LIFE_SIGNS_FUTURE_MARGIN_MS, parsePublicLifeSigns } from './schema';
 import {
@@ -8,6 +8,30 @@ import {
   readLifeSigns,
   type LifeSignsSourceOptions,
 } from './source';
+
+// Le cache de Next n'existe pas hors du serveur : unstable_cache est
+// remplacé par un cache en mémoire qui, comme le vrai, garde un résultat et
+// jamais une erreur. Ses réglages sont gardés pour les vérifier.
+const nextCache = vi.hoisted(() => ({
+  calls: [] as { keyParts: string[] | undefined; options: unknown }[],
+  stored: new Map<string, unknown>(),
+}));
+vi.mock('next/cache', () => ({
+  unstable_cache: <T>(
+    fn: () => Promise<T>,
+    keyParts?: string[],
+    options?: { revalidate?: number },
+  ) => {
+    nextCache.calls.push({ keyParts, options });
+    const key = (keyParts ?? []).join(',');
+    return async () => {
+      if (nextCache.stored.has(key)) return nextCache.stored.get(key) as T;
+      const value = await fn();
+      nextCache.stored.set(key, value);
+      return value;
+    };
+  },
+}));
 
 // La lecture du JSON public des signes de vie : fetch simulé, jamais de
 // réseau. Chaque cause d'échec retombe sur les données d'exemple, et le
@@ -39,7 +63,7 @@ function setup(response: Response | (() => Promise<Response>)) {
     typeof response === 'function' ? response() : response,
   );
   const log = vi.fn<(message: string) => void>();
-  const options: LifeSignsSourceOptions = { url: URL_, fetch: fetchMock, log };
+  const options: LifeSignsSourceOptions = { url: URL_, fetch: fetchMock, log, cache: false };
   return { fetchMock, log, options };
 }
 
@@ -50,14 +74,15 @@ describe('la lecture du JSON public', () => {
     expect(log).not.toHaveBeenCalled();
   });
 
-  it('passe par le cache de Next, avec un délai et sans redirection', async () => {
+  it('lit hors du cache de fetch de Next, avec un délai et sans redirection', async () => {
     const { options, fetchMock } = setup(jsonResponse(valid));
     await getLifeSigns(NOW, options);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     const [input, init] = fetchMock.mock.calls[0]!;
     expect(String(input)).toBe(URL_);
-    expect(init?.next).toEqual({ revalidate: LIFE_SIGNS_REVALIDATE_S });
-    expect(LIFE_SIGNS_REVALIDATE_S).toBe(600);
+    // Le cache de fetch lirait tout le corps avant la borne de taille.
+    expect(init?.cache).toBe('no-store');
+    expect(init?.next).toBeUndefined();
     expect(init?.signal).toBeInstanceOf(AbortSignal);
     expect(init?.redirect).toBe('error');
     expect(init?.method ?? 'GET').toBe('GET');
@@ -90,7 +115,7 @@ describe('la lecture du JSON public', () => {
     vi.stubEnv('LIFE_SIGNS_URL', URL_);
     try {
       const fetchMock = vi.fn<typeof fetch>(async () => jsonResponse(valid));
-      const result = await readLifeSigns(NOW, { fetch: fetchMock });
+      const result = await readLifeSigns(NOW, { fetch: fetchMock, cache: false });
       expect(result.ok).toBe(true);
       expect(String(fetchMock.mock.calls[0]![0])).toBe(URL_);
     } finally {
@@ -164,7 +189,13 @@ describe('le repli sur les données d’exemple', () => {
         }),
     );
     const log = vi.fn<(message: string) => void>();
-    const signs = await getLifeSigns(NOW, { url: URL_, fetch: fetchMock, log, timeoutMs: 20 });
+    const signs = await getLifeSigns(NOW, {
+      url: URL_,
+      fetch: fetchMock,
+      log,
+      timeoutMs: 20,
+      cache: false,
+    });
     expect(signs).toEqual(sampleLifeSigns(NOW));
     expect(log.mock.calls[0]![0]).toContain('timeout');
   });
@@ -175,6 +206,61 @@ describe('le repli sur les données d’exemple', () => {
     const message = log.mock.calls[0]![0];
     expect(message).toContain('running');
     expect(message).not.toContain('secret');
+  });
+});
+
+describe('le cache des signes de vie validés', () => {
+  afterEach(() => {
+    nextCache.stored.clear();
+    vi.useRealTimers();
+    vi.unstubAllEnvs();
+    vi.unstubAllGlobals();
+  });
+
+  function source(responses: (() => Response)[]) {
+    vi.useFakeTimers({ now: NOW, toFake: ['Date'] });
+    vi.stubEnv('LIFE_SIGNS_URL', URL_);
+    const fetchMock = vi.fn<typeof fetch>(async () => {
+      const next = responses.shift();
+      if (!next) throw new TypeError('fetch failed');
+      return next();
+    });
+    vi.stubGlobal('fetch', fetchMock);
+    const log = vi.fn<(message: string) => void>();
+    return { fetchMock, log };
+  }
+
+  it('garde le résultat validé 10 minutes, sous une clé sans l’adresse', async () => {
+    const { fetchMock, log } = source([() => jsonResponse(valid), () => jsonResponse(valid)]);
+    expect(await getLifeSigns(NOW, { log })).toEqual({ ...valid, sample: false });
+    expect(await getLifeSigns(NOW, { log })).toEqual({ ...valid, sample: false });
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    expect(nextCache.calls).toHaveLength(1);
+    const { keyParts, options } = nextCache.calls[0]!;
+    expect(options).toEqual({ revalidate: LIFE_SIGNS_REVALIDATE_S });
+    expect(LIFE_SIGNS_REVALIDATE_S).toBe(600);
+    expect(JSON.stringify(keyParts)).not.toContain('example.test');
+    expect(log).not.toHaveBeenCalled();
+  });
+
+  it('ne garde jamais un échec : la lecture suivante réessaie', async () => {
+    const { fetchMock, log } = source([
+      () => jsonResponse({ error: 'x' }, { status: 503 }),
+      () => jsonResponse(valid),
+    ]);
+    expect(await getLifeSigns(NOW, { log })).toEqual(sampleLifeSigns(NOW));
+    expect(log.mock.calls[0]![0]).toContain('http_error');
+    expect(log.mock.calls[0]![0]).not.toContain('example.test');
+    expect(await getLifeSigns(NOW, { log })).toEqual({ ...valid, sample: false });
+    expect(fetchMock).toHaveBeenCalledTimes(2);
+  });
+
+  it('borne la lecture même par le cache : un gros fichier n’est pas gardé', async () => {
+    const big = () => jsonResponse({ ...valid, padding: 'x'.repeat(LIFE_SIGNS_MAX_BYTES) });
+    const { log } = source([big]);
+    expect(await getLifeSigns(NOW, { log })).toEqual(sampleLifeSigns(NOW));
+    expect(log.mock.calls[0]![0]).toContain('too_large');
+    expect(nextCache.stored.size).toBe(0);
   });
 });
 

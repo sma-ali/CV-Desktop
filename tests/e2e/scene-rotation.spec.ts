@@ -116,7 +116,7 @@ test.describe('la rotation libre', () => {
     await expect(hud(page)).toHaveAttribute('data-turned', 'false');
     await expectSpin(page, 0);
     // Le bouton « Remettre droit » n'est là que pour un objet tourné.
-    await expect(upright(page)).toBeHidden();
+    await expect(upright(page)).toHaveCount(0);
 
     const held = heldPoint(page);
     await drag(page, held, { x: held.x + 110, y: held.y + 30 }, isMobile);
@@ -187,7 +187,7 @@ test.describe('la rotation libre', () => {
     await upright(page).click();
     await expect(hud(page)).toHaveAttribute('data-turned', 'false');
     await expectSpin(page, 0);
-    await expect(upright(page)).toBeHidden();
+    await expect(upright(page)).toHaveCount(0);
     await expect(hud(page)).toHaveAttribute('data-presented', 'netherbrain');
   });
 
@@ -207,7 +207,15 @@ test.describe('la rotation libre', () => {
     await page.keyboard.press('ArrowUp');
     await page.keyboard.press('ArrowRight');
     await expect.poll(() => spinOf(page)).toBeGreaterThan(SPIN.keyStep - 0.01);
+    // « Remettre droit » au clavier : le focus passe ensuite à « Retourner ».
+    await upright(page).focus();
+    await page.keyboard.press('Enter');
+    await expectSpin(page, 0);
+    await expect(upright(page)).toHaveCount(0);
+    await expect(sheet(page).getByRole('button', { name: ui.flip })).toBeFocused();
     // Début : remis droit.
+    await page.keyboard.press('ArrowUp');
+    await expectSpin(page, SPIN.keyStep);
     await page.keyboard.press('Home');
     await expectSpin(page, 0);
     await expect(hud(page)).toHaveAttribute('data-turned', 'false');

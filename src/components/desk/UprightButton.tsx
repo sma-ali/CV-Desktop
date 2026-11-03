@@ -3,44 +3,47 @@
 import { useEffect, useRef } from 'react';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import styles from './Desk.module.css';
-import own from './UprightButton.module.css';
 
 /** La touche du clavier qui remet l'objet présenté droit (Sheet). */
 export const UPRIGHT_KEY = 'Home';
 
-// Partie A de l'étape 6 : le bouton « Remettre droit » de la fiche, visible
-// quand le visiteur a tourné l'objet présenté (store.heldTurned). Il appelle
-// requestUpright() : HeldRotation ramène l'objet à sa pose de présentation
-// (animé, immédiat en mouvement réduit). La touche Début fait de même.
+// Partie A de l'étape 6 : le bouton « Remettre droit » de la fiche, présent
+// seulement quand le visiteur a tourné l'objet présenté (store.heldTurned).
+// Il appelle requestUpright() : HeldRotation ramène l'objet à sa pose de
+// présentation (animé, immédiat en mouvement réduit). La touche Début fait
+// de même.
 //
 // Le bouton disparaît quand l'objet est remis droit : s'il avait le focus,
 // celui-ci passe au bouton d'avant (Retourner) au lieu de se perdre.
 export function UprightButton({ label }: { label: string }) {
   const store = useSceneStoreApi();
   const turned = useSceneStore((state) => state.presented !== null && state.heldTurned);
-  const ref = useRef<HTMLButtonElement>(null);
-  const focused = useRef(false);
+  /** Le bouton d'avant, noté quand celui-ci prend le focus (null : il ne l'a pas). */
+  const fallback = useRef<HTMLElement | null>(null);
 
   useEffect(() => {
-    if (turned || !focused.current) return;
-    focused.current = false;
-    const previous = ref.current?.previousElementSibling;
-    if (previous instanceof HTMLElement) previous.focus({ preventScroll: true });
+    if (turned) return;
+    const target = fallback.current;
+    fallback.current = null;
+    const active = document.activeElement;
+    if (target?.isConnected && (active === null || active === document.body)) {
+      target.focus({ preventScroll: true });
+    }
   }, [turned]);
 
+  if (!turned) return null;
   return (
     <button
-      ref={ref}
       type="button"
-      className={`${styles.sheetFlip} ${own.upright}`}
+      className={styles.sheetFlip}
       data-upright=""
-      hidden={!turned}
       aria-keyshortcuts={UPRIGHT_KEY}
-      onFocus={() => {
-        focused.current = true;
+      onFocus={(event) => {
+        const previous = event.currentTarget.previousElementSibling;
+        fallback.current = previous instanceof HTMLElement ? previous : null;
       }}
       onBlur={(event) => {
-        if (event.relatedTarget !== null) focused.current = false;
+        if (event.relatedTarget !== null) fallback.current = null;
       }}
       onClick={() => store.getState().requestUpright()}
     >

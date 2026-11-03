@@ -204,9 +204,8 @@ export const fr = {
       auto: 'Visite automatique. Touchez un objet pour prendre la main.',
       presented: 'Objet vu de près. Échap pour le reposer.',
       held: {
-        pointer:
-          "Glissez l'objet pour le tourner, cliquez dessus pour le retourner. Échap pour le reposer.",
-        touch: "Glissez l'objet pour le tourner, touchez-le pour le retourner.",
+        pointer: 'Glissez pour tourner, cliquez pour retourner, Échap pour reposer.',
+        touch: 'Glissez pour tourner, touchez pour retourner.',
       },
     },
     fallback: {

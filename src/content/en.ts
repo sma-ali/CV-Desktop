@@ -203,9 +203,8 @@ export const en = {
       auto: 'Guided tour. Tap an object to take over.',
       presented: 'Object shown up close. Press Escape to put it back.',
       held: {
-        pointer:
-          'Drag the object to rotate it, click it to turn it over. Press Escape to put it back.',
-        touch: 'Drag the object to rotate it, tap it to turn it over.',
+        pointer: 'Drag to rotate, click to turn over, Escape to put back.',
+        touch: 'Drag to rotate, tap to turn over.',
       },
     },
     fallback: {

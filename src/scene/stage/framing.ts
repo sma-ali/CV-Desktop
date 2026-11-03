@@ -139,8 +139,7 @@ export const FIXED_EXTENT: Readonly<
   ],
   headset: [[HEADSET_STAND[0], ITEM_POSES.headset.y + 0.9, HEADSET_STAND[2]]],
   // Le bord gauche du cadre en paysage : la corde à sauter enroulée et ses
-  // poignées, le morceau du décor le plus à gauche depuis que le micro sur
-  // son bras est retiré (étape 6).
+  // poignées, le morceau du décor le plus à gauche.
   edge: ROPE_EXTENT,
   lamp: [LAMP.base, LAMP.head],
 };

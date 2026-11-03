@@ -52,7 +52,6 @@ function planeUnder(camera: Camera, canvas: HTMLElement, x: number, y: number): 
   return raycaster.ray.intersectPlane(plane, hit);
 }
 
-/** Lâche le corps glissé : avec son élan, sauf en mouvement réduit ou sur demande. */
 /**
  * Sous &fige, ?glisse se joue d'un coup, pas à pas, sans attendre les images
  * (aussi lentes soient-elles) : jusqu'au but, à un blocage de
@@ -76,6 +75,7 @@ function playFrozen(
   }
 }
 
+/** Lâche le corps glissé : avec son élan, sauf en mouvement réduit ou sur demande. */
 function letGo(store: SceneStore, withThrow: boolean): void {
   const scene = store.getState();
   gestureHub(store).physics?.release(withThrow && !scene.settings.reducedMotion);

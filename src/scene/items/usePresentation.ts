@@ -12,6 +12,7 @@ import { gestureHub } from '../gestures/hub';
 import { claimBody, claimHeld, GESTURES_AFTER } from '../gestures/pointer';
 import {
   createPresentState,
+  followSpin,
   glowLevel,
   heldPose,
   HOVER_LIFT,
@@ -93,7 +94,6 @@ const restPosition = new Vector3();
 const restQuaternion = new Quaternion();
 const heldPosition = new Vector3();
 const heldQuaternion = new Quaternion();
-const spinQuaternion = new Quaternion();
 const input: PresentInput = { t: 0, pointerX: 0, pointerY: 0 };
 
 export function usePresentation({
@@ -111,6 +111,8 @@ export function usePresentation({
   const get = useThree((state) => state.get);
   const ref = useRef<Group>(null);
   const state = useRef<PresentState>(createPresentState());
+  // La rotation libre de cet objet, gardée pendant son retour (followSpin).
+  const spin = useMemo(() => new Quaternion(), []);
   const pose = ITEM_POSES[id];
 
   useFrame((three) => {
@@ -131,6 +133,14 @@ export function usePresentation({
       frame.dt,
       reduced || scene.clock.frozen,
       scene.flipped,
+    );
+    followSpin(
+      spin,
+      scene.heldSpin,
+      scene.presented === id,
+      current.p,
+      frame.dt,
+      reduced || scene.clock.frozen,
     );
     progress?.set(id, current.p);
     hub.progress.set(id, current.p);
@@ -167,11 +177,7 @@ export function usePresentation({
           heldQuaternion,
         );
         // La rotation libre du visiteur (partie A), par-dessus la pose tenue.
-        const spin = scene.heldSpin;
-        if (scene.presented === id && spin.qw !== 1) {
-          spinQuaternion.set(spin.qx, spin.qy, spin.qz, spin.qw);
-          heldQuaternion.premultiply(spinQuaternion);
-        }
+        if (spin.w !== 1) heldQuaternion.premultiply(spin);
         const k = ease(current.p);
         group.position.lerpVectors(restPosition, heldPosition, k);
         group.position.y += Math.sin(Math.PI * k) * 1.2 * arc;

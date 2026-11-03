@@ -3,6 +3,7 @@ import { describe, expect, it } from 'vitest';
 import { HELD_MAX_DISTANCE, ITEM_POSES, MONITOR, POSTIT_ON_MONITOR } from '../core/constants';
 import {
   createPresentState,
+  followSpin,
   glowLevel,
   HELD_FOLLOW,
   heldPose,
@@ -189,5 +190,38 @@ describe('postitRestPose', () => {
     expect(position.y).toBeGreaterThan(0.8);
     expect(position.y).toBeLessThan(MONITOR.tiltY);
     expect(position.z).toBeGreaterThan(mz);
+  });
+});
+
+describe('followSpin', () => {
+  const turned = new Quaternion().setFromAxisAngle(new Vector3(1, 1, 0).normalize(), 2);
+  const held = () => ({ qx: turned.x, qy: turned.y, qz: turned.z, qw: turned.w });
+  const identity = { qx: 0, qy: 0, qz: 0, qw: 1 };
+
+  it("suit exactement la rotation demandée tant que l'objet est tenu", () => {
+    const local = followSpin(new Quaternion(), held(), true, 1, 1 / 60, false);
+    expect(local.angleTo(turned)).toBeCloseTo(0);
+  });
+
+  it("garde l'orientation pendant le retour, même si le socle a remis heldSpin à zéro", () => {
+    const local = followSpin(new Quaternion(), held(), true, 1, 1 / 60, false);
+    // Reposé : heldSpin vaut l'identité, l'objet est encore à mi-chemin.
+    followSpin(local, identity, false, 0.5, 1 / 60, false);
+    expect(local.angleTo(turned)).toBeCloseTo(0);
+    // Revenu à sa place : la rotation est oubliée.
+    followSpin(local, identity, false, 0, 1 / 60, false);
+    expect(local.angleTo(new Quaternion())).toBeCloseTo(0);
+  });
+
+  it('rejoint sans à-coup la rotation demandée quand on le reprend en plein retour', () => {
+    const local = followSpin(new Quaternion(), held(), true, 1, 1 / 60, false);
+    const step = followSpin(local.clone(), identity, true, 0.4, 1 / 60, false);
+    const jump = step.angleTo(turned);
+    expect(jump).toBeGreaterThan(0);
+    expect(jump).toBeLessThan(0.2);
+    // En mouvement réduit ou horloge gelée, tout est immédiat.
+    expect(
+      followSpin(local.clone(), identity, true, 0.4, 1 / 60, true).angleTo(new Quaternion()),
+    ).toBeCloseTo(0);
   });
 });

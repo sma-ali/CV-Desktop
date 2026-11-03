@@ -19,10 +19,15 @@ async function waitForScene(page: Page) {
 /** Le fichier de three n'arrive jamais : la scène reste en préparation. */
 async function holdThree(page: Page) {
   await page.route('**/_next/static/chunks/**', async (route: Route) => {
-    const response = await route.fetch();
-    const body = await response.text();
-    if (body.includes(THREE_MARKER)) return; // jamais servi
-    await route.fulfill({ response, body });
+    // La page peut se fermer pendant qu'un fichier arrive : on l'oublie.
+    try {
+      const response = await route.fetch();
+      const body = await response.text();
+      if (body.includes(THREE_MARKER)) return; // jamais servi
+      await route.fulfill({ response, body });
+    } catch {
+      // page fermée
+    }
   });
 }
 
@@ -51,10 +56,10 @@ test.describe('l’écran de chargement', () => {
     const fr = await (await request.get('/fr')).text();
     expect(fr).toContain('Préparation du bureau');
     expect(fr).toMatch(/role="progressbar"[^>]*aria-valuenow="0"/);
-    expect(fr).toContain('Passer à la version express');
+    expect(fr).toContain('Lire le CV sans attendre');
     const en = await (await request.get('/en')).text();
     expect(en).toContain('Setting up the desk');
-    expect(en).toContain('Skip to the express version');
+    expect(en).toContain('Read the CV without waiting');
   });
 
   test('avance au rythme du chargement réel, puis s’efface', async ({ page }) => {
@@ -62,7 +67,7 @@ test.describe('l’écran de chargement', () => {
     await page.goto('/fr?auto=0&heure=14');
     await waitForScene(page);
     await expect(intro(page)).toBeHidden();
-    await expect(page.getByRole('link', { name: 'Passer à la version express' })).toBeHidden();
+    await expect(page.getByRole('link', { name: 'Lire le CV sans attendre' })).toBeHidden();
     // Le HUD revient dans le parcours au clavier.
     await expect(hud(page)).not.toHaveAttribute('inert');
     const values = await page.evaluate(
@@ -85,7 +90,7 @@ test.describe('l’écran de chargement', () => {
     await expect(hud(page)).toHaveAttribute('inert', '');
     await expect(hud(page)).toHaveAttribute('data-ready', 'false');
     await page.keyboard.press('Tab');
-    const skip = page.getByRole('link', { name: 'Passer à la version express' });
+    const skip = page.getByRole('link', { name: 'Lire le CV sans attendre' });
     await expect(skip).toBeFocused();
     await expect(skip).toHaveAttribute('href', '/fr/express');
     // Avec ?attente=0, il ne renonce jamais.

@@ -222,7 +222,7 @@ export const en = {
     },
     intro: {
       preparing: 'Setting up the desk',
-      skip: 'Skip to the express version',
+      skip: 'Read the CV without waiting',
       slow: 'The 3D desk is taking too long to set up. Here is the CV in its express version.',
     },
   },

@@ -224,7 +224,7 @@ export const fr = {
     },
     intro: {
       preparing: 'Préparation du bureau',
-      skip: 'Passer à la version express',
+      skip: 'Lire le CV sans attendre',
       slow: 'Le bureau en 3D met trop de temps à se préparer. Voici le CV en version express.',
     },
   },

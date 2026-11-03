@@ -193,3 +193,8 @@ Soit 17.2 Ko de plus (7.2 Ko gzip) sur le bureau : l'écran de chargement, son s
 - Place du bouton de rangement sur téléphone : au milieu de l'écran, il couvre le bas de l'écran du bureau.
 - Kimono : la ceinture crème un peu claquée sous la lampe à 14 h ; les bandes de boxe gardées (Ali n'a parlé que des gants).
 - Défauts connus : sous `&fige`, le socle ne signale pas toujours que le monde s'est posé (contourné dans `Tidy.tsx`) ; en `next dev` seulement, Rapier signale « recursive use of an object » (absent du build de production).
+
+### Vérification finale (03/11/2026)
+
+- `npm run check` : vert (51 fichiers, 563 tests Vitest).
+- Suite E2E complète sur les deux profils (`E2E_PORT=3100 npm run test:e2e`, machine calme, 24.7 min) : 372 réussis, 44 sautés, 4 échecs, tous dans `parcours.spec.ts`. Ce n'était pas un défaut du site : le bouton de rangement ajoute au HUD une deuxième région `role="status"`, et le sélecteur `#hud [role="status"]` des deux tests en trouvait deux (mode strict). Il vise maintenant `#hud [role="status"]:not([data-tidy-status])`, la même annonce, rien d'affaibli. `parcours.spec.ts` relancé seul sur les deux profils : 23 réussis, 1 sauté.

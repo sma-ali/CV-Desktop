@@ -9,6 +9,8 @@ import { expect, test, type Page } from '@playwright/test';
 // Arrivée finie, horloge gelée, sans visite automatique : un état stable.
 const SETTLED = '/fr?t=11000&fige&auto=0&heure=14';
 
+// Le HUD a deux régions role="status" : la sienne et celle du bouton de
+// rangement (data-tidy-status). Les annonces lues ici sont celles du HUD.
 const hud = (page: Page) => page.locator('#hud');
 const tag = (page: Page, item: string) => page.locator(`[data-item="${item}"]`);
 
@@ -36,7 +38,7 @@ test.describe('au clavier', () => {
     await expect(chip).toHaveAttribute('data-on', 'true');
     // L'état se dit aussi aux lecteurs d'écran : puce courante et annonce.
     await expect(chip).toHaveAttribute('aria-current', 'true');
-    await expect(page.locator('#hud [role="status"]')).toHaveText(
+    await expect(page.locator('#hud [role="status"]:not([data-tidy-status])')).toHaveText(
       /2024 DARES\. Objet vu de près\. Échap pour le reposer\./,
     );
     // La page n'a pas suivi le lien vers la version express.
@@ -119,7 +121,7 @@ test.describe('Rejouer', () => {
     await page.getByRole('button', { name: 'Nuit' }).click();
     await expect(hud(page)).toHaveAttribute('data-mood', 'night');
     // Le choix s'annonce une fois ; l'heure qui passe, jamais.
-    await expect(page.locator('#hud [role="status"]')).toHaveText(
+    await expect(page.locator('#hud [role="status"]:not([data-tidy-status])')).toHaveText(
       'Lumière choisie. Nuit. La lampe veille.',
     );
     await expect(page.locator('#hud [aria-live]')).toHaveCount(0);

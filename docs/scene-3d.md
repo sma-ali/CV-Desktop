@@ -167,6 +167,7 @@ Ceux du prototype, lus par `parseTestParams` (`src/scene/core/params.ts`) :
 | `?prendre=book`        | présente un objet dès le départ (identifiants anglais), sans visite |
 | `?ambiance=night`      | force une ambiance                                                  |
 | `?noshadow`, `?nopost` | sans ombres, sans post-traitement (mesures)                         |
+| `?desordre`            | étape 6 : tout le bureau lancé en l'air dès que le moteur est prêt  |
 
 État exposé aux tests sur `#hud` (attributs, rien en global) : `data-ready`, `data-phase`, `data-mood`, `data-presented`, `data-auto`, `data-reduced`, `data-frozen`. La racine porte `data-fallback` (`no-webgl`, `crashed` ou `context-lost`) quand le repli s'affiche.
 

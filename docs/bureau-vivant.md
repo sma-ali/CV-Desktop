@@ -2,7 +2,7 @@
 
 Le bureau devient un vrai terrain de jeu : tout ce qui est posé dessus bouge (objets du CV et décor), on le glisse, on le lance, il bascule, s'empile, tombe du plateau. L'objet présenté se tourne dans tous les sens. Un bouton propose de tout ranger quand le bureau est sens dessus dessous. Le décor change (sans matériel de stream ni gants, avec un kimono plié et sa ceinture), et l'arrivée commence par un vrai écran de chargement.
 
-Ce document est le contrat de l'étape : ce que le socle a posé (branche `feat/bureau-vivant`), et ce que font les trois parties menées en parallèle, chacune dans son worktree et ses fichiers.
+Ce document est le contrat de l'étape : ce que le socle a posé (branche `feat/bureau-vivant`), et ce que font les trois parties menées en parallèle, chacune dans son worktree et ses fichiers. Les trois parties sont fusionnées : l'état final, les chiffres et les questions ouvertes sont à la fin (« État final après l'assemblage »).
 
 ## Le socle (fait)
 
@@ -108,6 +108,9 @@ Chaque partie part de `feat/bureau-vivant`, dans son worktree, sur sa branche (`
 | `?prendre=card`                 | objet présenté dès l'arrivée                                                                                                                                                                                  |
 | `?glisse` / `?glisse=mug:4.9,0` | glisser joué par le moteur (portable vers la carte par défaut), lâché sans élan au but, bloqué ou trop long ; sous `&fige`, joué d'un coup en une image (déterministe, quelle que soit la lenteur des images) |
 | `?reduit`                       | mouvement réduit : pas de lancer, pas d'inertie, retours immédiats                                                                                                                                            |
+| `&tourne=0.6,1.2`               | avec `?prendre=`, tourne l'objet présenté (radians), lu par `parseTurn` (partie A)                                                                                                                            |
+| `?desordre`                     | tout le bureau lancé en l'air dès que le moteur est prêt ; sous `&fige`, toujours le même résultat (partie B)                                                                                                 |
+| `?attente=1500`                 | délai avant la version express si la scène tarde (ms ; `0` : jamais) (partie C)                                                                                                                               |
 
 ## Rendez-vous
 
@@ -157,3 +160,36 @@ Le solveur 2D (`gestures/solver.ts`) et la simulation du glisser (`gestures/drag
 - `?desordre` : tous les corps lancés en l'air au-dessus d'une grille qui déborde du plateau, penchés au hasard (graine fixe), puis lâchés. Sous `&fige`, le résultat est toujours le même.
 - Retouches hors de la partie, d'une ligne ou presque : `takeOver` coupe la CCD du corps repris en main et `handBack` / `sendHome` la rétablissent (`physics/world.ts`) : avec elle, un grand `drive` s'arrêtait au premier contact. `?desordre` ajoute `scatter` à `TestParams` et à `SceneSettings`.
 - Tests : `tidy/*.test.ts` (score, trajet, sortie de sous le plateau, retour et rangement avec le vrai Rapier), `tests/e2e/scene-rangement.spec.ts`.
+
+## État final après l'assemblage
+
+Fusion dans `feat/bureau-vivant`, dans l'ordre du contrat : C (`feat/bureau-vivant-decor-intro`), puis A (`feat/bureau-vivant-rotation`), puis B (`feat/bureau-vivant-chaos`), chacune par `git merge --no-ff`. Les branches ont gardé ces noms, pas ceux proposés plus haut. Seuls `docs/scene-3d.md` (tableau des paramètres, phrase sur `data-fallback`) et ce document ont demandé une résolution à la main : les deux côtés ont été gardés. Aucun conflit dans le code : B n'a touché ni `Hud.tsx` ni `Desk.module.css` (son style est dans `TidyButton.module.css`).
+
+### Ce qui marche ensemble (vérifié sur le build de production)
+
+- Écran de chargement puis arrivée : le filament chauffe de 0 à 100 au rythme réel, l'écran s'efface, la lampe s'allume et l'arrivée suit.
+- Rapier n'arrive qu'après l'arrivée : sur `/fr?auto=0` sans `?t`, ses deux fichiers sont demandés au moment où la phase passe à `settled` (environ 18 s sous SwiftShader), jamais avant.
+- Rotation libre : `?prendre=book&tourne=0.7,0.9` donne `data-turned="true"` et l'objet tenu de biais, fiche ouverte avec « Remettre droit ».
+- Désordre et rangement : `?desordre&fige` donne un score de 1 et le bouton, sur ordinateur (7 corps tombés) comme en portrait (2 tombés) ; un clic remet le score à 0, rien de déplacé ni de tombé, recouvrement final 0.008 (ordinateur) et 0.046 (portrait), sous le seuil de 0.05. La disposition revue par C fait toujours paraître le bouton.
+- Mouvement réduit (`prefers-reduced-motion`, sans `&fige`) : le bouton paraît, le rangement se fait d'un coup (1.3 s, attente du HUD comprise).
+- Sans WebGL (`--disable-webgl`) : `data-fallback="no-webgl"`, la version express s'affiche.
+
+### Poids du premier chargement
+
+Mesuré sur la sortie de `next build` (Next 16 n'affiche plus les tailles : somme des fichiers `<script src>` du HTML prérendu de `/fr`, gzip niveau 9) :
+
+| Page          | `main`                              | `feat/bureau-vivant`                 |
+| ------------- | ----------------------------------- | ------------------------------------ |
+| `/fr`         | 9 fichiers, 612.1 Ko, 190.6 Ko gzip | 10 fichiers, 629.3 Ko, 197.8 Ko gzip |
+| `/fr/express` | 8 fichiers, 571.7 Ko, 176.5 Ko gzip | 8 fichiers, 571.7 Ko, 176.5 Ko gzip  |
+
+Soit 17.2 Ko de plus (7.2 Ko gzip) sur le bureau : l'écran de chargement, son suivi et le bouton de rangement. Aucun de ces fichiers ne contient Rapier. Rapier vit dans deux fichiers chargés à part : 2184 Ko (815 Ko gzip, le WebAssembly en base64 de la version « compat ») et 32 Ko (11 Ko gzip).
+
+### Questions ouvertes, à trancher avec Ali
+
+- Touches : Page précédente et Page suivante pour l'objet voisin, Début pour « Remettre droit » (pas de `<kbd>` affiché sur ce bouton).
+- Textes proposés : `hint.held` raccourci (« Glissez pour tourner, cliquez pour retourner, Échap pour reposer. »), l'offre « Oulala, vous avez tout cassé. Je range pour vous ? », « Je range le bureau. », « Bureau rangé. », le lien « Lire le CV sans attendre » et le message de la scène trop lente.
+- Réglages : gain de la boule (1.35), élan plafonné à 10 rad/s ; score de désordre (seuil 0.5, formule de la partie B) ; retour d'un objet tombé après 2.5 s ; délai de 20 s de page inoccupée avant la version express (12 s si JavaScript ne démarre pas).
+- Place du bouton de rangement sur téléphone : au milieu de l'écran, il couvre le bas de l'écran du bureau.
+- Kimono : la ceinture crème un peu claquée sous la lampe à 14 h ; les bandes de boxe gardées (Ali n'a parlé que des gants).
+- Défauts connus : sous `&fige`, le socle ne signale pas toujours que le monde s'est posé (contourné dans `Tidy.tsx`) ; en `next dev` seulement, Rapier signale « recursive use of an object » (absent du build de production).

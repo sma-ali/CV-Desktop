@@ -91,9 +91,14 @@ function PhysicsDriver() {
       : physics.advance(frame.dt, desk);
     if (!events) return;
     for (const strength of events.thuds) scene.sound.play('thud', strength);
+    const { dataset } = get().gl.domElement;
     if (events.settled && scene.dragging === null) {
       scene.commitPlaces();
-      get().gl.domElement.dataset.penetration = physics.maxPenetration().toFixed(3);
+      dataset.penetration = physics.maxPenetration().toFixed(3);
+    } else if (physics.moving && dataset.penetration !== undefined) {
+      // Le monde bouge de nouveau : la mesure du posé précédent ne vaut plus
+      // (les tests attendent celle du prochain posé).
+      delete dataset.penetration;
     }
   }, PHYSICS_PRIORITY);
 

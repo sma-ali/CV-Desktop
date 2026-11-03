@@ -560,6 +560,11 @@ export class DeskPhysics implements PhysicsControl {
     return this.output(desk, steps * FIXED_STEP);
   }
 
+  /** Un corps bougeait encore au dernier pas joué (advance, stepMany ou settle). */
+  get moving(): boolean {
+    return this.wasAwake;
+  }
+
   anyAwake(): boolean {
     for (const [id, entry] of this.entries) {
       if (!this.out.has(id) && entry.body.isEnabled() && !entry.body.isSleeping()) return true;

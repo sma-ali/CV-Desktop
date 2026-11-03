@@ -21,7 +21,7 @@ Ce document est le contrat de l'étape : ce que le socle a posé (branche `feat/
 - Changement d'orientation (paysage et portrait) : tout revient à sa place d'origine du nouveau format.
 - Pour que le bureau se pose vite (et calcule peu sur téléphone) : un corps presque immobile pendant 0.4 s s'endort (`CALM`), les cylindres sont des prismes à 10 côtés (couchés, ils ne roulent pas sans fin), et un amortissement angulaire fort tient lieu de résistance au roulement.
 - En portrait, le casque et son support sont décalés de 0.15 vers la droite (`HEADSET_PORTRAIT.x` 3.5) : un écouteur entrait dans la dalle de l'écran.
-- `data-penetration` sur le canvas : la plus grande profondeur de contact entre deux corps quand le bureau se pose (test E2E, sous 0.05).
+- `data-penetration` sur le canvas : la plus grande profondeur de contact entre deux corps quand le bureau se pose (test E2E, sous 0.05). Effacé dès que le monde bouge de nouveau : la valeur lue est toujours celle du dernier posé.
 
 ### Le store (`core/store.ts`) : champs et actions de l'étape
 

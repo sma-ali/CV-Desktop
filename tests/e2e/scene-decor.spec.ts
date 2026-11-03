@@ -91,7 +91,10 @@ test.describe('le décor', () => {
 test.describe('le kimono plié', () => {
   test.slow();
 
-  test('se glisse comme le reste du décor, sans rien chevaucher', async ({ page }) => {
+  test('se glisse comme le reste du décor, sans rien chevaucher', async ({ page, isMobile }) => {
+    // Comme les ?glisse= de scene-gestes : le même moteur sur les deux profils,
+    // et sa place en portrait est vérifiée par kimono.test.ts.
+    test.skip(isMobile, 'le même moteur sur les deux profils');
     await page.goto(`${SETTLED}&fige&glisse=kimono:-2.6,-1.5`);
     await waitForScene(page);
     await expect(page.locator('#hud')).toHaveAttribute('data-physics', 'ready', {

@@ -252,6 +252,8 @@ test.describe('le repli', () => {
 test.describe('les liens', () => {
   test('basculent vers le bureau anglais', async ({ page }) => {
     await page.goto('/fr?auto=0');
+    // Étape 6 : l'écran de chargement couvre le HUD jusqu'à la scène prête.
+    await waitForScene(page);
     const link = page.getByRole('link', { name: 'English' });
     await expect(link).toHaveAttribute('hreflang', 'en');
     await link.click();
@@ -263,6 +265,8 @@ test.describe('les liens', () => {
 
   test('vont du bureau à la version express et retour', async ({ page }) => {
     await page.goto('/fr?auto=0');
+    // Étape 6 : l'écran de chargement couvre le HUD jusqu'à la scène prête.
+    await waitForScene(page);
     await page.getByRole('link', { name: 'Version express' }).click();
     await expect(page).toHaveURL(/\/fr\/express$/);
     await page.getByRole('link', { name: 'Revenir au bureau' }).click();

@@ -4,7 +4,9 @@ import { getContent, type Locale } from '../../src/content';
 import { SHEET_ORDER } from '../../src/scene/core/ids';
 
 // Les fiches (partie « fiches », étape 4) : le bristol de l'objet présenté
-// (#sheet, data-open et data-sheet), Préc. / Suiv., flèches, Retourner,
+// (#sheet, data-open et data-sheet), Préc. / Suiv., Page précédente et
+// Page suivante (les flèches tournent l'objet présenté depuis l'étape 6,
+// voir scene-rotation.spec.ts), Retourner,
 // focus, signes de vie du coffret, le bouton « Son » (aria-pressed, et
 // data-sound sur #hud), l'indication du HUD, la feuille du bas sur téléphone.
 
@@ -79,7 +81,7 @@ test.describe('la fiche', () => {
     });
   }
 
-  test('Préc. / Suiv. et les flèches parcourent tous les objets', async ({ page }) => {
+  test('Préc. / Suiv. et Page préc. / Page suiv. parcourent tous les objets', async ({ page }) => {
     // Tous les objets présentés de suite : près de 60 s avec 4 pages sous SwiftShader.
     test.slow();
     await page.goto(at('fr', 'prendre=book'));
@@ -98,11 +100,11 @@ test.describe('la fiche', () => {
 
     const back: string[] = [];
     for (let i = 0; i < SHEET_ORDER.length; i++) {
-      await page.keyboard.press('ArrowLeft');
+      await page.keyboard.press('PageUp');
       back.push((await sheet(page).getAttribute('data-sheet')) ?? '');
     }
     expect(back).toEqual([...SHEET_ORDER].reverse().slice(1).concat(SHEET_ORDER.at(-1)!));
-    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('PageDown');
     await expect(sheet(page)).toHaveAttribute('data-sheet', SHEET_ORDER[0]);
   });
 
@@ -120,7 +122,7 @@ test.describe('la fiche', () => {
     ).toBeVisible();
 
     await page.keyboard.press('Tab');
-    await page.keyboard.press('ArrowRight');
+    await page.keyboard.press('PageDown');
     await expect(sheet(page)).toHaveAttribute('data-sheet', 'headset');
     await page.keyboard.press('Escape');
     await expect(sheet(page)).toHaveAttribute('data-open', 'false');

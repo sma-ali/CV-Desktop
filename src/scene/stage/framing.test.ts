@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { cameraProgress } from '../core/arrival';
-import { bodyObb, homePlace } from '../core/bodies';
+import { bodyObb, FOOTPRINT_IDS, homePlace } from '../core/bodies';
 import { decorExtentPortrait } from '../decor/layout';
 import {
   ARRIVAL,
@@ -13,7 +13,6 @@ import {
   START_P,
   type View,
 } from '../core/constants';
-import { BODY_IDS } from '../core/ids';
 import {
   arrivalPose,
   blendPose,
@@ -184,14 +183,17 @@ describe('le bureau utile', () => {
     near((Math.min(...zs) + Math.max(...zs)) / 2, box.z);
   });
 
-  it('comprend chaque corps du plateau, le micro et la lampe', () => {
+  it('comprend chaque corps du plateau, le bord gauche et la lampe', () => {
     const points = deskExtent(false);
     expect(points).toHaveLength(
-      BODY_IDS.length * 8 + Object.values(FIXED_EXTENT).reduce((n, list) => n + list.length, 0),
+      FOOTPRINT_IDS.length * 8 +
+        Object.values(FIXED_EXTENT).reduce((n, list) => n + list.length, 0),
     );
-    expect(Object.keys(FIXED_EXTENT).sort()).toEqual(['headset', 'lamp', 'mic', 'monitor']);
-    // Le micro, au bord gauche du plateau, est le point le plus à gauche.
-    expect(Math.min(...points.map(([x]) => x))).toBeLessThan(-6.3);
+    expect(Object.keys(FIXED_EXTENT).sort()).toEqual(['edge', 'headset', 'lamp', 'monitor']);
+    // Le bord gauche (la corde à sauter) est le point le plus à gauche.
+    const left = Math.min(...points.map(([x]) => x));
+    expect(left).toBeLessThan(-6.1);
+    expect(Math.min(...FIXED_EXTENT.edge.map(([x]) => x))).toBe(left);
   });
 });
 
@@ -230,10 +232,10 @@ describe('le bureau resserré du portrait', () => {
     expect(share).toBeLessThanOrEqual(1 + 1e-3);
   });
 
-  it('déplace la lampe et le casque, cache le micro, et rien en paysage', () => {
+  it('déplace la lampe et le casque, sans bord gauche, et rien en paysage', () => {
     expect(fixedExtent(false)).toBe(FIXED_EXTENT);
     const portrait = fixedExtent(true);
-    expect(portrait.mic).toEqual([]);
+    expect(portrait.edge).toEqual([]);
     expect(portrait.monitor).toEqual(FIXED_EXTENT.monitor);
     expect(portrait.lamp[0]).not.toEqual(FIXED_EXTENT.lamp[0]);
     expect(portrait.headset[0]![0]).toBeGreaterThan(2.8);

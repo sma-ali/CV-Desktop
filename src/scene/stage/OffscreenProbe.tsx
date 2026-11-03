@@ -4,7 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { useRef } from 'react';
 import { PerspectiveCamera, Vector3, type Camera } from 'three';
 import type { Vec3 } from '../core/constants';
-import { BODY_IDS } from '../core/ids';
+import { FOOTPRINT_IDS } from '../core/bodies';
 import { useSceneStoreApi } from '../core/store-context';
 import { bodyExtent, fixedExtent, restLimits, screenShare } from './framing';
 
@@ -13,7 +13,7 @@ import { bodyExtent, fixedExtent, restLimits, screenShare } from './framing';
 // ni de tenu, projette l'encombrement de chaque corps du plateau (les huit
 // coins de son rectangle, au ras du plateau et à sa hauteur, à sa place du
 // moment) et les points fixes du bureau utile (haut de l'écran, casque,
-// micro, lampe), et écrit dans store.offscreen ceux qui dépassent de la
+// corde à sauter, lampe), et écrit dans store.offscreen ceux qui dépassent de la
 // fenêtre. Mêmes points que le cadrage de repos (fitRestView) : ce que le
 // cadrage fait tenir, le relevé le vérifie. Le HUD l'expose aux tests
 // (data-offscreen) ; le canvas compte les relevés faits
@@ -54,7 +54,7 @@ export function OffscreenProbe() {
     }
     const ids: string[] = [];
     const all: Vec3[] = [];
-    for (const id of BODY_IDS) {
+    for (const id of FOOTPRINT_IDS) {
       const points = bodyExtent(id, desk[id]);
       all.push(...points);
       if (points.some((point) => outside(camera, point))) ids.push(id);

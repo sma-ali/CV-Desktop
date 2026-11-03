@@ -16,12 +16,14 @@ import {
 import type { LifeSigns } from '@/lib/life-signs/types';
 import {
   createDeskBodies,
+  fallenIds,
   movedPlaces,
   syncDeskBodies,
   resetDeskBodies,
   type DeskBodies,
   type DeskPlaces,
 } from './bodies';
+import { EMPTY_LOAD, type LoadProgress, type LoadStep } from './loading';
 import { createClock, type Clock } from './clock';
 import { ARRIVAL, SETTLE, TYPING_END_DEFAULT } from './constants';
 import type { BodyId, ItemId, MoodId } from './ids';
@@ -65,6 +67,8 @@ export interface SceneSettings {
   /** ?noshadow et ?nopost, pour les mesures et les machines lentes. */
   noShadow: boolean;
   noPost: boolean;
+  /** ?desordre : le bureau dispersé dès que le moteur est prêt (partie B). */
+  scatter: boolean;
 }
 
 export const DEFAULT_SETTINGS: SceneSettings = {
@@ -78,7 +82,28 @@ export const DEFAULT_SETTINGS: SceneSettings = {
   initialDrag: null,
   noShadow: false,
   noPost: false,
+  scatter: false,
 };
+
+/**
+ * Le moteur physique (étape 6), chargé à part après l'arrivée : pas encore
+ * demandé, en chargement, prêt, ou en échec (le bureau reste immobile, les
+ * clics marchent toujours).
+ */
+export type PhysicsStatus = 'off' | 'loading' | 'ready' | 'failed';
+
+/**
+ * L'orientation que le visiteur donne à l'objet présenté (rotation libre,
+ * partie A de l'étape 6), un quaternion appliqué par-dessus la pose de
+ * présentation. Mutable, lu dans useFrame : l'identité tant que personne ne
+ * l'a tourné.
+ */
+export interface HeldSpin {
+  qx: number;
+  qy: number;
+  qz: number;
+  qw: number;
+}
 
 /** Instant où l'arrivée est finie, en mouvement réduit. */
 export const REDUCED_START = SETTLE + 0.6;
@@ -101,6 +126,7 @@ export function settingsFromParams(
     initialDrag: params.drag,
     noShadow: params.noShadow,
     noPost: params.noPost,
+    scatter: params.scatter,
   };
 }
 
@@ -160,6 +186,12 @@ export interface SceneState {
   desk: DeskBodies;
   /** Le son : play(cue) ne fait rien tant qu'il est coupé (voir sound.ts). */
   sound: SoundPlayer;
+  /**
+   * La rotation libre de l'objet présenté (partie A), mutable : remise à
+   * l'identité par le socle quand un autre objet est présenté, quand il est
+   * reposé, et par Rejouer.
+   */
+  heldSpin: HeldSpin;
 
   // --- État réactif ---
   /** La scène a dessiné ses premières images. */
@@ -182,8 +214,24 @@ export interface SceneState {
   flipped: boolean;
   /** Le corps que le visiteur fait glisser (null : aucun glisser en cours). */
   dragging: BodyId | null;
-  /** Places des corps déplacés, copiées à la fin de chaque glisser (data-places). */
+  /** Places des corps déplacés, recopiées quand le bureau se pose (data-places). */
   places: DeskPlaces;
+  /** Les corps tombés du plateau, recopiés avec places (data-fallen). */
+  fallen: readonly BodyId[];
+  /** Le moteur physique (étape 6). */
+  physics: PhysicsStatus;
+  /** Score de désordre du bureau, de 0 (rangé) à 1 (tout cassé), écrit par la partie B. */
+  disorder: number;
+  /** Nombre de demandes de rangement (bouton « Je range pour vous ? ») : la partie B s'y abonne. */
+  tidyRequests: number;
+  /** Le rangement animé est en cours (partie B). */
+  tidying: boolean;
+  /** Le visiteur a tourné l'objet présenté (partie A) : le bouton « Remettre droit » apparaît. */
+  heldTurned: boolean;
+  /** Nombre de demandes « Remettre droit » (partie A). */
+  uprightRequests: number;
+  /** Avancement du chargement de la scène, par étape (écran de chargement, partie C). */
+  load: LoadProgress;
   /** Le son est ouvert (bouton « Son » du HUD). */
   soundOn: boolean;
   /** Ce qui sort du cadre au repos (identifiants d'objets ou de décor), vu par la caméra. */
@@ -213,12 +261,26 @@ export interface SceneState {
   putBack(): void;
   /** Retourne l'objet présenté, ou le remet à l'endroit (sans effet sur l'écran). */
   toggleFlip(): void;
-  /** Un glisser commence (partie gestes) : compte comme une action du visiteur. */
+  /** Un glisser commence (socle, gestes) : compte comme une action du visiteur. */
   startDrag(body: BodyId): void;
   /** Le glisser finit : places reprend les corps déplacés (desk). */
   endDrag(): void;
-  /** Recopie dans places les corps déplacés (après une poussée, sans glisser en cours). */
+  /** Recopie dans places et fallen les corps déplacés (le bureau s'est posé). */
   commitPlaces(): void;
+  /** Réservé au socle : état du moteur physique. */
+  setPhysics(status: PhysicsStatus): void;
+  /** Partie B : le score de désordre (0 à 1). N'écrit que s'il change d'au moins 0.01. */
+  setDisorder(score: number): void;
+  /** Le visiteur demande le rangement (bouton du HUD, partie B). Compte comme une action. */
+  requestTidy(): void;
+  /** Partie B : le rangement commence ou finit. */
+  setTidying(on: boolean): void;
+  /** Partie A : l'objet présenté a été tourné (ou remis droit). */
+  setHeldTurned(turned: boolean): void;
+  /** Le visiteur demande de remettre l'objet présenté droit (bouton ou touche, partie A). */
+  requestUpright(): void;
+  /** Partie C : une étape du chargement avance (0 à 1, jamais en arrière). */
+  setLoad(step: LoadStep, value: number): void;
   /** Ouvre ou coupe le son ; appelée seulement par un clic du visiteur. */
   toggleSound(): void;
   /** Réservé au cadrage (partie objets) : ce qui sort du cadre. */
@@ -281,6 +343,13 @@ const sameFlags = (a: HudFlags, b: HudFlags) =>
 const sameList = (a: readonly string[], b: readonly string[]) =>
   a.length === b.length && a.every((value, index) => value === b[index]);
 
+function resetSpin(spin: HeldSpin): void {
+  spin.qx = 0;
+  spin.qy = 0;
+  spin.qz = 0;
+  spin.qw = 1;
+}
+
 export interface SceneStoreOptions {
   /** Le lecteur de sons (DeskShell passe la synthèse WebAudio ; muet par défaut). */
   sound?: SoundPlayer;
@@ -300,6 +369,7 @@ export function createSceneStore(
     frame: initialFrame(mood),
     desk: createDeskBodies(),
     sound,
+    heldSpin: { qx: 0, qy: 0, qz: 0, qw: 1 },
 
     ready: false,
     phase: arrivalPhase(0),
@@ -312,6 +382,14 @@ export function createSceneStore(
     flipped: false,
     dragging: null,
     places: {},
+    fallen: [],
+    physics: 'off',
+    disorder: 0,
+    tidyRequests: 0,
+    tidying: false,
+    heldTurned: false,
+    uprightRequests: 0,
+    load: EMPTY_LOAD,
     soundOn: false,
     offscreen: [],
     lifeSigns: options.lifeSigns ?? null,
@@ -342,7 +420,9 @@ export function createSceneStore(
     },
 
     markReady() {
-      if (!get().ready) set({ ready: true });
+      // La première image est dessinée : textures, shaders et image sont
+      // faits (la partie C peut faire avancer assets et shaders plus tôt).
+      if (!get().ready) set({ ready: true, load: { code: 1, assets: 1, shaders: 1, frame: 1 } });
     },
 
     syncArrival(t) {
@@ -359,18 +439,23 @@ export function createSceneStore(
     present(item, source) {
       if (source !== 'auto') get().markUser();
       const same = get().presented === item;
-      if (!same) sound.play(item === 'monitor' ? 'hum' : 'pick');
+      if (!same) {
+        sound.play(item === 'monitor' ? 'hum' : 'pick');
+        resetSpin(get().heldSpin);
+      }
       set({
         presented: item,
         presentedBy: source,
         flipped: same ? get().flipped : item !== 'monitor',
+        heldTurned: same ? get().heldTurned : false,
       });
     },
 
     putBack() {
       if (get().presented === null) return;
       sound.play('putBack');
-      set({ presented: null, presentedBy: null, flipped: false });
+      resetSpin(get().heldSpin);
+      set({ presented: null, presentedBy: null, flipped: false, heldTurned: false });
     },
 
     toggleFlip() {
@@ -391,11 +476,51 @@ export function createSceneStore(
 
     endDrag() {
       if (get().dragging === null) return;
-      set({ dragging: null, places: movedPlaces(get().desk) });
+      set({ dragging: null, places: movedPlaces(get().desk), fallen: fallenIds(get().desk) });
     },
 
     commitPlaces() {
-      set({ places: movedPlaces(get().desk) });
+      const fallen = fallenIds(get().desk);
+      set({
+        places: movedPlaces(get().desk),
+        fallen: sameList(fallen, get().fallen) ? get().fallen : fallen,
+      });
+    },
+
+    setPhysics(status) {
+      if (get().physics !== status) set({ physics: status });
+    },
+
+    setDisorder(score) {
+      const next = Math.min(1, Math.max(0, score));
+      if (Math.abs(next - get().disorder) >= 0.01 || (next === 0 && get().disorder !== 0)) {
+        set({ disorder: next });
+      }
+    },
+
+    requestTidy() {
+      get().markUser();
+      set({ tidyRequests: get().tidyRequests + 1 });
+    },
+
+    setTidying(on) {
+      if (get().tidying !== on) set({ tidying: on });
+    },
+
+    setHeldTurned(turned) {
+      if (get().heldTurned !== turned) set({ heldTurned: turned });
+    },
+
+    requestUpright() {
+      if (get().presented === null) return;
+      get().markUser();
+      set({ uprightRequests: get().uprightRequests + 1 });
+    },
+
+    setLoad(step, value) {
+      const load = get().load;
+      const next = Math.min(1, Math.max(load[step], value));
+      if (next !== load[step]) set({ load: { ...load, [step]: next } });
     },
 
     toggleSound() {
@@ -425,6 +550,8 @@ export function createSceneStore(
         next.presented = null;
         next.presentedBy = null;
         next.flipped = false;
+        next.heldTurned = false;
+        resetSpin(get().heldSpin);
       }
       set(next);
     },
@@ -442,8 +569,10 @@ export function createSceneStore(
 
     replay(now) {
       const { clock, settings, replays, desk, frame } = get();
-      // Les objets déplacés reprennent leur place de repos.
+      // Les objets déplacés reprennent leur place d'origine (le moteur
+      // physique s'abonne à replays et y pose ses corps).
       resetDeskBodies(desk, frame.portrait);
+      resetSpin(get().heldSpin);
       // En mouvement réduit, rien ne bouge : l'arrivée reste finie.
       const startAt = settings.reducedMotion ? REDUCED_START : 0;
       clock.restart(now, startAt);
@@ -456,6 +585,10 @@ export function createSceneStore(
         flipped: false,
         dragging: null,
         places: {},
+        fallen: [],
+        disorder: 0,
+        tidying: false,
+        heldTurned: false,
         hovered: null,
         lastUserAt: -Infinity,
         lamp: { on: true, switchedAt: ARRIVAL.lampOn },

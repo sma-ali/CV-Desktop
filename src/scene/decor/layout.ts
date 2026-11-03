@@ -1,5 +1,6 @@
 import {
   ARRIVAL,
+  DECOR_BODY_HOMES,
   KEYBOARD,
   LAMP,
   TYPING_END_DEFAULT,
@@ -8,9 +9,10 @@ import {
   WINDOW_SKY,
   type Vec3,
 } from '../core/constants';
-import { clamp, deckLedOn, seg } from '../core/arrival';
-import { DECOR_BODY_HOMES, type DeskObstacle } from '../core/bodies';
+import { clamp } from '../core/arrival';
+import type { DeskObstacle } from '../core/bodies';
 import { rng } from '../core/rng';
+import { BELT, KIMONO_SIZE, KIMONO_TOP } from './kimono';
 
 // Le décor en données pures, sans three : positions, couleurs et petites
 // animations, fonctions du temps T de l'horloge du store. Tout ce qui est
@@ -147,87 +149,8 @@ export function keyDips(
 export const KEYBOARD_POSITION = KEYBOARD;
 
 // ------------------------------------------------------------------
-// Le pavé de boutons de stream
+// Outils de géométrie (lampe)
 // ------------------------------------------------------------------
-
-export const DECK = { position: [-2.7, 0, -0.5] as Vec3, ry: 0.06, tilt: -0.12 } as const;
-export const DECK_ROWS = 3;
-export const DECK_COLS = 5;
-export const DECK_PALETTE = [0xffb45e, 0xf3e9d4, 0x7fc4bb, 0xe3735a, 0x86a07d] as const;
-
-export interface DeckButton {
-  x: number;
-  y: number;
-  z: number;
-  color: number;
-}
-
-export function deckLayout(): DeckButton[] {
-  const buttons: DeckButton[] = [];
-  for (let row = 0; row < DECK_ROWS; row++) {
-    for (let col = 0; col < DECK_COLS; col++) {
-      buttons.push({
-        x: -0.5 + col * 0.25,
-        y: 0.21 + row * 0.034,
-        z: 0.26 - row * 0.26,
-        color: DECK_PALETTE[(row * 2 + col) % DECK_PALETTE.length] ?? DECK_PALETTE[0],
-      });
-    }
-  }
-  return buttons;
-}
-
-/** Instant du coup d'œil lumineux du bouton i après un clic à rippleAt. */
-export function deckRippleAt(rippleAt: number, index: number): number {
-  return rippleAt + (index % DECK_COLS) * 0.06 + Math.floor(index / DECK_COLS) * 0.03;
-}
-
-/**
- * Luminosité du bouton i (multiplie sa couleur) : éteint, puis allumé à son
- * tour pendant l'arrivée, avec une respiration lente (fixe en mouvement
- * réduit) et une vague après un clic.
- */
-export function deckButtonLevel(
-  t: number,
-  index: number,
-  rippleAt: number | null,
-  reduced: boolean,
-): number {
-  const on = deckLedOn(t, index);
-  const pulse = on ? (reduced ? 0.6 : 0.55 + 0.12 * Math.sin(t * 1.3 + index)) : 0;
-  let ripple = 0;
-  if (rippleAt !== null) {
-    const at = deckRippleAt(rippleAt, index);
-    if (t >= at && t < at + 0.35) ripple = 0.8;
-  }
-  return pulse + ripple;
-}
-
-// ------------------------------------------------------------------
-// Le micro sur bras articulé (entre par la gauche)
-// ------------------------------------------------------------------
-
-/**
- * Le bras : pince sur le bord gauche du plateau, colonne, bras haut, bras
- * avant, puis le micro suspendu. Le prototype pendait un micro noir presque
- * vertical, illisible vu de dessus ; ici le bras est clair, les rotules en
- * laiton, et le micro s'allonge presque à l'horizontale vers la chaise : de
- * haut, on lit une gélule à grille claire au bout d'un bras crème.
- */
-export const MIC = {
-  clamp: [-6.42, 0, -2.0] as Vec3,
-  /** Haut de la colonne, premier coude, bout du bras. */
-  joints: [
-    [-6.38, 0.95, -1.95],
-    [-6.25, 2.85, -1.05],
-    [-5.62, 2.7, 0.15],
-  ] as [Vec3, Vec3, Vec3],
-  /** Direction du micro (vers la bouche de qui est assis), normalisée au calcul. */
-  aim: [0.7, -0.36, 0.62] as Vec3,
-  /** Longueurs : corps, grille. Rayons : corps, grille. */
-  body: { length: 0.78, radius: 0.15 },
-  grille: { length: 0.42, radius: 0.2 },
-} as const;
 
 export function normalize([x, y, z]: Vec3): Vec3 {
   const length = Math.hypot(x, y, z) || 1;
@@ -280,42 +203,22 @@ export function cross([ax, ay, az]: Vec3, [bx, by, bz]: Vec3): Vec3 {
   return [ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx];
 }
 
-/** Direction du micro, normalisée. */
-export const MIC_AIM = normalize(MIC.aim);
-
-/**
- * Le micro dans son repère (axe +y vers la bouche, origine au centre de la
- * suspension) : centre du corps, centre de la grille, arrière, pointe.
- */
-export const MIC_LOCAL = (() => {
-  const { body, grille } = MIC;
-  const bodyY = -body.length / 2 + 0.05;
-  const grilleY = bodyY + body.length / 2 + grille.length / 2 - 0.02;
-  return {
-    bodyY,
-    grilleY,
-    backY: bodyY - body.length / 2,
-    tipY: grilleY + grille.length / 2 + grille.radius * 0.55,
-  };
-})();
-
-/** Le micro prolonge le bras : sa suspension pend juste devant la dernière rotule. */
-export const MIC_CENTER: Vec3 = addScaled(
-  addScaled(MIC.joints[2], MIC_AIM, 0.42),
-  [0, -0.12, 0],
-  1,
-);
-
-/** Un point de l'axe du micro (repère du monde), à la hauteur y de son repère. */
-export function micPoint(y: number): Vec3 {
-  return addScaled(MIC_CENTER, MIC_AIM, y);
-}
-
 // ------------------------------------------------------------------
 // La corde à sauter enroulée (coin avant gauche)
 // ------------------------------------------------------------------
 
 export const ROPE = { center: [-5.6, 0, 2.35] as Vec3, turns: 2.6, radius: 0.42 } as const;
+
+/**
+ * Les points extrêmes de la corde et de ses poignées (le bord gauche du
+ * cadrage en paysage, FIXED_EXTENT.edge) : le coin gauche de la spirale,
+ * le bout de la poignée du fond, l'avant de la spirale.
+ */
+export const ROPE_EXTENT: readonly Vec3[] = [
+  [ROPE.center[0] - 0.62, 0, ROPE.center[2] - 0.75],
+  [ROPE.center[0] - 0.55, 0.15, ROPE.center[2] + 0.48],
+  [ROPE.center[0] + 0.55, 0.15, ROPE.center[2] + 0.48],
+];
 
 /** La corde en spirale, posée à plat, qui monte un peu à chaque tour. */
 export function ropeCoil(points = 80): Vec3[] {
@@ -427,7 +330,7 @@ export const FIGURES: readonly FigureSpec[] = [
 ];
 
 // ------------------------------------------------------------------
-// Les petites choses posées : tasse, manette, bandes, gants
+// Les petites choses posées : tasse, manette, bandes, kimono
 // ------------------------------------------------------------------
 
 /** La tasse et la manette glissent (étape 4) : leur place de repos vient du socle. */
@@ -440,21 +343,27 @@ export const PAD = {
 } as const;
 export const STEAM_COUNT = 6;
 
-/** Le panneau de lumière : centre sur le pied (repère du monde) et point qu'il regarde. */
-export const PANEL = { offset: [-0.15, 3.75, 0.1] as Vec3, lookAt: [0, 0.5, 0.8] as Vec3 } as const;
+/**
+ * Le kimono de grappling plié, bleu marine, sa ceinture blanche nouée posée
+ * dessus (aucune marque, aucun écusson ; pièces dans kimono.ts) : à gauche
+ * du clavier, à la place de l'ancien pavé de boutons, sous la lampe. Assez
+ * loin derrière le livre pour que sa tranche ne le cache pas.
+ */
+export const KIMONO = { position: [-2.72, 0, -0.78] as Vec3, ry: 0.1 } as const;
 
-/** Les gants pendus au pied : longueur du lacet, décalage, phase, couleur. */
-export const GLOVES = [
-  { lace: 0.8, ox: -0.12, oz: 0.1, phase: 0, color: 0x8f2a22, kick: 1 },
-  { lace: 1.15, ox: 0.14, oz: -0.1, phase: 1.7, color: 0x7c231d, kick: -1 },
-] as const;
+/** Son encombrement vu de dessus (demi-largeur, demi-profondeur) et sa hauteur, nœud compris. */
+export const KIMONO_FOOTPRINT = {
+  hw: KIMONO_SIZE.w / 2 + 0.01,
+  hd: KIMONO_SIZE.d / 2 + BELT.thickness + 0.01,
+  height: KIMONO_TOP,
+} as const;
 
 // ------------------------------------------------------------------
 // Petites animations, fonctions pures du temps
 // ------------------------------------------------------------------
 
 /**
- * Balancement amorti après un choc (gants frappés) : angle en radians,
+ * Balancement amorti après un choc : angle en radians,
  * 0 avant le choc, sans choc ou en mouvement réduit.
  */
 export function damped(t: number, at: number | null, amplitude: number, reduced: boolean): number {
@@ -464,7 +373,7 @@ export function damped(t: number, at: number | null, amplitude: number, reduced:
   return amplitude * Math.exp(-s * 0.55) * Math.sin(s * 3);
 }
 
-/** Léger balancement continu (feuilles, gants, micro), coupé en mouvement réduit. */
+/** Léger balancement continu (feuilles), coupé en mouvement réduit. */
 export function sway(
   t: number,
   frequency: number,
@@ -499,12 +408,6 @@ export function rumble(t: number, at: number | null, reduced: boolean): number {
   return (1 - s / 0.6) * 0.035;
 }
 
-/** Niveau du panneau de lumière (0 à 1), avec un battement à l'allumage. */
-export function panelLevel(t: number): number {
-  const flicker = t > 5.4 && t < 5.48 ? 0.3 : 1;
-  return seg(t, ARRIVAL.panelOn, ARRIVAL.panelFull) * flicker;
-}
-
 export interface SteamPuff {
   x: number;
   y: number;
@@ -537,12 +440,6 @@ export function steamPuff(
   return out;
 }
 
-/** Couleur de l'anneau du micro (composantes sRGB, peuvent dépasser 1 pour le halo). */
-export function micRingColor(t: number, open: boolean): [number, number, number] {
-  const k = t >= ARRIVAL.micRing ? 1 : 0;
-  return open ? [k * 1.6, k * 0.2, k * 0.15] : [k * 0.9, k * 0.55, k * 0.25];
-}
-
 // ------------------------------------------------------------------
 // Encombrement au sol
 // ------------------------------------------------------------------
@@ -566,10 +463,17 @@ const square = (id: string, [x, , z]: Vec3, half: number): DeskObstacle => ({
 export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
   // Le clavier (boîtier de la rangée de touches), comme le prototype.
   { id: 'keyboard', x: KEYBOARD[0], z: KEYBOARD[2], ry: 0, hw: 2.15, hd: 0.72 },
-  { id: 'deck', x: DECK.position[0], z: DECK.position[2], ry: DECK.ry, hw: 0.69, hd: 0.48 },
+  // Le kimono plié et sa ceinture, à la place de l'ancien pavé de boutons.
+  {
+    id: 'kimono',
+    x: KIMONO.position[0],
+    z: KIMONO.position[2],
+    ry: KIMONO.ry,
+    hw: KIMONO_FOOTPRINT.hw,
+    hd: KIMONO_FOOTPRINT.hd,
+  },
   { id: 'mouse', x: 3.35, z: -0.48, ry: 0, hw: 0.24, hd: 0.34 },
   square('lamp', LAMP.base, 0.48),
-  square('mic-clamp', MIC.clamp, 0.3),
   { id: 'rope', x: ROPE.center[0], z: ROPE.center[2], ry: 0, hw: 0.55, hd: 0.48 },
   { id: 'wraps', x: 5.7, z: 0.75, ry: 0, hw: 0.4, hd: 0.4 },
   square('plant', PLANT.position, 0.36),
@@ -594,16 +498,24 @@ export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
  * Les morceaux du décor qui changent de place en portrait (décision d'Ali
  * du 29/10, voir BOUNDS_PORTRAIT). Chacun bouge d'un bloc : il tourne de ry
  * autour de son ancre (DECOR_ANCHORS, sa place en paysage), puis l'ancre va
- * en (x, z). Le clavier, le tapis, la pièce et le pied des gants ne
- * bougent pas (le pied des gants reste hors du cadre, à droite).
+ * en (x, z). Le tapis et la pièce ne bougent pas.
  */
 export type DecorPieceId =
-  'lamp' | 'mic' | 'deck' | 'mouse' | 'rope' | 'wraps' | 'plant' | 'manga' | 'fox' | 'wanderer';
+  | 'lamp'
+  | 'keyboard'
+  | 'kimono'
+  | 'mouse'
+  | 'rope'
+  | 'wraps'
+  | 'plant'
+  | 'manga'
+  | 'fox'
+  | 'wanderer';
 
 export const DECOR_PIECE_IDS = [
   'lamp',
-  'mic',
-  'deck',
+  'keyboard',
+  'kimono',
   'mouse',
   'rope',
   'wraps',
@@ -621,8 +533,8 @@ const figureAt = (kind: FigureKind): readonly [number, number] => {
 /** L'ancre de chaque morceau : sa place en paysage, vue de dessus (x, z). */
 export const DECOR_ANCHORS: Readonly<Record<DecorPieceId, readonly [number, number]>> = {
   lamp: [LAMP.base[0], LAMP.base[2]],
-  mic: [MIC.clamp[0], MIC.clamp[2]],
-  deck: [DECK.position[0], DECK.position[2]],
+  keyboard: [KEYBOARD[0], KEYBOARD[2]],
+  kimono: [KIMONO.position[0], KIMONO.position[2]],
   mouse: [3.35, -0.48],
   rope: [ROPE.center[0], ROPE.center[2]],
   wraps: [5.7, 0.75],
@@ -643,19 +555,20 @@ export interface DecorPlacement {
 /**
  * Les places du décor en portrait. La lampe passe derrière le bord gauche
  * de l'écran, sa tête vers l'avant gauche (elle éclaire le livre), au-dessus
- * de la plante ; le pavé de boutons se pose devant le clavier ; la souris se
- * rapproche du clavier ; la plante, les mangas et leur robot se serrent
- * dans le coin du fond à gauche, sous la fenêtre (le casque passe à droite
- * de l'écran, HEADSET_PORTRAIT). Le micro sur son bras, la corde, les bandes et
- * deux figurines ne trouvent pas de place sans entasser le plateau ou
- * cacher un objet du CV : cachés en portrait.
+ * de la plante ; le kimono plié se pose derrière le clavier, entre la
+ * lampe, le coffret et le pied de l'écran ; la souris se rapproche du
+ * clavier ; la plante se serre dans le coin du fond à gauche, sous la
+ * fenêtre, et les mangas et leur robot passent devant le clavier (le casque
+ * va à droite de l'écran, HEADSET_PORTRAIT). La corde, les bandes et deux
+ * figurines ne trouvent pas de place sans entasser le plateau ou cacher un
+ * objet du CV : cachés en portrait.
  */
 export const PORTRAIT_DECOR: Readonly<
   Record<DecorPieceId, { x: number; z: number; ry?: number; hidden?: boolean }>
 > = {
   lamp: { x: -2.4, z: -3.0, ry: -0.75 },
-  mic: { x: MIC.clamp[0], z: MIC.clamp[2], hidden: true },
-  deck: { x: -1.2, z: -1.8, ry: -0.06 },
+  keyboard: { x: KEYBOARD[0], z: KEYBOARD[2] },
+  kimono: { x: -1.3, z: -1.92, ry: -0.1 },
   mouse: { x: 2.85, z: -0.5 },
   rope: { x: ROPE.center[0], z: ROPE.center[2], hidden: true },
   wraps: { x: 5.7, z: 0.75, hidden: true },
@@ -713,11 +626,10 @@ export function placeDecorPoint(id: DecorPieceId, portrait: boolean, [x, y, z]: 
 
 /** Le morceau qui porte chaque obstacle du décor (le clavier ne bouge pas). */
 const OBSTACLE_PIECES: Readonly<Record<string, DecorPieceId | null>> = {
-  keyboard: null,
-  deck: 'deck',
+  keyboard: 'keyboard',
+  kimono: 'kimono',
   mouse: 'mouse',
   lamp: 'lamp',
-  'mic-clamp': 'mic',
   rope: 'rope',
   wraps: 'wraps',
   plant: 'plant',
@@ -736,7 +648,6 @@ export const obstaclePiece = (id: string): DecorPieceId | null => OBSTACLE_PIECE
  */
 const ROUND_OBSTACLES: ReadonlySet<string> = new Set([
   'lamp',
-  'mic-clamp',
   'plant',
   'figure-fox',
   'figure-wanderer',
@@ -765,15 +676,14 @@ export const decorObstacles = (portrait: boolean): readonly DeskObstacle[] =>
 /**
  * Hauteur de chaque obstacle du décor (le robot debout sur les mangas, les
  * feuilles de la plante) : le cadrage portrait fait tenir le décor entier,
- * pas seulement son pied. La lampe et le micro ont leurs propres points
- * (FIXED_EXTENT, stage/framing.ts).
+ * pas seulement son pied. La lampe a ses propres points (FIXED_EXTENT,
+ * stage/framing.ts).
  */
 export const DECOR_HEIGHTS: Readonly<Record<string, number>> = {
   keyboard: 0.25,
-  deck: 0.35,
+  kimono: KIMONO_FOOTPRINT.height,
   mouse: 0.25,
   lamp: 0.3,
-  'mic-clamp': 0.3,
   rope: 0.15,
   wraps: 0.35,
   plant: 1.45,

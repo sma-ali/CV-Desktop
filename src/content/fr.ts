@@ -186,7 +186,6 @@ export const fr = {
     controlsLabel: 'Commandes',
     expressLink: 'Version express',
     replay: 'Rejouer',
-    loading: "Le bureau s'installe",
     arrivalKicker: 'Bienvenue chez',
     glance: "Le CV en un coup d'œil",
     perso: { title: 'Projets perso', detail: 'Scellés, mais vivants' },
@@ -205,8 +204,8 @@ export const fr = {
       auto: 'Visite automatique. Touchez un objet pour prendre la main.',
       presented: 'Objet vu de près. Échap pour le reposer.',
       held: {
-        pointer: "Cliquez sur l'objet pour le retourner. Échap pour le reposer.",
-        touch: "Touchez l'objet pour le retourner.",
+        pointer: 'Glissez pour tourner, cliquez pour retourner, Échap pour reposer.',
+        touch: 'Glissez pour tourner, touchez pour retourner.',
       },
     },
     fallback: {
@@ -216,6 +215,16 @@ export const fr = {
       crashed: "Le bureau en 3D n'a pas pu démarrer. Voici le CV en version express.",
       contextLost: "Le bureau en 3D s'est interrompu. Voici le CV en version express.",
       expressLink: 'Ouvrir la version express',
+    },
+    tidy: {
+      offer: 'Oulala, vous avez tout cassé. Je range pour vous ?',
+      tidying: 'Je range le bureau.',
+      done: 'Bureau rangé.',
+    },
+    intro: {
+      preparing: 'Préparation du bureau',
+      skip: 'Lire le CV sans attendre',
+      slow: 'Le bureau en 3D met trop de temps à se préparer. Voici le CV en version express.',
     },
   },
   scene: sceneFr,

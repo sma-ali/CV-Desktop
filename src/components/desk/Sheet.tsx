@@ -7,6 +7,8 @@ import { ITEM_STEP, neighborItem, type ItemId } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { chestLiveView } from './lifeSignsView';
 import styles from './Desk.module.css';
+import { UPRIGHT_KEY, UprightButton } from './UprightButton';
+import { rotateKey, rotationInput } from '@/scene/rotation/control';
 
 /** L'instant présent à la minute près, pour « il y a 2 h 14 » (null côté serveur). */
 function useNowMinute(): number | null {
@@ -62,10 +64,11 @@ export interface SheetProps {
 // marge rouge, légère rotation). Sur-titre, étape, titre, méta, texte,
 // note, formulaire de contact (carte de visite), signes de vie du coffret,
 // Retourner, appel au contact, dépôt public,
-// Préc. / Reposer / Suiv. Elle s'ouvre avec l'objet présenté
+// Remettre droit, Préc. / Reposer / Suiv. Elle s'ouvre avec l'objet présenté
 // (store.presented), quelle qu'en soit la source : puce, clic, étiquette,
-// visite. Flèches gauche et droite, R pour retourner ; Échap repose (dans
-// DeskShell).
+// visite. Flèches pour tourner l'objet, Début pour le remettre droit, Page
+// précédente et Page suivante pour l'objet voisin, R pour retourner ; Échap
+// repose (dans DeskShell).
 //
 // Le focus : ouverte au clavier, la fiche le prend (sur son titre) et le
 // rend à l'élément d'où il venait quand elle se ferme. Ouverte par la
@@ -129,7 +132,9 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
     focusInside.current = false;
   }, [presented, presentedBy, sheet, keyboard, onAnnounce]);
 
-  // Flèches et R, tant que la fiche est ouverte.
+  // Tant que la fiche est ouverte (étape 6) : les flèches tournent l'objet
+  // présenté, Début le remet droit, Page précédente et Page suivante passent
+  // à l'objet voisin, R le retourne.
   useEffect(() => {
     if (!presented) return;
     const flipKey = ui.flipKey.toLowerCase();
@@ -138,9 +143,22 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
       if (isTyping(event.target)) return;
       const state = store.getState();
       if (!state.presented) return;
-      if (event.key === 'ArrowRight' || event.key === 'ArrowLeft') {
+      const rotate = rotateKey(event.key);
+      if (event.key === 'PageDown' || event.key === 'PageUp') {
         event.preventDefault();
-        state.present(neighborItem(state.presented, event.key === 'ArrowRight' ? 1 : -1), 'sheet');
+        state.present(neighborItem(state.presented, event.key === 'PageDown' ? 1 : -1), 'sheet');
+      } else if (rotate) {
+        if (state.presented === 'monitor') return;
+        event.preventDefault();
+        // La visite qui tenait l'objet le laisse au visiteur.
+        if (state.presentedBy === 'auto') store.setState({ presentedBy: 'keyboard' });
+        state.markUser();
+        rotationInput(store).nudge(rotate[0], rotate[1]);
+      } else if (event.key === UPRIGHT_KEY) {
+        if (state.presented === 'monitor') return;
+        event.preventDefault();
+        if (state.presentedBy === 'auto') store.setState({ presentedBy: 'keyboard' });
+        state.requestUpright();
       } else if (event.key.toLowerCase() === flipKey && !event.repeat) {
         if (state.presented === 'monitor') return;
         event.preventDefault();
@@ -291,6 +309,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
                 <kbd aria-hidden="true">{ui.flipKey}</kbd>
               </button>
             ) : null}
+            {canFlip ? <UprightButton label={ui.upright} /> : null}
             <a href={texts.contactHref} className={styles.sheetCta}>
               {ui.contact}
             </a>
@@ -311,7 +330,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
             {/* Le nom de chaque bouton commence par son texte visible (WCAG
                 2.5.3, commande vocale) ; l'abréviation se complète pour les
                 lecteurs d'écran. */}
-            <button type="button" onClick={() => go(-1)}>
+            <button type="button" aria-keyshortcuts="PageUp" onClick={() => go(-1)}>
               <span aria-hidden="true">‹ </span>
               {ui.prev}
               <span className="visually-hidden"> ({ui.prevLabel})</span>
@@ -324,7 +343,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
             >
               {ui.close}
             </button>
-            <button type="button" onClick={() => go(1)}>
+            <button type="button" aria-keyshortcuts="PageDown" onClick={() => go(1)}>
               {ui.next}
               <span className="visually-hidden"> ({ui.nextLabel})</span>
               <span aria-hidden="true"> ›</span>

@@ -1,5 +1,7 @@
 # Étape 4 : les gestes
 
+À l'étape 6, le solveur 2D et la simulation du glisser décrits ici laissent la place à un moteur physique : voir [`bureau-vivant.md`](bureau-vivant.md). Ce qui suit les concernant est historique.
+
 Ce document fixe le contrat de l'étape 4. Il complète `docs/scene-3d.md` (architecture, repère, store, interdits CSP, textes, captures), qui reste valable. Le socle de l'étape 4 est posé sur la branche `feat/gestes` ; trois parties (gestes, fiches, objets) travaillent ensuite en parallèle, chacune dans son worktree et dans ses propres fichiers, puis une passe d'assemblage les fusionne.
 
 Référence de comportement : `prototype/bureau-plateau.html` (gestes et clic l. 1218-1287, collisions l. 1048-1052 et 1289-1318, glissement l. 1336-1390, fiche l. 116-125, 205-220 et 276-300, signes de vie l. 343-395, son l. 1189-1216). Ses textes de fiche sont faux : les faits viennent du CV, par `src/content` uniquement.
@@ -100,7 +102,7 @@ Décision d'Ali du 29/10 : sur téléphone en portrait, et seulement là, les ob
 | `homelab`     | 3.3, 0.75, -0.2  | à droite                    |
 | `laptop`      | 2.45, 2.55       | avant droit                 |
 
-- Le casque et son support passent à droite de l'écran (`HEADSET_PORTRAIT = { x: 3.35, z: -2.4, ry: -0.25 }`, `headsetStand(portrait)`, `headsetPose(portrait)`) : à gauche, l'abat-jour de la lampe le cachait.
+- Le casque et son support passent à droite de l'écran (`HEADSET_PORTRAIT = { x: 3.5, z: -2.4, ry: -0.25 }`, décalé de 0.15 à l'étape 6 : un écouteur entrait dans la dalle de l'écran, `headsetStand(portrait)`, `headsetPose(portrait)`) : à gauche, l'abat-jour de la lampe le cachait.
 - Le décor (`decor/layout.ts`) se découpe en morceaux rigides (`DecorPieceId` : lampe, micro, pavé de boutons, souris, corde, bandes, plante, mangas, renard, voyageur). Chaque morceau tourne de `ry` autour de son ancre (`DECOR_ANCHORS`, sa place en paysage), puis l'ancre va en (x, z) : `PORTRAIT_DECOR`. `DecorPiece` (`decor/DecorPiece.tsx`) dessine cette transformation, l'identité exacte en paysage ; ses obstacles (`decorObstacles(true)`) et ses points de cadrage (`decorExtentPortrait()`) suivent la même transformation (testé contre three). Le spot de la lampe et son cône (`stage/Lights.tsx`, `stage/LampCone.tsx`) suivent la lampe.
 - En portrait : la lampe recule au fond à gauche (-2.4, -3.0, tournée de -0.75) ; la plante passe dans le coin du fond à gauche, où elle dépasse de l'abat-jour ; le pavé de boutons se pose derrière le clavier, à gauche de l'écran ; la souris se rapproche du clavier ; les mangas et le robot passent devant le clavier, à droite.
 - Cachés en portrait, faute de place (jamais un objet du CV) : le micro sur son bras (il encombrait le bord gauche et sortait du cadre), la corde à sauter, les bandes, le renard et le voyageur. Liste testée (`layout.test.ts`).

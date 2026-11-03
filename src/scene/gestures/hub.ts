@@ -1,13 +1,17 @@
 import type { BodyId, ItemId } from '../core/ids';
 import type { SceneStore } from '../core/store';
-import { DragSim } from './drag';
+import type { PhysicsControl } from '../physics/world';
 
 // Ce que partagent les gestes (Gestures, posé à côté des objets dans
-// Scene.tsx) et les objets qu'on prend (usePresentation, DeskBody) : l'appui
-// en cours, le glisser, le pointeur lissé que l'objet tenu suit, et
-// l'avancement de la présentation de chaque objet (un objet qui quitte le
-// plateau ne compte plus dans les collisions). Un par store, donc un par
-// page : rien en global.
+// Scene.tsx), les objets qu'on prend (usePresentation, DecorPiece), le
+// moteur physique (chargé à part) et les parties de l'étape 6 : l'appui en
+// cours, le pointeur lissé que l'objet tenu suit, l'avancement de la
+// présentation de chaque objet (un objet qui quitte le plateau sort du
+// monde physique), et le monde physique lui-même une fois prêt. Un par
+// store, donc un par page : rien en global.
+
+/** Seuil du glisser (pixels) : en deçà, un appui reste un clic. */
+export const DRAG_THRESHOLD = 7;
 
 /** Un appui du pointeur sur le canvas, jusqu'au relâchement. */
 export interface Press {
@@ -18,13 +22,19 @@ export interface Press {
   y: number;
   /** Le corps sous le pointeur à l'appui (null : rien qui glisse). */
   body: BodyId | null;
+  /**
+   * L'appui a commencé sur l'objet présenté (partie A : au-delà du seuil,
+   * il le fait tourner ; en deçà, c'est un clic qui le retourne).
+   */
+  held: boolean;
   /** Plus grande distance parcourue depuis l'appui, en pixels. */
   travel: number;
 }
 
 export class GestureHub {
   press: Press | null = null;
-  readonly sim = new DragSim();
+  /** Le monde physique, une fois chargé (null avant, ou en échec). */
+  physics: PhysicsControl | null = null;
   /** Dernière position du pointeur dans la fenêtre (pixels) : le glisser la vise à chaque image. */
   readonly client = { x: 0, y: 0 };
   /**
@@ -58,13 +68,24 @@ export class GestureHub {
     this.swallowClick = false;
     this.client.x = x;
     this.client.y = y;
-    this.press = { pointerId, pointerType, x, y, body: null, travel: 0 };
+    this.press = { pointerId, pointerType, x, y, body: null, held: false, travel: 0 };
+  }
+
+  /** Un corps est-il en train de glisser ? */
+  get dragging(): boolean {
+    return (this.physics?.grabbed ?? null) !== null;
   }
 
   /** L'appui est sur un corps qui glisse (gestionnaire onPointerDown de l'objet). */
   claim(pointerId: number, pointerType: string, x: number, y: number, body: BodyId): void {
-    this.down(pointerId, pointerType, x, y, this.sim.session !== null);
+    this.down(pointerId, pointerType, x, y, this.dragging);
     if (this.press?.pointerId === pointerId) this.press.body = body;
+  }
+
+  /** L'appui est sur l'objet présenté (gestionnaire onPointerDown de usePresentation). */
+  claimHeld(pointerId: number, pointerType: string, x: number, y: number): void {
+    this.down(pointerId, pointerType, x, y, this.dragging);
+    if (this.press?.pointerId === pointerId) this.press.held = true;
   }
 
   reset(): void {

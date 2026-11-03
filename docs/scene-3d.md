@@ -34,7 +34,7 @@ src/app/[locale]/page.tsx          serveur : lit le contenu, rend le HUD et le r
 | Dossier                                                                               | Propriétaire           | Contenu                                                                                                                                                                                                                                   |
 | ------------------------------------------------------------------------------------- | ---------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `src/scene/core/`, `src/scene/Scene.tsx`                                              | socle (figé)           | Canvas, horloge, store, constantes, identifiants, outils communs                                                                                                                                                                          |
-| `src/scene/decor/`                                                                    | décor                  | plateau, mur et fenêtre (cadre, embrasure), modèle de la lampe, clavier, tapis, souris, câbles, pavé de boutons, micro sur bras, panneau de lumière et gants, corde à sauter, bandes, plante, mangas, figurines, tasse et vapeur, manette |
+| `src/scene/decor/`                                                                    | décor                  | plateau, mur et fenêtre (cadre, embrasure), modèle de la lampe, clavier, tapis, souris, câbles, kimono plié et sa ceinture (étape 6 : sans stream, ni gants), corde à sauter, bandes, plante, mangas, figurines, tasse et vapeur, manette |
 | `src/scene/items/`, `src/content/scene/`                                              | objets                 | l'écran (cadre, pied, webcam, post-it décoratifs, code TypeScript), livre, badge et lanière, post-it à décoller, casque sur support, portable, carte de visite, coffret scellé, textures peintes, étiquettes, survol, présentation        |
 | `src/scene/stage/`                                                                    | mise en scène          | lumières, cône et poussière de la lampe, ciel derrière la fenêtre, ambiances, arrivée, caméra et cadrage, mode auto, Rejouer, mouvement réduit, post-traitement, qualité adaptative                                                       |
 | `src/components/desk/`, `src/lib/desk.ts`, `src/app/`, `src/content/` (hors `scene/`) | socle, puis assemblage | page, HUD, repli, textes d'interface                                                                                                                                                                                                      |
@@ -165,10 +165,15 @@ Ceux du prototype, lus par `parseTestParams` (`src/scene/core/params.ts`) :
 | `?auto=0`              | pas de visite automatique                                           |
 | `?reduit`              | mouvement réduit, comme `prefers-reduced-motion`                    |
 | `?prendre=book`        | présente un objet dès le départ (identifiants anglais), sans visite |
+| `?tourne=0.6,1.2`      | tourne l'objet de `?prendre=` (radians : horizontal, vertical)      |
 | `?ambiance=night`      | force une ambiance                                                  |
 | `?noshadow`, `?nopost` | sans ombres, sans post-traitement (mesures)                         |
+| `?attente=1500`        | délai avant la version express (ms ; 0 : jamais), étape 6           |
+| `?desordre`            | étape 6 : tout le bureau lancé en l'air dès que le moteur est prêt  |
 
-État exposé aux tests sur `#hud` (attributs, rien en global) : `data-ready`, `data-phase`, `data-mood`, `data-presented`, `data-auto`, `data-reduced`, `data-frozen`. La racine porte `data-fallback` (`no-webgl`, `crashed` ou `context-lost`) quand le repli s'affiche.
+`?tourne=` est lu par la rotation libre (`parseTurn`, `src/scene/rotation/trackball.ts`), pas par `parseTestParams`.
+
+État exposé aux tests sur `#hud` (attributs, rien en global) : `data-ready`, `data-phase`, `data-mood`, `data-presented`, `data-auto`, `data-reduced`, `data-frozen`. La racine porte `data-fallback` (`no-webgl`, `crashed`, `context-lost` ou, depuis l'étape 6, `timeout`) quand le repli s'affiche.
 
 ## Captures
 
@@ -212,25 +217,31 @@ E2E_PORT=3411 npm run test:e2e          # tests de bout en bout
 
 `.claude/worktrees/` est ignoré par git, ESLint, Prettier et TypeScript du dépôt principal. `next.config.ts` fixe la racine de Turbopack et du traçage des fichiers sur le dossier du worktree. Chaque worktree a ses `node_modules` et son `.next`. Un seul `next dev` peut tourner par dossier : pour un second serveur dans le même dossier, servir le build (`npm run build && npm run start -- --port 3420`).
 
-| Partie        | `next dev` | E2E (`E2E_PORT`) |
-| ------------- | ---------- | ---------------- |
-| décor         | 3401       | 3411             |
-| objets        | 3402       | 3412             |
-| mise en scène | 3403       | 3413             |
-| assemblage    | 3420       | 3100 (défaut)    |
+| Partie                        | `next dev` | E2E (`E2E_PORT`) |
+| ----------------------------- | ---------- | ---------------- |
+| décor                         | 3401       | 3411             |
+| objets                        | 3402       | 3412             |
+| mise en scène                 | 3403       | 3413             |
+| assemblage                    | 3420       | 3100 (défaut)    |
+| étape 6 : A (rotation)        | 3601       | 3611             |
+| étape 6 : B (rangement)       | 3602       | 3612             |
+| étape 6 : C (décor, intro)    | 3603       | 3613             |
+| étape 6 : socle et assemblage | 3600       | 3600             |
 
 ## Vérifier
 
-- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre. Étape 4 : encombrements au repos (`bodies.test.ts`), solveur des collisions et glisser (`gestures/`), présentation et suivi du pointeur, signes de vie (`src/lib/life-signs`, vue de la fiche), battements du coffret, LED de la baie, pile du portable comparée au CV, cadrage sur 14 fenêtres réelles, pile sous la carte dans son encombrement (`cardPile.test.ts`), étiquettes écartées (`tagSpread.test.ts`).
+- `npm run check` : ESLint, Prettier, types, tests unitaires. Socle : paramètres, horloge, arrivée, ambiances, store, textes du bureau, contenu. Décor : disposition, clavier et frappe, pavé, micro, mangas, fusion des géométries. Objets : code de l'écran (généré depuis le CV, lisible, tapé avant la ligne finale), présentation, contenu peint contre le CV. Mise en scène : cadrage, arrivée, lumières et calage sur le prototype, visite automatique, qualité adaptative, lumière de la fenêtre. Étape 4 : encombrements au repos (`bodies.test.ts`), hub des gestes (`gestures/`), présentation et suivi du pointeur, signes de vie (`src/lib/life-signs`, vue de la fiche), battements du coffret, LED de la baie, pile du portable comparée au CV, cadrage sur 14 fenêtres réelles, pile sous la carte dans son encombrement (`cardPile.test.ts`), étiquettes écartées (`tagSpread.test.ts`). Étape 6 : le monde physique avec le vrai Rapier (`physics/world.test.ts` : repos immobile, glisser sans interpénétration, empilement, chute, lancer, retour, format, déterminisme).
 - `npm run test:e2e` : build de production puis Playwright sur ordinateur et téléphone.
   - `bureau.spec.ts` (socle) : HUD visible sans la 3D, pixels du canvas, repli sans WebGL et sans JavaScript, mouvement réduit, nuit à 23 h, sélecteur d'ambiance, langues, liens bureau et version express, axe sur le HUD, aucune erreur en console, en-têtes et CSP, scène hors du JavaScript initial, puce qui présente un objet, Rejouer.
-  - `scene-decor.spec.ts` : décor immobile sous `&fige`, vivant sinon, nuit sans erreur.
+  - `scene-decor.spec.ts` : décor immobile sous `&fige`, vivant sinon, nuit sans erreur, kimono glissé sans rien chevaucher (étape 6).
+  - `intro.spec.ts` (étape 6, écran de chargement) : dans le HTML du serveur en FR et EN, avancement réel qui ne recule jamais, HUD hors du clavier et lien vers la version express pendant l'attente, repli quand la scène tarde (`?attente`), écran qui s'efface si JavaScript ne démarre pas, absent sans JavaScript, sans animation en mouvement réduit.
   - `scene-objets.spec.ts` : étiquettes FR et EN, cachées pendant l'arrivée et la présentation, puce, étiquette, survol et clic, clic hors des objets, mouvement réduit.
   - `scene-scene.spec.ts` : arrivée du noir à `settled`, Rejouer trois fois sans fuite WebGL, visite dans l'ordre, arrêt et reprise, `?auto=0`, puce qui reprend la main, mouvement réduit, changement d'ambiance.
   - `parcours.spec.ts` (assemblage) : puce au clavier puis Échap, gros plan sur l'écran au clic et par `?prendre=monitor`, visite arrêtée par une touche, Rejouer qui repose l'objet et garde l'ambiance, passage en anglais scène comprise, aller-retour avec la version express.
   - `scene-gestes.spec.ts` (étape 4, gestes) : bureau au repos, objet présenté retourné sauf avec `?recto`, portable glissé contre la carte sans la chevaucher, objet tiré vers le bord qui reste sur le plateau, `?glisse=mug`, appui de moins de 7 px qui reste un clic, retourner puis remettre d'un clic, objet déplacé présenté puis reposé à sa nouvelle place jusqu'à Rejouer, `?glisse` sous `&fige` et sans, mouvement réduit (Rejouer compris), objet glissé puis présenté au clavier qui reste présenté, visite coupée par un glisser, pas de défilement au doigt. Les recouvrements se vérifient avec le solveur, à partir de `data-places`.
-  - `scene-fiches.spec.ts` (étape 4, fiches et son) : chaque puce ouvre la bonne fiche en FR et en EN (comparée au contenu), Préc. / Suiv. et flèches sur tout `SHEET_ORDER`, focus au clavier rendu par Échap et Reposer, visite qui ne vole pas le focus, Retourner au bouton et à `R`, aucun lien vers un dépôt privé, axe fiche ouverte, boutons et liens de 44 px sans `aria-label`, signes de vie FR et EN sans mot interdit, son coupé jusqu'au clic (aucun AudioContext avant), indication de l'objet tenu, feuille du bas en 390x844, 360x740 et 412x915, fiche à droite en 844x390.
+  - `scene-fiches.spec.ts` (étape 4, fiches et son) : chaque puce ouvre la bonne fiche en FR et en EN (comparée au contenu), Préc. / Suiv. et Page précédente / Page suivante (les flèches à l'étape 4) sur tout `SHEET_ORDER`, focus au clavier rendu par Échap et Reposer, visite qui ne vole pas le focus, Retourner au bouton et à `R`, aucun lien vers un dépôt privé, axe fiche ouverte, boutons et liens de 44 px sans `aria-label`, signes de vie FR et EN sans mot interdit, son coupé jusqu'au clic (aucun AudioContext avant), indication de l'objet tenu, feuille du bas en 390x844, 360x740 et 412x915, fiche à droite en 844x390.
   - `scene-projets.spec.ts` (étape 4, objets et cadrage) : étiquettes de Netherbrain, Homelab et de la pile, présentation par la puce, l'étiquette, un clic ou un tap, dos peint des deux objets retournés, coffret qui bat au rythme de ses signes de vie, `data-offscreen` vide sur ordinateur, en trois portraits et en paysage, bureau resserré qui remplit la hauteur libre en portrait (`data-desk-share` au-dessus de 0.65), bord avant du bureau sur le HUD du bas.
+  - `scene-rotation.spec.ts` (étape 6, partie A) : glisser sur l'objet tenu qui le tourne sans le retourner ni le reposer, à la souris et au doigt, arc au bord (axe de la vue), clic et `R` qui retournent toujours, « Remettre droit » et Début, flèches, Page précédente et Page suivante, flèches ignorées dans un champ, écran qui ne tourne pas, `?tourne=`, élan puis arrêt en temps réel, ni élan ni animation en mouvement réduit. L'angle se lit sur le canvas (`data-spin`), l'état sur `#hud` (`data-turned`).
   - `contact.spec.ts`, `contact-api.spec.ts` et `signes.spec.ts` (étape 5, routes serveur) : voir [`routes-serveur.md`](routes-serveur.md).
   - La CI découpe chaque profil en trois parts (`--shard`), six jobs en parallèle : voir « Décisions de l'assemblage de l'étape 4 ».
 
@@ -354,7 +365,7 @@ Ce qui reste ouvert (après la relecture, voir plus bas) :
 
 ## Le bureau resserré du téléphone
 
-En portrait (largeur / hauteur sous 0.9), et seulement là, les objets et le décor se rangent sur une zone plus étroite et plus profonde (détail et places : [`docs/gestes.md`](gestes.md), « Le bureau resserré du portrait »). C'est la largeur qui fixait l'échelle : tenir tout le bureau (x de -6.42 à 5.91) laissait une bande de mur vide au-dessus de l'écran. Les corps tiennent maintenant dans `BOUNDS_PORTRAIT` (x de -3.75 à 3.95), le plateau s'allonge vers le visiteur (`DESK_PORTRAIT_Z1`), le casque passe à droite de l'écran, la lampe et la plante reculent au fond à gauche, le pavé de boutons passe derrière le clavier, les mangas et le robot devant. Le micro sur son bras, la corde à sauter, les bandes, le renard et le voyageur sont cachés en portrait : ils n'avaient plus de place, et le micro sortait du cadre. Aucun objet du CV n'est caché.
+En portrait (largeur / hauteur sous 0.9), et seulement là, les objets et le décor se rangent sur une zone plus étroite et plus profonde (détail et places : [`docs/gestes.md`](gestes.md), « Le bureau resserré du portrait »). C'est la largeur qui fixait l'échelle : tenir tout le bureau (x de -6.42 à 5.91) laissait une bande de mur vide au-dessus de l'écran. Les corps tiennent maintenant dans `BOUNDS_PORTRAIT` (x de -3.75 à 3.95), le plateau s'allonge vers le visiteur (`DESK_PORTRAIT_Z1`), le casque passe à droite de l'écran, la lampe et la plante reculent au fond à gauche, le pavé de boutons passe derrière le clavier (le kimono plié à sa place depuis l'étape 6), les mangas et le robot devant. Le micro sur son bras (retiré à l'étape 6), la corde à sauter, les bandes, le renard et le voyageur sont cachés en portrait : ils n'avaient plus de place, et le micro sortait du cadre. Aucun objet du CV n'est caché.
 
 Mesures au repos (bande : de 112 px, bas de l'identité du HUD, au haut du bureau utile ; part : hauteur du bureau utile sur la hauteur libre entre les bandes du HUD, `data-desk-share`) :
 

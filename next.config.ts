@@ -13,9 +13,13 @@ const isDev = process.env.NODE_ENV === 'development';
 // l'hydratation, d'où 'unsafe-inline' tant qu'on n'utilise pas de nonce
 // (un nonce forcerait le rendu dynamique de chaque page).
 // 'unsafe-eval' ne sert qu'au rechargement à chaud en développement.
+// 'wasm-unsafe-eval' permet de compiler du WebAssembly, et rien d'autre (ni
+// eval, ni new Function) : le moteur physique du bureau (Rapier, étape 6)
+// est un module WebAssembly embarqué dans son fichier JavaScript, servi par
+// le site lui-même.
 const contentSecurityPolicy = [
   "default-src 'self'",
-  `script-src 'self' 'unsafe-inline'${isDev ? " 'unsafe-eval'" : ''}`,
+  `script-src 'self' 'unsafe-inline' 'wasm-unsafe-eval'${isDev ? " 'unsafe-eval'" : ''}`,
   "style-src 'self' 'unsafe-inline'",
   "img-src 'self' blob: data:",
   "font-src 'self'",

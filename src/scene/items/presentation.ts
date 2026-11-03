@@ -8,6 +8,7 @@ import {
   type ItemPose,
   type PresentMode,
 } from '../core/constants';
+import type { HeldSpin } from '../core/store';
 
 // La présentation d'un objet du CV (updateItem, heldPose et presentQ du
 // prototype) : il quitte le bureau, se tient devant la caméra en tournant
@@ -221,3 +222,33 @@ export function postitRestPose(): RestPose {
 export function glowLevel(state: PresentState, base = 0): number {
   return clamp(state.p * GLOW.held + state.hover * GLOW.hover + base, 0, 1);
 }
+
+/**
+ * La rotation libre propre à un objet (local), tirée de store.heldSpin. Le
+ * socle remet heldSpin à l'identité dès que l'objet est reposé ou qu'un autre
+ * est présenté : pendant son retour (p > 0), l'objet garde donc l'orientation
+ * où on l'a lâché, et la pose de repos la défait en douceur ; elle n'est
+ * oubliée qu'une fois l'objet à sa place. Présenté de nouveau en plein
+ * retour, il rejoint heldSpin au rythme du soulèvement, pour l'atteindre
+ * pile quand il est tenu (p = 1), puis le suit exactement (aucun retard sous les doigts). instant : mouvement réduit
+ * ou horloge gelée.
+ */
+export function followSpin(
+  local: Quaternion,
+  held: Readonly<HeldSpin>,
+  presented: boolean,
+  p: number,
+  dt: number,
+  instant: boolean,
+): Quaternion {
+  if (!presented) {
+    if (p <= 0) local.identity();
+    return local;
+  }
+  spinTarget.set(held.qx, held.qy, held.qz, held.qw);
+  if (instant || p >= 1) return local.copy(spinTarget);
+  // La part du chemin parcourue par le soulèvement pendant cette image.
+  return local.slerp(spinTarget, Math.min(1, (dt * RATES.lift) / (1 - p)));
+}
+
+const spinTarget = new Quaternion();

@@ -1,21 +1,44 @@
 'use client';
 
-import type { ReactNode } from 'react';
+import { useFrame, type ThreeEvent } from '@react-three/fiber';
+import { useCallback, useRef, type ReactNode } from 'react';
+import type { Group } from 'three';
 import { usePortrait } from '../core/portrait';
-import { decorPieceTransform, type DecorPieceId } from './layout';
+import { useSceneStoreApi } from '../core/store-context';
+import { claimBody } from '../gestures/pointer';
+import { DECOR_ANCHORS, decorPlacement, type DecorPieceId } from './layout';
 
-// Un morceau du décor posé à sa place du format (le bureau resserré du
-// téléphone en portrait, PORTRAIT_DECOR) : ses enfants, dessinés à leur
-// place en paysage, tournent autour de son ancre et suivent l'ancre. En
-// paysage, la transformation est l'identité. Un morceau caché en portrait
-// n'est pas rendu du tout (ni dessiné, ni touché par le pointeur).
+// Un morceau du décor, corps du bureau vivant (étape 6) : ses enfants,
+// dessinés à leur place en paysage (repère du monde), sont décalés de moins
+// son ancre, et le groupe suit chaque image la pose du corps
+// (store.desk[id] : position et orientation complètes, écrites par le
+// moteur physique ; sa place d'origine du format tant que rien ne l'a
+// touché). Un morceau caché en portrait n'est pas rendu du tout. Un appui
+// le désigne au glisser (claimBody) ; ses enfants gardent leurs réactions
+// au clic.
 export function DecorPiece({ id, children }: { id: DecorPieceId; children: ReactNode }) {
+  const store = useSceneStoreApi();
   const portrait = usePortrait();
-  const { position, ry, offset, hidden } = decorPieceTransform(id, portrait);
-  if (hidden) return null;
+  const ref = useRef<Group>(null);
+  const [ax, az] = DECOR_ANCHORS[id];
+
+  useFrame(() => {
+    const group = ref.current;
+    if (!group) return;
+    const body = store.getState().desk[id];
+    group.position.set(body.x, body.y, body.z);
+    group.quaternion.set(body.qx, body.qy, body.qz, body.qw);
+  });
+
+  const onPointerDown = useCallback(
+    (event: ThreeEvent<PointerEvent>) => claimBody(store, event, id),
+    [id, store],
+  );
+
+  if (decorPlacement(id, portrait).hidden) return null;
   return (
-    <group name={`piece-${id}`} position={position} rotation={[0, ry, 0]}>
-      <group position={offset}>{children}</group>
+    <group ref={ref} name={`piece-${id}`} onPointerDown={onPointerDown}>
+      <group position={[-ax, 0, -az]}>{children}</group>
     </group>
   );
 }

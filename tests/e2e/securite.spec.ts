@@ -24,7 +24,8 @@ for (const { path, status } of responses) {
     const headers = response.headers();
     expect(headers['content-security-policy']).toContain("default-src 'self'");
     expect(headers['content-security-policy']).toContain("frame-ancestors 'none'");
-    expect(headers['content-security-policy']).not.toContain('unsafe-eval');
+    // Ni eval ni new Function ; seul 'wasm-unsafe-eval' (WebAssembly, étape 6).
+    expect(headers['content-security-policy']).not.toContain("'unsafe-eval'");
     expect(headers['x-content-type-options']).toBe('nosniff');
     expect(headers['x-frame-options']).toBe('DENY');
     expect(headers['referrer-policy']).toBe('strict-origin-when-cross-origin');
@@ -61,7 +62,10 @@ test("aucune origine étrangère n'est autorisée (pas de CORS ouvert)", async (
 test('la CSP du bureau ne permet ni eval ni workers étrangers', async ({ request }) => {
   const csp = (await request.get('/fr')).headers()['content-security-policy'] ?? '';
   expect(csp).toContain("script-src 'self' 'unsafe-inline'");
-  expect(csp).not.toContain('unsafe-eval');
+  // Le moteur physique (étape 6) compile son WebAssembly : 'wasm-unsafe-eval'
+  // ne permet que cela, pas eval ni new Function ('unsafe-eval').
+  expect(csp).toContain("'wasm-unsafe-eval'");
+  expect(csp).not.toContain("'unsafe-eval'");
   expect(csp).not.toMatch(/worker-src[^;]*blob:/);
   expect(csp).not.toMatch(/script-src[^;]*blob:/);
 });

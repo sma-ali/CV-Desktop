@@ -15,7 +15,12 @@ describe('paramètres de test', () => {
       drag: null,
       noShadow: false,
       noPost: false,
+      scatter: false,
     });
+  });
+
+  it('lisent ?desordre (étape 6)', () => {
+    expect(parseTestParams('?t=11000&desordre').scatter).toBe(true);
   });
 
   it('lisent ?recto et ?glisse (étape 4)', () => {

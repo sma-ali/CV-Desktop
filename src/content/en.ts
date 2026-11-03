@@ -185,7 +185,6 @@ export const en = {
     controlsLabel: 'Controls',
     expressLink: 'Express version',
     replay: 'Replay',
-    loading: 'Setting up the desk',
     arrivalKicker: 'Welcome to the desk of',
     glance: 'The CV at a glance',
     perso: { title: 'Side projects', detail: 'Sealed, but alive' },
@@ -204,8 +203,8 @@ export const en = {
       auto: 'Guided tour. Tap an object to take over.',
       presented: 'Object shown up close. Press Escape to put it back.',
       held: {
-        pointer: 'Click the object to turn it over. Press Escape to put it back.',
-        touch: 'Tap the object to turn it over.',
+        pointer: 'Drag to rotate, click to turn over, Escape to put back.',
+        touch: 'Drag to rotate, tap to turn over.',
       },
     },
     fallback: {
@@ -214,6 +213,16 @@ export const en = {
       crashed: 'The 3D desk could not start. Here is the CV in its express version.',
       contextLost: 'The 3D desk stopped. Here is the CV in its express version.',
       expressLink: 'Open the express version',
+    },
+    tidy: {
+      offer: 'Oops, you broke everything. Shall I tidy up?',
+      tidying: 'Tidying up the desk.',
+      done: 'Desk tidied up.',
+    },
+    intro: {
+      preparing: 'Setting up the desk',
+      skip: 'Read the CV without waiting',
+      slow: 'The 3D desk is taking too long to set up. Here is the CV in its express version.',
     },
   },
   scene: sceneEn,

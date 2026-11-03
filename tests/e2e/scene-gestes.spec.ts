@@ -1,15 +1,16 @@
 import { expect, test, type Page } from '@playwright/test';
-import { bodyObb, homePlace, obbOutside, type DeskPlace } from '../../src/scene/core/bodies';
-import { deskBounds, HELD } from '../../src/scene/core/constants';
-import { BODY_IDS } from '../../src/scene/core/ids';
-import { deskWorld } from '../../src/scene/gestures/drag';
-import { overlapScore, type SolverBodies } from '../../src/scene/gestures/solver';
+import { homePlace, type DeskPlace } from '../../src/scene/core/bodies';
+import { DESK, HELD } from '../../src/scene/core/constants';
+import type { BodyId } from '../../src/scene/core/ids';
 
-// Les gestes (partie « gestes », étape 4) : prendre, retourner, glisser,
-// collisions. De vrais gestes sur le canvas (souris sur ordinateur, doigt
-// sur téléphone) ; l'état se lit sur #hud : data-presented, data-flipped,
-// data-dragging, data-places (« id:x,z,ry » des objets déplacés). Les
-// recouvrements se vérifient avec le solveur lui-même, sur les places lues.
+// Les gestes (étape 4, portés sur le moteur physique à l'étape 6) : prendre,
+// retourner, glisser, lancer, faire tomber. De vrais gestes sur le canvas
+// (souris sur ordinateur, doigt sur téléphone) ; l'état se lit sur #hud :
+// data-presented, data-flipped, data-dragging, data-physics, data-places
+// (« id:x,z,ry » des corps déplacés), data-fallen (corps tombés du plateau).
+// Les interpénétrations se lisent sur le canvas (data-penetration, la plus
+// grande profondeur de contact entre deux corps quand le bureau se pose).
+// Sous &fige, le monde n'avance que par les gestes, et se pose d'un coup.
 
 const SETTLED = '/fr?t=11000&fige&auto=0&heure=14';
 
@@ -18,6 +19,12 @@ const tag = (page: Page, item: string) => page.locator(`[data-item="${item}"]`);
 
 async function waitForScene(page: Page) {
   await expect(hud(page)).toHaveAttribute('data-ready', 'true', { timeout: 45_000 });
+}
+
+/** La scène, puis le moteur physique (chargé à part, après l'arrivée). */
+async function waitForPhysics(page: Page) {
+  await waitForScene(page);
+  await expect(hud(page)).toHaveAttribute('data-physics', 'ready', { timeout: 30_000 });
 }
 
 interface Point {
@@ -39,41 +46,33 @@ function isPortraitPage(page: Page): boolean {
   return viewport.width / viewport.height < 0.9;
 }
 
-/** Les places lues sur #hud, complétées des places de repos. */
-async function deskState(page: Page): Promise<SolverBodies> {
+/** Les places lues sur #hud (corps déplacés seulement). */
+async function placesOf(page: Page): Promise<Map<string, DeskPlace>> {
   const raw = (await hud(page).getAttribute('data-places')) ?? '';
-  const portrait = isPortraitPage(page);
   const moved = new Map<string, DeskPlace>();
   for (const entry of raw.split(' ').filter(Boolean)) {
     const [id = '', values = ''] = entry.split(':');
     const [x = 0, z = 0, ry = 0] = values.split(',').map(Number);
     moved.set(id, { x, z, ry });
   }
-  return Object.fromEntries(
-    BODY_IDS.map((id) => [
-      id,
-      { ...(moved.get(id) ?? homePlace(id, portrait)), moved: moved.has(id) },
-    ]),
-  ) as SolverBodies;
+  return moved;
 }
 
-/** Aucun recouvrement : places au centième, donc une tolérance d'un centième. */
-async function expectNoOverlap(page: Page) {
-  const desk = await deskState(page);
-  const portrait = isPortraitPage(page);
-  // Les places sont arrondies au centième : on rétrécit un peu les corps.
-  expect(overlapScore(desk, BODY_IDS, deskWorld(portrait))).toBeLessThan(0.03);
-  for (const id of BODY_IDS) {
-    expect(obbOutside(bodyObb(id, desk[id]), deskBounds(portrait)), id).toBeLessThanOrEqual(0.01);
-  }
-  return desk;
+/** La place d'un corps : lue sur #hud s'il a bougé, sinon sa place d'origine. */
+async function placeOf(page: Page, id: BodyId): Promise<DeskPlace> {
+  return (await placesOf(page)).get(id) ?? homePlace(id, isPortraitPage(page));
 }
 
-const movedIds = async (page: Page) =>
-  ((await hud(page).getAttribute('data-places')) ?? '')
-    .split(' ')
-    .filter(Boolean)
-    .map((entry) => entry.split(':')[0]);
+/**
+ * Le bureau s'est posé sans que deux corps ne s'enfoncent l'un dans l'autre
+ * (contacts du moteur, au plus quelques centièmes d'unité).
+ */
+async function expectNoOverlap(page: Page, timeout = 30_000) {
+  const canvas = page.locator('canvas');
+  await expect(canvas).toHaveAttribute('data-penetration', /^\d/, { timeout });
+  const depth = Number(await canvas.getAttribute('data-penetration'));
+  expect(depth).toBeLessThan(0.05);
+}
 
 /**
  * Un vrai glisser : appui, déplacement en plusieurs pas, relâchement. À la
@@ -144,9 +143,13 @@ function heldPoint(page: Page): Point {
 test.describe('les gestes', () => {
   test('exposent un bureau au repos : rien de retourné, rien de déplacé', async ({ page }) => {
     await page.goto(SETTLED);
-    await waitForScene(page);
+    await waitForPhysics(page);
     await expect(hud(page)).toHaveAttribute('data-flipped', 'false');
     await expect(hud(page)).toHaveAttribute('data-dragging', '');
+    await expect(hud(page)).toHaveAttribute('data-places', '');
+    await expect(hud(page)).toHaveAttribute('data-fallen', '');
+    // Sous &fige, le monde ne bouge pas tout seul : tout reste endormi à sa place.
+    await nextFrames(page, 6);
     await expect(hud(page)).toHaveAttribute('data-places', '');
   });
 
@@ -162,9 +165,12 @@ test.describe('les gestes', () => {
     await expect(hud(page)).toHaveAttribute('data-flipped', 'false');
   });
 
-  test('glissent le portable contre la carte sans la chevaucher', async ({ page, isMobile }) => {
+  // Étape 6 : le corps glissé passe au-dessus de ce qu'il survole (il
+  // s'empile) au lieu de pousser la carte à plat comme le solveur 2D de
+  // l'étape 4 ; le test ne demande donc plus que la carte ait bougé.
+  test('glissent le portable sur la carte sans interpénétration', async ({ page, isMobile }) => {
     await page.goto(SETTLED);
-    await waitForScene(page);
+    await waitForPhysics(page);
     const laptop = await pointOnItem(page, 'laptop');
     const card = await pointOnItem(page, 'card');
     await drag(page, laptop, card, {
@@ -177,35 +183,57 @@ test.describe('les gestes', () => {
     // Un glisser ne présente rien.
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     await expect(hud(page)).toHaveAttribute('data-places', /laptop:/);
-    // La carte a été poussée devant le portable, sans recouvrement.
-    expect(await movedIds(page)).toContain('card');
     await expectNoOverlap(page);
   });
 
-  test('gardent sur le plateau un objet glissé vers le bord', async ({ page, isMobile }) => {
+  // Étape 6 : le bord du plateau ne retient plus rien. Un objet tiré vers
+  // le bord de la fenêtre part à gauche, et tombe s'il dépasse le plateau.
+  test('laissent tomber du plateau un objet tiré au-delà du bord', async ({ page, isMobile }) => {
     // Au doigt, 41 à 45 s seul sous SwiftShader : au-delà de 60 s avec 4 pages.
     test.slow(isMobile, 'glisser au doigt en 16 pas, lent sous SwiftShader');
     await page.goto(SETTLED);
-    await waitForScene(page);
-    const viewport = page.viewportSize()!;
+    await waitForPhysics(page);
     const book = await pointOnItem(page, 'book');
-    // Le livre tiré jusqu'au bord gauche de la fenêtre, et au-delà du plateau.
+    // Le livre tiré jusqu'au bord gauche de la fenêtre.
     await drag(page, book, { x: 2, y: book.y + 40 }, { touch: isMobile, steps: 16 });
     await expect(hud(page)).toHaveAttribute('data-places', /book:/);
-    const desk = await expectNoOverlap(page);
-    expect(desk.book.x).toBeLessThan(homePlace('book', viewport.width / viewport.height < 0.9).x);
+    await expectNoOverlap(page);
+    const place = await placeOf(page, 'book');
+    expect(place.x).toBeLessThan(homePlace('book', isPortraitPage(page)).x);
+    // Au-delà du bord gauche du plateau, il est tombé.
+    const fallen = ((await hud(page).getAttribute('data-fallen')) ?? '').split(' ');
+    if (place.x < DESK.x0 - 1.2) expect(fallen).toContain('book');
+    if (!fallen.includes('book')) expect(place.x).toBeGreaterThan(DESK.x0 - 1.2);
   });
 
   test('jouent ?glisse= pour un objet du décor : la tasse', async ({ page, isMobile }) => {
-    test.skip(isMobile, 'le même solveur sur les deux profils');
+    test.skip(isMobile, 'le même moteur sur les deux profils');
     await page.goto(`${SETTLED}&glisse=mug:4.9,0`);
-    await waitForScene(page);
-    await expect(hud(page)).toHaveAttribute('data-places', 'mug:4.90,0.00,0.00');
+    await waitForPhysics(page);
+    await expect(hud(page)).toHaveAttribute('data-places', /mug:/);
+    // Le corps vise la place demandée, puis retombe sur le plateau : à 5 centièmes près.
+    const mug = await placeOf(page, 'mug');
+    expect(Math.abs(mug.x - 4.9)).toBeLessThan(0.05);
+    expect(Math.abs(mug.z)).toBeLessThan(0.05);
+    await expectNoOverlap(page);
+  });
+
+  test('déplacent aussi le décor : la lampe, le clavier', async ({ page, isMobile }) => {
+    test.skip(isMobile, 'le même moteur sur les deux profils');
+    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
+    test.slow();
+    await page.goto(`${SETTLED}&glisse=lamp:-4.2,-1.6`);
+    await waitForPhysics(page);
+    await expect(hud(page)).toHaveAttribute('data-places', /lamp:/);
+    await page.goto(`${SETTLED}&glisse=keyboard:0.3,0.6`);
+    await waitForPhysics(page);
+    await expect(hud(page)).toHaveAttribute('data-places', /keyboard:/);
+    await expectNoOverlap(page);
   });
 
   test('comptent un appui qui bouge de moins de 7 px comme un clic', async ({ page, isMobile }) => {
     await page.goto(SETTLED);
-    await waitForScene(page);
+    await waitForPhysics(page);
     const book = await pointOnItem(page, 'book');
     await drag(page, book, { x: book.x + 4, y: book.y + 2 }, { touch: isMobile, steps: 2 });
     await expect(hud(page)).toHaveAttribute('data-presented', 'book');
@@ -236,47 +264,58 @@ test.describe('les gestes', () => {
     isMobile,
   }) => {
     await page.goto(SETTLED);
-    await waitForScene(page);
+    await waitForPhysics(page);
     const card = await pointOnItem(page, 'card');
     await drag(page, card, { x: card.x + 40, y: card.y + 12 }, { touch: isMobile });
     await expect(hud(page)).toHaveAttribute('data-places', /card:/);
-    const places = await hud(page).getAttribute('data-places');
-    // Présentée (puce du contact) puis reposée : elle revient là où on l'a laissée.
+    const before = await placeOf(page, 'card');
+    // Présentée (puce du contact) puis reposée : elle revient là où on l'a
+    // laissée (rendue au moteur, elle s'y repose, à quelques centièmes près).
     await page.getByRole('link', { name: /^Contact/ }).click();
     await expect(hud(page)).toHaveAttribute('data-presented', 'card');
     await page.keyboard.press('Escape');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
-    await expect(hud(page)).toHaveAttribute('data-places', places ?? '');
+    await nextFrames(page, 6);
+    const after = await placeOf(page, 'card');
+    expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(0.05);
     await page.getByRole('button', { name: 'Rejouer' }).click();
     await expect(hud(page)).toHaveAttribute('data-places', '');
   });
 
-  test('jouent ?glisse : le portable poussé sur la carte, sans recouvrement', async ({ page }) => {
+  test('jouent ?glisse : le portable posé sur la carte, sans interpénétration', async ({
+    page,
+  }) => {
     await page.goto(`${SETTLED}&glisse`);
-    await waitForScene(page);
-    await expect(hud(page)).toHaveAttribute('data-places', /laptop:.*card:|card:.*laptop:/);
-    await expect(hud(page)).toHaveAttribute('data-dragging', '');
-    await expectNoOverlap(page);
-  });
-
-  test('jouent aussi ?glisse sans horloge gelée, puis lâchent le corps', async ({ page }) => {
-    await page.goto('/fr?t=11000&auto=0&heure=14&glisse');
-    await waitForScene(page);
+    await waitForPhysics(page);
     await expect(hud(page)).toHaveAttribute('data-places', /laptop:/);
     await expect(hud(page)).toHaveAttribute('data-dragging', '');
     await expectNoOverlap(page);
   });
 
+  test('jouent aussi ?glisse sans horloge gelée, puis lâchent le corps', async ({ page }) => {
+    // En temps réel, le monde avance d'au plus 4 pas par image : à 2 ou 3
+    // images par seconde sous SwiftShader (4 pages à la fois), il lui faut
+    // jusqu'à une minute pour se poser, contre 2 à 5 s sur un vrai écran.
+    test.slow();
+    await page.goto('/fr?t=11000&auto=0&heure=14&glisse');
+    await waitForPhysics(page);
+    await expect(hud(page)).toHaveAttribute('data-places', /laptop:/, { timeout: 30_000 });
+    await expect(hud(page)).toHaveAttribute('data-dragging', '');
+    await expectNoOverlap(page, 90_000);
+  });
+
   test('glissent en mouvement réduit', async ({ page, isMobile }) => {
+    // En temps réel, comme ci-dessus : lent à se poser sous SwiftShader.
+    test.slow();
     await page.goto('/fr?reduit&heure=14');
-    await waitForScene(page);
+    await waitForPhysics(page);
     await expect(hud(page)).toHaveAttribute('data-reduced', 'true');
     const laptop = await pointOnItem(page, 'laptop');
     await drag(page, laptop, { x: laptop.x - 30, y: laptop.y - 20 }, { touch: isMobile });
     await expect(hud(page)).toHaveAttribute('data-places', /laptop:/);
     await expect(hud(page)).toHaveAttribute('data-dragging', '');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
-    await expectNoOverlap(page);
+    await expectNoOverlap(page, 90_000);
     // Rejouer reste là en mouvement réduit : il remet les objets en place.
     await page.getByRole('button', { name: 'Rejouer' }).click();
     await expect(hud(page)).toHaveAttribute('data-places', '');
@@ -289,7 +328,7 @@ test.describe('les gestes', () => {
   }) => {
     test.skip(isMobile, 'souris et clavier à la fois');
     await page.goto(SETTLED);
-    await waitForScene(page);
+    await waitForPhysics(page);
     const book = await pointOnItem(page, 'book');
     await page.mouse.move(book.x, book.y);
     await page.mouse.down();
@@ -320,6 +359,7 @@ test.describe('les gestes', () => {
     const points = new Map<string, Point>();
     for (const id of candidates) points.set(id, await pointOnItem(page, id));
     await expect(hud(page)).toHaveAttribute('data-auto', 'true', { timeout: 20_000 });
+    await expect(hud(page)).toHaveAttribute('data-physics', 'ready');
     await expect(hud(page)).toHaveAttribute('data-presented', 'book');
     // La fiche du livre couvre une partie du bureau (à droite sur
     // ordinateur) : on prend le premier corps que le pointeur atteint. En
@@ -358,7 +398,7 @@ test.describe('les gestes', () => {
   test('ne font pas défiler la page au doigt', async ({ page, isMobile }) => {
     test.skip(!isMobile, 'au doigt seulement');
     await page.goto(SETTLED);
-    await waitForScene(page);
+    await waitForPhysics(page);
     const before = await page.evaluate(() => window.scrollY);
     const card = await pointOnItem(page, 'card');
     await drag(page, card, { x: card.x, y: card.y - 80 }, { touch: true });

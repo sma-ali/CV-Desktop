@@ -1,6 +1,13 @@
 import { PerspectiveCamera, Vector3 } from 'three';
 import { ease, lerp, seg, smooth } from '../core/arrival';
-import { bodyObb, homePlace, obbCorners, type DeskPlace } from '../core/bodies';
+import {
+  bodyObb,
+  FOOTPRINT_IDS,
+  homePlace,
+  obbCorners,
+  type DeskPlace,
+  type FootprintId,
+} from '../core/bodies';
 import {
   ARRIVAL,
   HEADSET_PORTRAIT,
@@ -19,14 +26,7 @@ import {
   type Vec3,
   type View,
 } from '../core/constants';
-import { BODY_IDS, type BodyId } from '../core/ids';
-import {
-  decorExtentPortrait,
-  decorPlacement,
-  MIC,
-  MIC_CENTER,
-  placeDecorPoint,
-} from '../decor/layout';
+import { decorExtentPortrait, decorPlacement, placeDecorPoint, ROPE_EXTENT } from '../decor/layout';
 
 // Le cadrage de la caméra, en fonctions pures (testées) : la vue de repos
 // calculée d'après le format de la fenêtre (layout() du prototype), la montée
@@ -120,7 +120,7 @@ export const BODY_HEIGHTS = {
   homelab: 0.98,
   mug: 0.6,
   pad: 0.32,
-} as const satisfies Record<BodyId, number>;
+} as const satisfies Record<FootprintId, number>;
 
 const [monitorX, , monitorZ] = MONITOR.position;
 const monitorHalf = MONITOR.frame.width / 2;
@@ -128,17 +128,19 @@ const monitorTop = MONITOR.tiltY + MONITOR.frame.height / 2;
 
 /**
  * Les points fixes du bureau utile, par identifiant : le haut du cadre de
- * l'écran, le casque sur son support, le micro sur son bras, la lampe.
+ * l'écran, le casque sur son support, la lampe.
  */
 export const FIXED_EXTENT: Readonly<
-  Record<'monitor' | 'headset' | 'mic' | 'lamp', readonly Vec3[]>
+  Record<'monitor' | 'headset' | 'edge' | 'lamp', readonly Vec3[]>
 > = {
   monitor: [
     [monitorX - monitorHalf, monitorTop, monitorZ],
     [monitorX + monitorHalf, monitorTop, monitorZ],
   ],
   headset: [[HEADSET_STAND[0], ITEM_POSES.headset.y + 0.9, HEADSET_STAND[2]]],
-  mic: [MIC.clamp, ...MIC.joints, MIC_CENTER],
+  // Le bord gauche du cadre en paysage : la corde à sauter enroulée et ses
+  // poignées, le morceau du décor le plus à gauche.
+  edge: ROPE_EXTENT,
   lamp: [LAMP.base, LAMP.head],
 };
 
@@ -157,28 +159,28 @@ export function screenShare(
 }
 
 /**
- * Les points fixes du format : en portrait, la lampe et le micro sont à
+ * Les points fixes du format : en portrait, la lampe est à
  * leur place du bureau resserré (decor/layout.ts, PORTRAIT_DECOR), et un
  * morceau caché n'a plus de points.
  */
 export function fixedExtent(
   portrait: boolean,
-): Readonly<Record<'monitor' | 'headset' | 'mic' | 'lamp', readonly Vec3[]>> {
+): Readonly<Record<'monitor' | 'headset' | 'edge' | 'lamp', readonly Vec3[]>> {
   return portrait ? FIXED_EXTENT_PORTRAIT : FIXED_EXTENT;
 }
 
-const placed = (id: 'lamp' | 'mic', points: readonly Vec3[]): Vec3[] =>
+const placed = (id: 'lamp', points: readonly Vec3[]): Vec3[] =>
   decorPlacement(id, true).hidden ? [] : points.map((point) => placeDecorPoint(id, true, point));
 
 const FIXED_EXTENT_PORTRAIT = {
   monitor: FIXED_EXTENT.monitor,
   headset: [[HEADSET_PORTRAIT.x, ITEM_POSES.headset.y + 0.9, HEADSET_PORTRAIT.z]],
-  mic: placed('mic', FIXED_EXTENT.mic),
+  edge: [],
   lamp: placed('lamp', FIXED_EXTENT.lamp),
 } as const;
 
 /** Les huit coins de l'encombrement d'un corps posé à une place (bas, puis haut). */
-export function bodyExtent(id: BodyId, place: DeskPlace): Vec3[] {
+export function bodyExtent(id: FootprintId, place: DeskPlace): Vec3[] {
   const corners = obbCorners(bodyObb(id, place));
   const height = BODY_HEIGHTS[id];
   return [
@@ -190,7 +192,7 @@ export function bodyExtent(id: BodyId, place: DeskPlace): Vec3[] {
 /** Tous les points du bureau utile au repos, pour un format : corps à leur place, points fixes. */
 export function deskExtent(portrait: boolean): Vec3[] {
   const points: Vec3[] = [];
-  for (const id of BODY_IDS) points.push(...bodyExtent(id, homePlace(id, portrait)));
+  for (const id of FOOTPRINT_IDS) points.push(...bodyExtent(id, homePlace(id, portrait)));
   for (const fixed of Object.values(fixedExtent(portrait))) points.push(...fixed);
   return points;
 }

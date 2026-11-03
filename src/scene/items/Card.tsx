@@ -25,10 +25,10 @@ const W = CARD_SIZE.w;
 const D = CARD_SIZE.d;
 
 /**
- * La pile sous la carte : elle suit la place de la carte sur le bureau
- * (store.desk.card), soulèvement du glisser compris, mais reste sur le
- * bureau quand la carte est présentée. Son encombrement fait partie de
- * celui de la carte (BODY_FOOTPRINTS.card).
+ * La pile sous la carte : elle suit la pose de la carte sur le bureau
+ * (store.desk.card, renversée ou tombée comprise), mais reste sur le bureau
+ * quand la carte est présentée. Sa forme de collision fait partie de celle
+ * de la carte (physics/shapes.ts).
  */
 function CardPile() {
   const store = useSceneStoreApi();
@@ -38,10 +38,8 @@ function CardPile() {
     const group = ref.current;
     if (!group) return;
     const body = store.getState().desk.card;
-    group.position.set(body.x, body.lift, body.z);
-    group.rotation.set(body.tiltX, body.ry, body.tiltZ);
-    const squash = 1 + Math.sin(body.squash * Math.PI) * 0.06;
-    group.scale.set(squash, 1 / squash, squash);
+    group.position.set(body.x, body.y, body.z);
+    group.quaternion.set(body.qx, body.qy, body.qz, body.qw);
   });
 
   // Prendre la pile, c'est prendre la carte, sauf quand elle est tenue.
@@ -55,7 +53,10 @@ function CardPile() {
 
   return (
     <group ref={ref} onPointerDown={onPointerDown}>
-      <MergedBoxes pieces={CARD_PILE} roughness={0.8} />
+      {/* L'origine de la carte est sur la pile : la pile descend d'autant. */}
+      <group position={[0, -ITEM_POSES.card.y, 0]}>
+        <MergedBoxes pieces={CARD_PILE} roughness={0.8} />
+      </group>
     </group>
   );
 }

@@ -391,6 +391,8 @@ export class DeskPhysics implements PhysicsControl {
     if (!entry || this.out.has(id) || this.grabState?.id === id) return false;
     entry.driven = true;
     entry.body.setBodyType(this.rapier.RigidBodyType.KinematicPositionBased, true);
+    // Sans CCD, drive() pose le corps là où on le demande (avec, un grand pas l'arrête au premier contact).
+    entry.body.enableCcd(false);
     return true;
   }
 
@@ -410,6 +412,7 @@ export class DeskPhysics implements PhysicsControl {
     if (!entry?.driven) return;
     entry.driven = false;
     entry.body.setBodyType(this.rapier.RigidBodyType.Dynamic, true);
+    entry.body.enableCcd(true);
     entry.body.setLinvel({ x: 0, y: 0, z: 0 }, false);
     entry.body.setAngvel({ x: 0, y: 0, z: 0 }, false);
     if (asleep) entry.body.sleep();
@@ -423,6 +426,7 @@ export class DeskPhysics implements PhysicsControl {
     if (entry.driven) {
       entry.driven = false;
       entry.body.setBodyType(this.rapier.RigidBodyType.Dynamic, false);
+      entry.body.enableCcd(true);
     }
     const home = homePose(id, this.portrait);
     entry.body.setGravityScale(1, false);

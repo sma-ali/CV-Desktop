@@ -169,6 +169,7 @@ Ceux du prototype, lus par `parseTestParams` (`src/scene/core/params.ts`) :
 | `?ambiance=night`      | force une ambiance                                                  |
 | `?noshadow`, `?nopost` | sans ombres, sans post-traitement (mesures)                         |
 | `?attente=1500`        | délai avant la version express (ms ; 0 : jamais), étape 6           |
+| `?desordre`            | étape 6 : tout le bureau lancé en l'air dès que le moteur est prêt  |
 
 `?tourne=` est lu par la rotation libre (`parseTurn`, `src/scene/rotation/trackball.ts`), pas par `parseTestParams`.
 

@@ -29,6 +29,8 @@ export interface TestParams {
   noShadow: boolean;
   /** ?nopost : sans post-traitement. */
   noPost: boolean;
+  /** ?desordre : tout le bureau dispersé dès que le moteur physique est prêt (étape 6, partie B). */
+  scatter: boolean;
 }
 
 /** Un glisser demandé par l'adresse : quel corps, et vers quelle place (x, z). */
@@ -74,5 +76,6 @@ export function parseTestParams(search: string | URLSearchParams): TestParams {
     drag: parseDrag(query.get('glisse')),
     noShadow: query.has('noshadow'),
     noPost: query.has('nopost'),
+    scatter: query.has('desordre'),
   };
 }

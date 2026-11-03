@@ -67,6 +67,8 @@ export interface SceneSettings {
   /** ?noshadow et ?nopost, pour les mesures et les machines lentes. */
   noShadow: boolean;
   noPost: boolean;
+  /** ?desordre : le bureau dispersé dès que le moteur est prêt (partie B). */
+  scatter: boolean;
 }
 
 export const DEFAULT_SETTINGS: SceneSettings = {
@@ -80,6 +82,7 @@ export const DEFAULT_SETTINGS: SceneSettings = {
   initialDrag: null,
   noShadow: false,
   noPost: false,
+  scatter: false,
 };
 
 /**
@@ -123,6 +126,7 @@ export function settingsFromParams(
     initialDrag: params.drag,
     noShadow: params.noShadow,
     noPost: params.noPost,
+    scatter: params.scatter,
   };
 }
 

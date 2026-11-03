@@ -1,0 +1,314 @@
+/* L'écran de chargement du bureau (étape 6) : rendu par le serveur, il
+   couvre tout le bureau (scène et HUD) tant que la scène se prépare. Le
+   filament chauffe au rythme de --p (0 à 1, l'avancement réel), posé par
+   Intro.tsx. Les animations passent par transform et opacity : le
+   navigateur les joue même quand la compilation des shaders occupe la page. */
+
+.intro {
+  --nuit: #0e0a08;
+  --creme: #f3e9d4;
+  --ambre: #ffb45e;
+  --p: 0;
+
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  background: radial-gradient(ellipse at 50% 42%, #1a120d 0%, var(--nuit) 62%);
+  color: var(--creme);
+  font-family: var(--mono);
+  transition:
+    opacity 0.7s ease 0.3s,
+    visibility 0s linear 1s;
+}
+
+/* La scène est prête : le filament s'embrase, puis tout s'efface. */
+.intro[data-done] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* JavaScript ne démarre pas (fichiers bloqués, erreur) : l'écran s'efface de
+   lui-même et laisse le HUD du serveur, dont les liens mènent à la version
+   express. Une fois la page hydratée, c'est DeskShell qui décide (délai,
+   repli). */
+.intro:not([data-js]) {
+  animation: give-up 0.6s ease 12s forwards;
+}
+
+@keyframes give-up {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.center {
+  display: grid;
+  justify-items: center;
+  gap: 0;
+  text-align: center;
+}
+
+/* ------------------------------------------------------------------
+   L'ampoule et son filament
+   ------------------------------------------------------------------ */
+
+.bulb {
+  position: relative;
+  width: 120px;
+  height: 150px;
+}
+
+/* La lueur respire doucement pendant l'attente (sur son propre calque :
+   l'animation continue quand la page est occupée). */
+.breath {
+  position: absolute;
+  inset: 0;
+  animation: breath 2.6s ease-in-out infinite;
+  will-change: opacity;
+}
+
+@keyframes breath {
+  0%,
+  100% {
+    opacity: 0.78;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+.intro[data-done] .breath {
+  animation: none;
+}
+
+.glow {
+  position: absolute;
+  inset: -55% -70%;
+  border-radius: 50%;
+  pointer-events: none;
+  background: radial-gradient(
+    circle at 50% 46%,
+    rgb(255 190 110 / 0.55),
+    rgb(255 140 60 / 0.16) 30%,
+    rgb(255 120 40 / 0) 62%
+  );
+  opacity: calc(var(--p) * 0.6);
+  transform: scale(calc(0.7 + var(--p) * 0.3));
+  transition:
+    opacity 0.6s ease,
+    transform 0.6s ease;
+  will-change: opacity, transform;
+}
+
+.glass {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke: rgb(243 233 212 / 0.2);
+  stroke-width: 1.3;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.glass .wire {
+  stroke: rgb(243 233 212 / 0.28);
+  stroke-width: 1;
+}
+
+/* La boîte du filament, dans le repère de l'ampoule (viewBox 30 58 60 24
+   dans 0 0 120 150). */
+.filament {
+  position: absolute;
+  left: 25%;
+  top: 38.67%;
+  width: 50%;
+  height: 16%;
+}
+
+.cold,
+.hot {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+  overflow: visible;
+  fill: none;
+  stroke-width: 1.6;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+}
+
+.cold {
+  stroke: #5a2c18;
+}
+
+/* Le filament froid rougeoie à peine, en attendant. */
+.ember {
+  position: absolute;
+  inset: 0;
+  animation: ember 2.6s ease-in-out infinite;
+  will-change: opacity;
+}
+
+.hot {
+  stroke: var(--ambre);
+  filter: drop-shadow(0 0 1.5px #ff9a3c) drop-shadow(0 0 5px rgb(255 140 50 / 0.7));
+  transition: stroke 0.25s ease;
+}
+
+/* Le chaud se découvre de gauche à droite : la fenêtre glisse d'un côté, son
+   contenu de l'autre, et le filament chaud reste en place. */
+.heat,
+.heatInner {
+  position: absolute;
+  inset: -6px 0;
+  overflow: hidden;
+  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
+  will-change: transform;
+}
+
+.heat {
+  transform: translateX(calc((var(--p) - 1) * 100%));
+  /* Le front de chaleur est flou, pas une coupe nette. */
+  mask-image: linear-gradient(90deg, #000 calc(100% - 7px), transparent);
+}
+
+.intro[data-done] .heat {
+  mask-image: none;
+}
+
+.heatInner {
+  inset: 0;
+  overflow: visible;
+  transform: translateX(calc((1 - var(--p)) * 100%));
+}
+
+.heatInner .hot {
+  inset: 6px 0;
+  height: calc(100% - 12px);
+}
+
+@keyframes ember {
+  0%,
+  100% {
+    opacity: 0.55;
+  }
+  50% {
+    opacity: 1;
+  }
+}
+
+/* Prête : le filament blanchit et la lueur s'ouvre, avant le fondu. */
+.intro[data-done] .hot {
+  stroke: #ffe6bf;
+}
+
+.intro[data-done] .glow {
+  opacity: 1;
+  transform: scale(1.3);
+  transition-duration: 0.3s;
+}
+
+/* ------------------------------------------------------------------
+   Les textes
+   ------------------------------------------------------------------ */
+
+.name {
+  margin: 22px 0 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-variation-settings: 'opsz' 144;
+  font-size: 30px;
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: #f7ecd6;
+}
+
+.preparing {
+  margin: 12px 0 0;
+  font-size: 10.5px;
+  font-weight: 600;
+  letter-spacing: 0.24em;
+  text-transform: uppercase;
+  color: rgb(243 233 212 / 0.62);
+}
+
+.skip {
+  position: absolute;
+  bottom: max(22px, env(safe-area-inset-bottom));
+  left: 50%;
+  transform: translateX(-50%);
+  padding: 12px 8px;
+  font-size: 10.5px;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  white-space: nowrap;
+  color: rgb(243 233 212 / 0.45);
+  text-decoration: underline;
+  text-decoration-color: rgb(243 233 212 / 0.2);
+  text-underline-offset: 4px;
+}
+
+.skip:hover,
+.skip:focus-visible {
+  color: var(--creme);
+  text-decoration-color: var(--ambre);
+}
+
+.skip:focus-visible {
+  outline: 2px solid var(--ambre);
+  outline-offset: 2px;
+}
+
+/* ------------------------------------------------------------------
+   Mouvement réduit : rien ne chauffe ni ne s'embrase, un simple fondu.
+   ------------------------------------------------------------------ */
+
+@media (prefers-reduced-motion: reduce) {
+  .ember,
+  .breath {
+    animation: none;
+  }
+
+  .ember {
+    opacity: 0.8;
+  }
+
+  .heat,
+  .heatInner,
+  .glow,
+  .hot {
+    transition: none;
+  }
+
+  .intro[data-done] .glow {
+    transform: scale(calc(0.7 + var(--p) * 0.3));
+    transition: none;
+  }
+
+  .intro {
+    transition:
+      opacity 0.4s ease,
+      visibility 0s linear 0.4s;
+  }
+}
+
+/* Sans JavaScript : la version express s'affiche (Desk.module.css), pas d'écran de chargement. */
+@media (scripting: none) {
+  .intro {
+    display: none;
+  }
+}
+
+/* Le repli s'affiche : l'écran part tout de suite, la version express est dessous. */
+.intro[data-state='fallback'] {
+  display: none;
+}

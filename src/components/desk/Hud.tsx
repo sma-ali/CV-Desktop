@@ -45,7 +45,14 @@ function useCoarsePointer(): boolean {
 // son, places des objets déplacés, ce qui sort du cadre, et depuis l'étape 6
 // le moteur physique, les corps tombés, le désordre, le rangement, l'objet
 // tourné).
-export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean }) {
+export function Hud({
+  texts,
+  loading,
+}: {
+  texts: DeskHudTexts;
+  /** La scène se prépare sous l'écran de chargement (Intro). */
+  loading: boolean;
+}) {
   const store = useSceneStoreApi();
   const coarse = useCoarsePointer();
   const initialized = useSceneStore((state) => state.initialized);
@@ -139,6 +146,8 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
       data-disorder={disorder.toFixed(2)}
       data-tidying={tidying ? 'true' : 'false'}
       data-turned={presented && heldTurned ? 'true' : 'false'}
+      // L'écran de chargement le couvre : hors du parcours au clavier.
+      inert={loading}
     >
       <p className={styles.carton} data-on={hud.carton ? 'true' : undefined} aria-hidden="true">
         <span className={styles.cartonKicker}>{texts.arrivalKicker}</span>
@@ -195,12 +204,6 @@ export function Hud({ texts, loading }: { texts: DeskHudTexts; loading: boolean 
           ) : null}
         </nav>
       </header>
-
-      {loading ? (
-        <p className={styles.loading} role="status">
-          {texts.loading}
-        </p>
-      ) : null}
 
       <footer className={styles.bottom} data-arrival-hidden={chipsHidden}>
         <nav aria-label={texts.glance}>

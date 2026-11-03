@@ -4,6 +4,7 @@ import dynamic from 'next/dynamic';
 import { useCallback, useEffect, useState, type ReactNode } from 'react';
 import type { DeskHudTexts } from '@/lib/desk';
 import { rebaseLifeSigns, type LifeSigns } from '@/lib/life-signs';
+import { IDLE_BEAT_MS, idleWait, loadTimeout } from '@/scene/core/loading';
 import { moodOfHour, hourOffset, visitorNow } from '@/scene/core/mood';
 import { parseTestParams } from '@/scene/core/params';
 import { createSceneStore, settingsFromParams, type SceneStore } from '@/scene/core/store';
@@ -32,13 +33,19 @@ function markCodeLoaded(store: SceneStore) {
 
 /**
  * Pourquoi la page montre la version express à la place du bureau : pas de
- * WebGL, la scène n'a pas pu démarrer, ou elle a perdu son contexte en route
- * (onglet longtemps en arrière-plan sur un téléphone).
+ * WebGL, la scène n'a pas pu démarrer, elle a perdu son contexte en route
+ * (onglet longtemps en arrière-plan sur un téléphone), ou elle tarde trop à
+ * se préparer (LOAD_TIMEOUT_MS, ?attente).
  */
-export type FallbackReason = 'no-webgl' | 'crashed' | 'context-lost';
+export type FallbackReason = 'no-webgl' | 'crashed' | 'context-lost' | 'timeout';
 
 function isFallback(status: Status): status is FallbackReason {
-  return status === 'no-webgl' || status === 'crashed' || status === 'context-lost';
+  return (
+    status === 'no-webgl' ||
+    status === 'crashed' ||
+    status === 'context-lost' ||
+    status === 'timeout'
+  );
 }
 
 type Status = 'idle' | 'loading' | 'ready' | FallbackReason;
@@ -65,8 +72,10 @@ export interface DeskShellProps {
   children: ReactNode;
 }
 
-// La page du bureau côté navigateur. Le HUD et le repli sont dans le HTML
-// du serveur ; la scène arrive ensuite. Sans JavaScript, la feuille de style
+// La page du bureau côté navigateur. Le HUD, l'écran de chargement (Intro)
+// et le repli sont dans le HTML du serveur ; la scène arrive ensuite, sous
+// l'écran de chargement qui s'efface quand elle est prête. Pendant
+// l'attente, le HUD caché dessous sort du parcours au clavier (inert). Sans JavaScript, la feuille de style
 // montre le repli (@media (scripting: none)) ; sans WebGL, ou si la scène
 // plante ou perd son contexte, data-fallback le montre et cache le HUD et le
 // canvas : un seul h1 à la fois.
@@ -122,6 +131,27 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
     setStatus(webgl ? 'loading' : 'no-webgl');
   }, [store]);
 
+  // La scène tarde trop (réseau très lent, fichier qui n'arrive pas) : la
+  // version express prend sa place. Seule compte l'attente onglet visible,
+  // page inoccupée (idleWait) : une page qui compile ses shaders avance.
+  useEffect(() => {
+    if (status !== 'loading') return;
+    const limit = loadTimeout(window.location.search);
+    if (!Number.isFinite(limit)) return;
+    let waited = 0;
+    let last = performance.now();
+    const timer = window.setInterval(() => {
+      const now = performance.now();
+      waited = idleWait(waited, now - last, document.hidden);
+      last = now;
+      if (waited >= limit) {
+        window.clearInterval(timer);
+        setStatus((current) => (current === 'loading' ? 'timeout' : current));
+      }
+    }, IDLE_BEAT_MS);
+    return () => window.clearInterval(timer);
+  }, [status]);
+
   // Échap repose l'objet présenté.
   useEffect(() => {
     const onKeyDown = (event: KeyboardEvent) => {
@@ -149,7 +179,9 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
         ? hud.fallback.crashed
         : fallback === 'context-lost'
           ? hud.fallback.contextLost
-          : hud.fallback.noScript;
+          : fallback === 'timeout'
+            ? hud.intro.slow
+            : hud.fallback.noScript;
 
   return (
     <SceneStoreProvider store={store}>
@@ -168,8 +200,13 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
         </div>
         <div className={styles.vignette} aria-hidden="true" />
         <Grain className={styles.grain} />
-        <Hud texts={hud} loading={!fallback && status !== 'ready'} />
-        <Intro name={hud.name} texts={hud.intro} done={status === 'ready' || fallback !== null} />
+        <Hud texts={hud} loading={status === 'loading'} />
+        <Intro
+          name={hud.name}
+          texts={hud.intro}
+          expressHref={hud.express.href}
+          state={status === 'ready' ? 'ready' : fallback ? 'fallback' : 'loading'}
+        />
 
         <section className={styles.fallback} aria-label={hud.fallback.expressLink}>
           <p className={styles.fallbackNotice}>

@@ -12,6 +12,7 @@ import {
 import { clamp } from '../core/arrival';
 import type { DeskObstacle } from '../core/bodies';
 import { rng } from '../core/rng';
+import { BELT, KIMONO_SIZE, KIMONO_TOP } from './kimono';
 
 // Le décor en données pures, sans three : positions, couleurs et petites
 // animations, fonctions du temps T de l'horloge du store. Tout ce qui est
@@ -208,6 +209,17 @@ export function cross([ax, ay, az]: Vec3, [bx, by, bz]: Vec3): Vec3 {
 
 export const ROPE = { center: [-5.6, 0, 2.35] as Vec3, turns: 2.6, radius: 0.42 } as const;
 
+/**
+ * Les points extrêmes de la corde et de ses poignées (le bord gauche du
+ * cadrage en paysage, FIXED_EXTENT.edge) : le coin gauche de la spirale,
+ * le bout de la poignée du fond, l'avant de la spirale.
+ */
+export const ROPE_EXTENT: readonly Vec3[] = [
+  [ROPE.center[0] - 0.62, 0, ROPE.center[2] - 0.75],
+  [ROPE.center[0] - 0.55, 0.15, ROPE.center[2] + 0.48],
+  [ROPE.center[0] + 0.55, 0.15, ROPE.center[2] + 0.48],
+];
+
 /** La corde en spirale, posée à plat, qui monte un peu à chaque tour. */
 export function ropeCoil(points = 80): Vec3[] {
   const [cx, , cz] = ROPE.center;
@@ -333,11 +345,18 @@ export const STEAM_COUNT = 6;
 
 /**
  * Le kimono de grappling plié, bleu marine, sa ceinture blanche nouée posée
- * dessus (aucune marque, aucun écusson) : à gauche du clavier, à la place de
- * l'ancien pavé de boutons. Pose provisoire du socle (étape 6), que la
- * partie décor dessine et recale.
+ * dessus (aucune marque, aucun écusson ; pièces dans kimono.ts) : à gauche
+ * du clavier, à la place de l'ancien pavé de boutons, sous la lampe. Assez
+ * loin derrière le livre pour que sa tranche ne le cache pas.
  */
-export const KIMONO = { position: [-2.7, 0, -0.5] as Vec3, ry: 0.06 } as const;
+export const KIMONO = { position: [-2.72, 0, -0.78] as Vec3, ry: 0.1 } as const;
+
+/** Son encombrement vu de dessus (demi-largeur, demi-profondeur) et sa hauteur, nœud compris. */
+export const KIMONO_FOOTPRINT = {
+  hw: KIMONO_SIZE.w / 2 + 0.01,
+  hd: KIMONO_SIZE.d / 2 + BELT.thickness + 0.01,
+  height: KIMONO_TOP,
+} as const;
 
 // ------------------------------------------------------------------
 // Petites animations, fonctions pures du temps
@@ -445,7 +464,14 @@ export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
   // Le clavier (boîtier de la rangée de touches), comme le prototype.
   { id: 'keyboard', x: KEYBOARD[0], z: KEYBOARD[2], ry: 0, hw: 2.15, hd: 0.72 },
   // Le kimono plié et sa ceinture, à la place de l'ancien pavé de boutons.
-  { id: 'kimono', x: KIMONO.position[0], z: KIMONO.position[2], ry: KIMONO.ry, hw: 0.66, hd: 0.46 },
+  {
+    id: 'kimono',
+    x: KIMONO.position[0],
+    z: KIMONO.position[2],
+    ry: KIMONO.ry,
+    hw: KIMONO_FOOTPRINT.hw,
+    hd: KIMONO_FOOTPRINT.hd,
+  },
   { id: 'mouse', x: 3.35, z: -0.48, ry: 0, hw: 0.24, hd: 0.34 },
   square('lamp', LAMP.base, 0.48),
   { id: 'rope', x: ROPE.center[0], z: ROPE.center[2], ry: 0, hw: 0.55, hd: 0.48 },
@@ -472,8 +498,7 @@ export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
  * Les morceaux du décor qui changent de place en portrait (décision d'Ali
  * du 29/10, voir BOUNDS_PORTRAIT). Chacun bouge d'un bloc : il tourne de ry
  * autour de son ancre (DECOR_ANCHORS, sa place en paysage), puis l'ancre va
- * en (x, z). Le clavier, le tapis, la pièce et le pied des gants ne
- * bougent pas (le pied des gants reste hors du cadre, à droite).
+ * en (x, z). Le tapis et la pièce ne bougent pas.
  */
 export type DecorPieceId =
   | 'lamp'
@@ -530,19 +555,20 @@ export interface DecorPlacement {
 /**
  * Les places du décor en portrait. La lampe passe derrière le bord gauche
  * de l'écran, sa tête vers l'avant gauche (elle éclaire le livre), au-dessus
- * de la plante ; le pavé de boutons se pose devant le clavier ; la souris se
- * rapproche du clavier ; la plante, les mangas et leur robot se serrent
- * dans le coin du fond à gauche, sous la fenêtre (le casque passe à droite
- * de l'écran, HEADSET_PORTRAIT). Le micro sur son bras, la corde, les bandes et
- * deux figurines ne trouvent pas de place sans entasser le plateau ou
- * cacher un objet du CV : cachés en portrait.
+ * de la plante ; le kimono plié se pose derrière le clavier, entre la
+ * lampe, le coffret et le pied de l'écran ; la souris se rapproche du
+ * clavier ; la plante se serre dans le coin du fond à gauche, sous la
+ * fenêtre, et les mangas et leur robot passent devant le clavier (le casque
+ * va à droite de l'écran, HEADSET_PORTRAIT). La corde, les bandes et deux
+ * figurines ne trouvent pas de place sans entasser le plateau ou cacher un
+ * objet du CV : cachés en portrait.
  */
 export const PORTRAIT_DECOR: Readonly<
   Record<DecorPieceId, { x: number; z: number; ry?: number; hidden?: boolean }>
 > = {
   lamp: { x: -2.4, z: -3.0, ry: -0.75 },
   keyboard: { x: KEYBOARD[0], z: KEYBOARD[2] },
-  kimono: { x: -1.2, z: -1.8, ry: -0.06 },
+  kimono: { x: -1.3, z: -1.92, ry: -0.1 },
   mouse: { x: 2.85, z: -0.5 },
   rope: { x: ROPE.center[0], z: ROPE.center[2], hidden: true },
   wraps: { x: 5.7, z: 0.75, hidden: true },
@@ -650,12 +676,12 @@ export const decorObstacles = (portrait: boolean): readonly DeskObstacle[] =>
 /**
  * Hauteur de chaque obstacle du décor (le robot debout sur les mangas, les
  * feuilles de la plante) : le cadrage portrait fait tenir le décor entier,
- * pas seulement son pied. La lampe et le micro ont leurs propres points
- * (FIXED_EXTENT, stage/framing.ts).
+ * pas seulement son pied. La lampe a ses propres points (FIXED_EXTENT,
+ * stage/framing.ts).
  */
 export const DECOR_HEIGHTS: Readonly<Record<string, number>> = {
   keyboard: 0.25,
-  kimono: 0.3,
+  kimono: KIMONO_FOOTPRINT.height,
   mouse: 0.25,
   lamp: 0.3,
   rope: 0.15,

@@ -54,7 +54,6 @@ export interface DeskHudTexts {
   express: { label: string; href: string };
   language: { label: string; href: string; locale: Locale };
   replay: string;
-  loading: string;
   arrivalKicker: string;
   glance: string;
   steps: DeskStep[];
@@ -79,8 +78,8 @@ export interface DeskHudTexts {
   };
   /** Étape 6 : le bouton de rangement (partie B) et ses annonces. */
   tidy: { offer: string; tidying: string; done: string };
-  /** Étape 6 : l'écran de chargement (partie C). */
-  intro: { preparing: string };
+  /** Étape 6 : l'écran de chargement (partie C), son lien vers la version express et le repli s'il tarde. */
+  intro: { preparing: string; skip: string; slow: string };
 }
 
 const otherLocale: Record<Locale, Locale> = { fr: 'en', en: 'fr' };
@@ -174,7 +173,6 @@ export function buildDeskTexts(content: Content, locale: Locale): DeskHudTexts {
     express: { label: desk.expressLink, href: expressPath(locale) },
     language: { label: localeNames[other], href: deskPath(other), locale: other },
     replay: desk.replay,
-    loading: desk.loading,
     arrivalKicker: desk.arrivalKicker,
     glance: desk.glance,
     steps: buildDeskSteps(content, locale),

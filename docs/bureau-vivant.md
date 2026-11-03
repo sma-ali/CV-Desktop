@@ -120,3 +120,29 @@ Conflits attendus : `Hud.tsx` (C pour le chargement, B pour le bouton déjà mon
 ## Ce qui remplace l'étape 4
 
 Le solveur 2D (`gestures/solver.ts`) et la simulation du glisser (`gestures/drag.ts`) sont retirés : la description de `docs/gestes.md` à leur sujet est historique. Ce qui reste valable de l'étape 4 : le hub des gestes, le seuil de 7 px, la présentation, les fiches, le son, le bureau resserré du portrait (décor revu par C).
+
+## Partie C : ce qui est fait (branche `feat/bureau-vivant-decor-intro`)
+
+### Le kimono
+
+- `decor/kimono.ts` décrit le paquet en pavés, sans three (testé par `kimono.test.ts`) ; `Kimono.tsx` les fusionne. Vu de dessus : trois couches étagées bleu marine (pantalon, veste, manches repliées, un ton plus clair dessus pour lire le pli), le col épais en V sur la moitié gauche avec une couture ton sur ton, et la ceinture crème qui fait le tour du paquet par le travers, nouée sur le dessus, ses deux pans en V vers le visiteur. Aucune marque, aucun écusson, aucune broderie : seules les couleurs de `KIMONO_COLORS`.
+- Taille : 1.5 x 1.02, 0.26 de haut (0.33 avec le nœud). Un vrai kimono plié serait deux fois plus grand que le livre : le bureau ne le porterait pas.
+- Places : en paysage, `KIMONO` (-2.72, -0.78), à gauche du clavier, sous la lampe, assez loin derrière le livre pour que sa tranche ne le cache pas. En portrait, (-1.3, -1.92), derrière le clavier, entre la lampe, le coffret et le pied de l'écran, remis d'équerre ; il ne chevauche plus le clavier (l'écart de 0.03 du socle est éliminé). Corps : une boîte à son encombrement (`KIMONO_FOOTPRINT`), nœud compris.
+- La ceinture est crème (`0xd9d1bf`) et non blanc pur : sous le cône de la lampe, un blanc pur sature.
+- Cadrage paysage : `FIXED_EXTENT.edge` suit la corde à sauter et ses poignées (`ROPE_EXTENT`), le morceau du décor le plus à gauche depuis le retrait du micro. La vue ne bouge presque pas (capture 1440x900 comparée à l'œil).
+
+### L'écran de chargement
+
+- `Intro.tsx` et `Intro.module.css`, rendus par le serveur : fond sombre, une ampoule au trait dont le filament chauffe de gauche à droite (`--p`, l'avancement), « Ali Smaani », « Préparation du bureau », et en bas un lien discret « Lire le CV sans attendre » vers la version express. Il couvre tout le bureau, HUD compris ; pendant l'attente, le HUD est `inert` (hors du clavier et des lecteurs d'écran), seul le lien reste au clavier. Le nom n'est pas un titre : le seul `h1` reste celui du HUD.
+- Avancement réel (`introProgress`) : le code de la scène (DeskShell), puis `decor/LoadProbe.tsx`, monté dans le décor (Scene.tsx ne change pas) : textures peintes au montage (assets à moitié), polices des textures chargées (assets entier), première image demandée (frame à moitié), deuxième image (shaders : la première a tout compilé), puis `markReady`. Il ne recule jamais. Mesuré sous SwiftShader (build de production, une page seule) : 45 % à 2 s, 65 % à 3.3 s, puis la compilation des shaders bloque la page 16 à 19 s, puis 100 %. Sur une vraie carte graphique, cette compilation prend moins d'une seconde.
+- Les animations de l'écran passent par `transform` et `opacity` (le front de chaleur glisse par deux translations opposées, la lueur et le filament froid respirent sur leurs propres calques) : le navigateur les joue même quand la compilation occupe la page.
+- Scène prête : le filament blanchit et la lueur s'ouvre (0.3 s), l'écran s'efface (0.7 s), puis l'arrivée part du noir et la lampe du bureau s'allume à 0.95 s. Mouvement réduit : ni chaleur animée ni respiration, un fondu de 0.4 s. Sous `&fige`, l'écran part d'un coup (les transitions sont gelées).
+- Repli : sans JavaScript, la feuille de style le cache (la version express s'affiche, comme avant). Si JavaScript ne démarre jamais (fichiers bloqués), il s'efface de lui-même au bout de 12 s (animation CSS annulée dès l'hydratation) et laisse le HUD du serveur, dont les liens mènent à la version express. Si la scène tarde, `data-fallback="timeout"` montre la version express avec `desk.intro.slow`.
+- Le délai : 20 s d'attente onglet visible, page inoccupée (`LOAD_TIMEOUT_MS`, `idleWait`). Un battement toutes les 250 ms cumule le temps qui passe ; un écart de plus d'une seconde entre deux battements veut dire que la page travaillait (montage, compilation) et ne compte pas. Un réseau qui ne livre pas renonce donc après 20 s ; un appareil lent qui compile n'est jamais coupé en plein travail (et le lien reste là). Sous SwiftShader, avec 4 pages à la fois, la scène met jusqu'à 45 s à démarrer : un délai en temps total aurait fait basculer les tests dans le repli. `?attente=ms` règle le délai (0 : jamais).
+- Le « Le bureau s'installe » du HUD et son texte `desk.loading` sont retirés. Textes ajoutés (propositions à valider par Ali) : `desk.intro.skip` (« Lire le CV sans attendre », « Read the CV without waiting » : un nom qui ne contient pas « version express », pour ne pas se confondre avec le lien du HUD) et `desk.intro.slow`.
+
+### Tests
+
+- Vitest : `decor/kimono.test.ts` (dans sa forme de collision, bleu marine, ceinture contrastée, lisible de dessus, sans autre couleur, places sans chevauchement), `core/loading.test.ts` (poids, ordre, délai, attente qui compte).
+- E2E : `intro.spec.ts` et un test du kimono dans `scene-decor.spec.ts` (sur ordinateur seulement, comme les `?glisse=` de `scene-gestes` : le même moteur sur les deux profils ; sa place en portrait est vérifiée par `kimono.test.ts`).
+- Adaptations de `bureau.spec.ts`, dites ici : « basculent vers le bureau anglais » et « vont du bureau à la version express et retour » attendent la scène prête avant de cliquer, puisque l'écran de chargement couvre le HUD jusque-là (avant, ils cliquaient pendant le chargement). « est là sans attendre la 3D » n'a pas changé : avec tous les fichiers JavaScript bloqués, son clic sur une puce attend que l'écran se soit effacé de lui-même (12 s de plus).

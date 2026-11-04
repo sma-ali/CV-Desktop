@@ -39,23 +39,26 @@ function PhysicsDriver() {
   const replays = useSceneStore((state) => state.replays);
   const physicsRef = useRef<DeskPhysics | null>(null);
 
-  useEffect(() => {
-    const scene = store.getState();
-    const physics = new DeskPhysics(rapier as unknown as RapierModule, world, scene.frame.portrait);
-    physicsRef.current = physics;
-    const hub = gestureHub(store);
-    hub.physics = physics;
-    scene.setPhysics('ready');
-    return () => {
-      if (hub.physics === physics) hub.physics = null;
+  // Le bureau physique se crée à la première image, pas dans un effet : en
+  // développement, le mode strict de React monte les effets deux fois, et
+  // <Physics> libère puis recrée son monde entre les deux. Créé dans l'effet,
+  // le bureau visait le monde libéré (« recursive use of an object » de
+  // Rapier) et le bureau restait immobile.
+  useEffect(
+    () => () => {
+      const physics = physicsRef.current;
       physicsRef.current = null;
+      if (!physics) return;
+      const hub = gestureHub(store);
+      if (hub.physics === physics) hub.physics = null;
       try {
         physics.dispose();
       } catch {
         // Le monde est déjà libéré (démontage de <Physics>).
       }
-    };
-  }, [rapier, world, store]);
+    },
+    [rapier, world, store],
+  );
 
   // Rejouer : tout le monde rentre (le store a déjà remis store.desk).
   useEffect(() => {
@@ -63,8 +66,17 @@ function PhysicsDriver() {
   }, [replays]);
 
   useFrame(() => {
-    const physics = physicsRef.current;
-    if (!physics) return;
+    let physics = physicsRef.current;
+    if (!physics) {
+      physics = new DeskPhysics(
+        rapier as unknown as RapierModule,
+        world,
+        store.getState().frame.portrait,
+      );
+      physicsRef.current = physics;
+      gestureHub(store).physics = physics;
+      store.getState().setPhysics('ready');
+    }
     const scene = store.getState();
     const { desk, frame, settings, presented } = scene;
     const hub = gestureHub(store);

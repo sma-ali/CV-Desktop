@@ -77,11 +77,11 @@ export const KEYBOARD: Vec3 = [0.3, 0, -0.58];
 /**
  * Comment un objet se présente une fois soulevé devant la caméra, et ce que
  * fait son geste (retourner) : open (le livre s'ouvre), flip (un objet plat se
- * retourne), laptop (s'ouvre), turn (le casque tourne sur lui-même), shake
- * (le coffret tremble), spin (un objet debout fait un demi-tour pour montrer
- * son dos : le bocal, la baie), screen (la caméra s'approche de l'écran).
+ * retourne), laptop (s'ouvre), turn (le casque tourne sur lui-même), spin
+ * (un objet debout fait un demi-tour pour montrer son dos : le bocal, la
+ * baie, l'usine), screen (la caméra s'approche de l'écran).
  */
-export type PresentMode = 'open' | 'flip' | 'laptop' | 'turn' | 'shake' | 'spin' | 'screen';
+export type PresentMode = 'open' | 'flip' | 'laptop' | 'turn' | 'spin' | 'screen';
 
 export interface ItemPose {
   /** Position de repos sur le bureau (y = hauteur du bas de l'objet). */
@@ -169,7 +169,7 @@ export const ITEM_POSES = {
     z: -0.7,
     ry: 0.35,
     hold: { w: 2.5, h: 2.3, oy: 0.42 },
-    mode: 'shake',
+    mode: 'spin',
     tag: { y: 1.0, z: -0.3 },
   },
   monitor: {
@@ -320,56 +320,75 @@ export const AUTO_TIMING = {
  * niveaux qui en dérivent sont calculés dans arrival.ts.
  */
 export const ARRIVAL = {
-  /** Le clic de l'interrupteur, puis la lampe qui s'allume. */
-  lampOn: 0.95,
-  /** La montée de la caméra. */
-  cameraStart: 1.25,
+  /**
+   * Le clic de l'interrupteur, puis la lampe qui s'allume : en dernier, une
+   * fois tous les objets tombés à leur place (DROP, core/drop.ts).
+   */
+  lampOn: 3.1,
+  /** La montée de la caméra, pendant la chute des objets. */
+  cameraStart: 0.2,
   cameraEnd: 9.7,
   /** Le carton « Bienvenue chez Ali ». */
-  cartonIn: 1.55,
-  cartonOut: 5.6,
+  cartonIn: 3.4,
+  cartonOut: 6.6,
   /** L'écran se réveille. */
-  screenOn: 2.25,
-  screenFull: 2.9,
+  screenOn: 3.75,
+  screenFull: 4.3,
   /** La LED du clavier. */
-  keyboardLedOn: 2.5,
-  keyboardLedFull: 2.85,
+  keyboardLedOn: 3.9,
+  keyboardLedFull: 4.25,
   /** Le code se tape à l'écran, en caractères par seconde. */
-  typingStart: 2.85,
+  typingStart: 4.3,
   typingRate: 150,
   /** La ligne finale, tapée puis effacée en boucle. */
-  extraLineStart: 9,
+  extraLineStart: 9.6,
   extraLineLoop: 16,
   /** Les LED du pavé de boutons, une à une. */
-  deckLedsStart: 3.4,
+  deckLedsStart: 4.7,
   deckLedsStep: 0.085,
   /** La caméra posée sur l'écran. */
-  webcamLed: 4.9,
+  webcamLed: 5.7,
   /** Le panneau de lumière. */
-  panelOn: 5.35,
-  panelFull: 5.6,
+  panelOn: 6.0,
+  panelFull: 6.25,
   /** L'anneau du micro. */
-  micRing: 5.85,
+  micRing: 6.4,
   /** La LED du casque. */
-  headsetLed: 6.0,
-  /** Le coffret s'éveille. */
-  chestLed: 6.25,
+  headsetLed: 6.55,
+  /** L'usine se met en marche. */
+  chestLed: 6.75,
   /** La LED de la manette. */
-  padLed: 6.5,
+  padLed: 6.9,
   /** La lumière de la fenêtre arrive. */
-  windowStart: 6.0,
-  windowEnd: 8.8,
-  /** La lumière d'ambiance monte depuis le noir. */
-  ambientStart: 0.9,
-  ambientEnd: 8.8,
+  windowStart: 6.3,
+  windowEnd: 9.2,
+  /** La lumière d'ambiance monte depuis la pénombre de la chute. */
+  ambientStart: 0,
+  ambientEnd: 9.2,
   /** L'identité (haut de page), puis les puces du CV (bas de page) reviennent. */
-  brandIn: 7.4,
-  chipsIn: 8.1,
+  brandIn: 8.0,
+  chipsIn: 8.6,
   /** Les étiquettes des objets apparaissent. */
-  tagsIn: 8.6,
+  tagsIn: 9.0,
   /** Le léger mouvement de caméra qui suit le pointeur. */
-  parallaxStart: 9,
+  parallaxStart: 9.6,
   parallaxEnd: 11,
+} as const;
+
+/**
+ * La chute de l'arrivée (core/drop.ts) : le premier objet part à start, les
+ * suivants toutes les step secondes ; chacun tombe de height en fall
+ * secondes, penché de tilt radians, puis rebondit de rebound en bounce
+ * secondes. La lampe, dernière de la liste, se pose juste avant lampOn.
+ */
+export const DROP = {
+  start: 0.3,
+  step: 0.11,
+  fall: 0.45,
+  height: 2.2,
+  tilt: 0.35,
+  bounce: 0.18,
+  rebound: 0.07,
 } as const;
 
 /**

@@ -149,6 +149,7 @@ export function usePresentation({
       // Un corps repose à sa pose du plateau (store.desk), qui suit le
       // format tant que personne ne l'a déplacé.
       const body = isBodyId(id) ? scene.desk[id] : null;
+      group.visible = !body?.waiting;
       if (body) {
         restPosition.set(body.x, body.y, body.z);
         restQuaternion.set(body.qx, body.qy, body.qz, body.qw);

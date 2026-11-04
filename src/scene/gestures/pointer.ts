@@ -1,11 +1,12 @@
 import type { ThreeEvent } from '@react-three/fiber';
 import type { Object3D } from 'three';
+import { ARRIVAL } from '../core/constants';
 import type { BodyId } from '../core/ids';
 import type { SceneStore } from '../core/store';
 import { gestureHub } from './hub';
 
-/** Avant cet instant de l'arrivée, ni clic ni glisser (comme le prototype). */
-export const GESTURES_AFTER = 1.2;
+/** Avant cet instant de l'arrivée, ni clic ni glisser : on ne prend pas un objet qui tombe encore. */
+export const GESTURES_AFTER = ARRIVAL.lampOn + 0.25;
 
 /** L'objet qui porte le gestionnaire est-il le plus proche sous le pointeur ? */
 export function isNearest(event: ThreeEvent<PointerEvent>): boolean {

@@ -77,7 +77,7 @@ export function lampFlash(t: number, switchedAt: number = ARRIVAL.lampOn, on = t
 
 /** L'écran qui se réveille (0 à 1), avec un battement au démarrage. */
 export function screenLevel(t: number): number {
-  const flicker = t > ARRIVAL.screenOn && t < 2.4 ? 0.6 : 1;
+  const flicker = t > ARRIVAL.screenOn && t < ARRIVAL.screenOn + 0.15 ? 0.6 : 1;
   return seg(t, ARRIVAL.screenOn, ARRIVAL.screenFull) * flicker;
 }
 
@@ -109,9 +109,16 @@ export function windowLevel(t: number): number {
   return smooth(seg(t, ARRIVAL.windowStart, ARRIVAL.windowEnd));
 }
 
-/** La lumière d'ambiance (hémisphère), de 0 à 1. */
+/** La lumière d'ambiance pendant la chute des objets, avant la lampe (0 à 1). */
+export const DUSK_AMBIENT = 0.4;
+
+/**
+ * La lumière d'ambiance (hémisphère), de 0 à 1 : une pénombre dès le début,
+ * où l'on voit tomber les objets, puis la montée jusqu'au jour.
+ */
 export function ambientLevel(t: number): number {
-  return smooth(seg(t, ARRIVAL.ambientStart, ARRIVAL.ambientEnd));
+  const dusk = DUSK_AMBIENT * smooth(seg(t, 0.05, 0.6));
+  return Math.max(dusk, smooth(seg(t, ARRIVAL.ambientStart, ARRIVAL.ambientEnd)));
 }
 
 /** Avancement de la montée de caméra (0 à 1). */

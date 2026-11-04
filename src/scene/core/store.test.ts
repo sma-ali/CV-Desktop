@@ -2,8 +2,10 @@ import { describe, expect, it } from 'vitest';
 import { SETTLE } from './constants';
 import { parseTestParams } from './params';
 import { sampleLifeSigns } from '@/lib/life-signs/sample';
-import { homePlace } from './bodies';
+import { homePlace, homePose } from './bodies';
 import { createSilentSound } from './sound';
+import { DROP } from './constants';
+import { dropStart, DROP_END, DROP_ORDER } from './drop';
 import { createSceneStore, REDUCED_START, settingsFromParams, updateFrame } from './store';
 
 function started(search = '', reduced = false) {
@@ -50,10 +52,10 @@ describe('le store de la scène', () => {
     store.subscribe(() => (changes += 1));
     store.getState().syncArrival(0.5);
     expect(changes).toBe(0);
-    store.getState().syncArrival(3);
+    store.getState().syncArrival(4);
     expect(store.getState().phase).toBe('screen');
     expect(store.getState().hud.carton).toBe(true);
-    store.getState().syncArrival(3.1);
+    store.getState().syncArrival(4.1);
     expect(changes).toBe(1);
   });
 
@@ -215,6 +217,36 @@ describe('les gestes dans le store (étape 4)', () => {
     state.desk.chest.x = 0;
     updateFrame(state, true);
     expect(state.desk.chest).toMatchObject(homePlace('chest', true));
+  });
+
+  it('fait tomber les objets un à un pendant l’arrivée, puis les laisse à leur place', () => {
+    const store = started('?t=0&fige');
+    const state = store.getState();
+    const at = (t: number) => {
+      state.clock.restart(0, t);
+      updateFrame(state, false);
+    };
+    at(dropStart(0) - 0.01);
+    expect(state.desk.book.waiting).toBe(true);
+    at(dropStart(0) + DROP.fall / 2);
+    expect(state.desk.book.waiting).toBe(false);
+    expect(state.desk.book.y).toBeGreaterThan(homePose('book', false).y + 0.5);
+    expect(state.desk.lamp.waiting).toBe(true);
+    expect(state.desk.headset.waiting).toBe(false);
+    at(DROP_END);
+    for (const id of DROP_ORDER) {
+      expect(state.desk[id].waiting, id).toBe(false);
+      expect(state.desk[id], id).toMatchObject(homePlace(id, false));
+    }
+  });
+
+  it('ne fait rien tomber en mouvement réduit', () => {
+    const store = started('?fige', true);
+    const state = store.getState();
+    state.clock.restart(0, dropStart(0) + 0.1);
+    updateFrame(state, false);
+    expect(state.desk.book.waiting).toBe(false);
+    expect(state.desk.book).toMatchObject(homePlace('book', false));
   });
 
   it('reste muet tant que le visiteur n’a pas ouvert le son', () => {

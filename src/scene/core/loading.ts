@@ -1,5 +1,5 @@
 // L'avancement du chargement de la scène (étape 6), montré par l'écran de
-// chargement : le filament de la lampe qui chauffe (partie C). Des étapes
+// chargement : le trait qui se trace sous le nom (partie C). Des étapes
 // réelles, chacune de 0 à 1, écrites dans le store (setLoad) :
 //
 // - code : le fichier JavaScript de la scène (DeskShell, à l'arrivée du module) ;
@@ -67,7 +67,7 @@ export function loadTimeout(search: string): number {
 
 /**
  * Ce que montre l'écran de chargement : l'avancement réel, arrondi au
- * centième (le filament ne change pas de dessin pour un millième), et 1
+ * centième (le trait ne change pas de longueur pour un millième), et 1
  * quand la scène est prête.
  */
 export function introProgress(load: LoadProgress, ready: boolean): number {

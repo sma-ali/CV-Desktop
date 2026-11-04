@@ -66,12 +66,26 @@ test.describe('l’arrivée', () => {
   test('part du noir et se pose après SETTLE', async ({ page }) => {
     test.setTimeout(90_000);
     const errors = collectErrors(page);
+    // La page note elle-même chaque phase : sous rendu logiciel, une image
+    // peut durer plusieurs secondes, et un sondage raterait une phase courte.
+    await page.addInitScript(() => {
+      const seen: string[] = [];
+      (window as unknown as { __phases: string[] }).__phases = seen;
+      new MutationObserver(() => {
+        const phase = document.getElementById('hud')?.getAttribute('data-phase');
+        if (phase && seen.at(-1) !== phase) seen.push(phase);
+      }).observe(document, { subtree: true, attributes: true, attributeFilter: ['data-phase'] });
+    });
     await page.goto('/fr?heure=14&auto=0');
     await waitForScene(page);
     const first = await hud(page).getAttribute('data-phase');
     expect(PHASES.indexOf(first ?? '')).toBeLessThan(PHASES.indexOf('window'));
-    await expect(hud(page)).toHaveAttribute('data-phase', 'window', { timeout: 20_000 });
-    await expect(hud(page)).toHaveAttribute('data-phase', 'settled', { timeout: 20_000 });
+    await expect(hud(page)).toHaveAttribute('data-phase', 'settled', { timeout: 40_000 });
+    const seen = await page.evaluate(() => (window as unknown as { __phases: string[] }).__phases);
+    // Dans l'ordre, sans retour en arrière, du noir au bureau posé.
+    const order = seen.map((phase) => PHASES.indexOf(phase));
+    for (let i = 1; i < order.length; i++) expect(order[i]).toBeGreaterThan(order[i - 1]!);
+    expect(seen.at(-1)).toBe('settled');
     expect(errors).toEqual([]);
   });
 

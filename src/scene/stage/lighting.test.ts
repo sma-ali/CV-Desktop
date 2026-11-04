@@ -45,15 +45,19 @@ function levels(t: number, mood: MoodId, reduced = false) {
 }
 
 describe('la séquence d’arrivée', () => {
-  it('commence dans le noir', () => {
+  it('commence dans le noir, puis une pénombre pendant la chute des objets', () => {
+    expect(levels(0, 'afternoon').fade).toBeLessThan(0.05);
+    expect(levels(0, 'afternoon').hemi).toBeLessThan(levels(SETTLE, 'afternoon').hemi * 0.05);
+    const dusk = levels(ARRIVAL.lampOn - 0.1, 'afternoon');
+    expect(dusk.fade).toBeGreaterThan(0.3);
+    expect(dusk.hemi).toBeGreaterThan(levels(SETTLE, 'afternoon').hemi * 0.1);
+    expect(dusk.hemi).toBeLessThan(levels(SETTLE, 'afternoon').hemi * 0.6);
     const start = levels(0.5, 'afternoon');
     expect(start.spot).toBe(0);
     expect(start.sun).toBe(0);
     expect(start.cone).toBe(0);
     expect(start.screen).toBe(0);
     expect(start.led).toBe(0);
-    expect(start.fade).toBeLessThan(0.05);
-    expect(start.hemi).toBeLessThan(levels(SETTLE, 'afternoon').hemi * 0.05);
   });
 
   it('allume la lampe avec un vacillement, puis un éclat qui retombe', () => {

@@ -107,31 +107,18 @@ const uiSchema = z.strictObject({
   backToDesk: text,
 });
 
-// Une ambiance de lumière : son nom (bouton) et sa phrase (coin de l'heure).
-const moodTextSchema = z.strictObject({ name: text, light: text });
+// Une ambiance de lumière : sa phrase (coin de l'heure).
 
 // Textes de l'interface du bureau en 3D. Aucun fait du CV ici : le nom, le
 // titre, les dates et les organisations viennent du reste du contenu.
 const deskSchema = z.strictObject({
   canvasLabel: text,
   controlsLabel: text,
-  expressLink: text,
-  replay: text,
   arrivalKicker: text,
   glance: text,
-  perso: z.strictObject({ title: text, detail: text }),
+  /** Les projets perso (l'usine) : leur année, comme les autres projets, et leur nom. */
+  perso: z.strictObject({ year: z.number().int(), detail: text }),
   contactDetail: text,
-  clock: z.strictObject({
-    visitorTime: text.refine((value) => value.includes('{time}'), 'il manque {time}'),
-    pinned: text,
-  }),
-  moodsLabel: text,
-  moods: z.strictObject({
-    morning: moodTextSchema,
-    afternoon: moodTextSchema,
-    evening: moodTextSchema,
-    night: moodTextSchema,
-  }),
   hint: z.strictObject({
     pointer: text,
     touch: text,
@@ -150,11 +137,16 @@ const deskSchema = z.strictObject({
   /** Étape 6 : le bureau dézingué. offer est le bouton, tidying et done s'annoncent. */
   tidy: z.strictObject({ offer: text, tidying: text, done: text }),
   /**
-   * Étape 6 : l'écran de chargement (le nom vient du profil). skip est le
-   * lien vers la version express pendant l'attente ; slow, le message du
-   * repli quand la scène tarde trop.
+   * Étape 6 : l'écran de chargement (le nom vient du profil). slow est le
+   * message du repli quand la scène tarde trop.
    */
-  intro: z.strictObject({ preparing: text, skip: text, slow: text }),
+  intro: z.strictObject({
+    preparing: text,
+    slow: text,
+    /** L'étape en cours sous la barre de chargement (core/loading.ts : LOAD_STEPS), puis « prêt ». */
+    steps: z.strictObject({ code: text, assets: text, shaders: text, frame: text }),
+    done: text,
+  }),
 });
 
 export const contentSchema = z.strictObject({

@@ -184,20 +184,10 @@ export const fr = {
   desk: {
     canvasLabel: "Le bureau d'Ali vu d'en haut. Chaque objet est une étape du CV.",
     controlsLabel: 'Commandes',
-    expressLink: 'Version express',
-    replay: 'Rejouer',
     arrivalKicker: 'Bienvenue chez',
     glance: "Le CV en un coup d'œil",
-    perso: { title: 'Projets perso', detail: 'Scellés, mais vivants' },
+    perso: { year: 2026, detail: "L'usine" },
     contactDetail: 'Carte de visite',
-    clock: { visitorTime: 'Chez vous, il est {time}.', pinned: 'Lumière choisie.' },
-    moodsLabel: 'Changer la lumière',
-    moods: {
-      morning: { name: 'Matin', light: 'Lumière du matin.' },
-      afternoon: { name: 'Après-midi', light: "Lumière d'après-midi." },
-      evening: { name: 'Soir', light: 'Lumière du soir.' },
-      night: { name: 'Nuit', light: 'Nuit. La lampe veille.' },
-    },
     hint: {
       pointer: 'Cliquez sur un objet pour le voir de près. Glissez-le pour le déplacer.',
       touch: 'Touchez un objet pour le voir de près. Glissez-le pour le déplacer.',
@@ -223,8 +213,14 @@ export const fr = {
     },
     intro: {
       preparing: 'Préparation du bureau',
-      skip: 'Lire le CV sans attendre',
       slow: 'Le bureau en 3D met trop de temps à se préparer. Voici le CV en version express.',
+      steps: {
+        code: 'Livraison du bureau',
+        assets: 'Peinture des objets',
+        shaders: 'Réglage de la lumière',
+        frame: 'Dernière touche',
+      },
+      done: 'Prêt',
     },
   },
   scene: sceneFr,

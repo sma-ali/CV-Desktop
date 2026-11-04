@@ -1,9 +1,8 @@
 // Le son du bureau, vu par ceux qui le déclenchent (étape 4). Les gestes, les
 // objets et le store appellent play(cue) sans rien savoir de la synthèse :
-// tant que le son est coupé (le défaut), play ne fait rien. La synthèse
-// WebAudio (partie « fiches ») vit dans src/components/desk/sound.ts et ne
-// crée son AudioContext qu'au premier setEnabled(true), appelé par le clic
-// sur le bouton « Son » du HUD. Aucun fichier audio.
+// tant que le son est coupé, play ne fait rien. La synthèse WebAudio vit
+// dans src/components/desk/sound.ts ; la page l'ouvre par défaut (DeskShell),
+// et elle ne sonne qu'après le premier geste du visiteur. Aucun fichier audio.
 
 /**
  * Les sons du prototype (Snd) : prise et repose d'un objet, papier quand on
@@ -12,17 +11,7 @@
  * clics du décor, coffret qui tremble, ronronnement de l'écran, bip du son.
  */
 export type SoundCue =
-  | 'pick'
-  | 'putBack'
-  | 'flip'
-  | 'thud'
-  | 'slide'
-  | 'lampOn'
-  | 'switch'
-  | 'tick'
-  | 'rattle'
-  | 'hum'
-  | 'blip';
+  'pick' | 'putBack' | 'flip' | 'thud' | 'slide' | 'lampOn' | 'switch' | 'tick' | 'hum' | 'blip';
 
 export interface SoundPlayer {
   /** Le son est-il ouvert ? */

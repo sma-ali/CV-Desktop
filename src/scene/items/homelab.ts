@@ -37,7 +37,8 @@ export const UNITS: readonly RackUnit[] = [
   { id: 'patch', y0: 0.68, y1: 0.79, color: 0x26292d },
 ];
 
-export type LedKind = 'power' | 'link' | 'activity';
+/** idle : la LED d'un port sans câble, éteinte. */
+export type LedKind = 'power' | 'link' | 'activity' | 'idle';
 export type LedColor = 'green' | 'amber' | 'blue';
 
 export interface LedSpec {
@@ -76,6 +77,70 @@ export function unitCenter(id: UnitId): number {
 /** Les ports RJ45 du switch (huit) et du pare-feu (quatre) : x des prises. */
 export const SWITCH_PORTS = Array.from({ length: 8 }, (_, i) => -0.04 + i * 0.056);
 export const FIREWALL_PORTS = Array.from({ length: 4 }, (_, i) => 0.06 + i * 0.075);
+/** Les douze prises numérotées du panneau de brassage : x des prises. */
+export const PATCH_PORTS = Array.from({ length: 12 }, (_, i) => -0.328 + i * 0.05775);
+
+export type PortUnit = 'switch' | 'firewall' | 'patch';
+
+/** Les prises de chaque équipement, de gauche à droite. */
+export const PORTS: Record<PortUnit, readonly number[]> = {
+  switch: SWITCH_PORTS,
+  firewall: FIREWALL_PORTS,
+  patch: PATCH_PORTS,
+};
+
+/** Le centre vertical des prises de chaque équipement (la peinture et les câbles le partagent). */
+export function portY(unit: PortUnit): number {
+  // Sur le switch, les prises sont un peu sous le milieu : leurs LED au-dessus.
+  return unitCenter(unit) + (unit === 'switch' ? -0.0105 : 0);
+}
+
+/** Taille d'une prise peinte (largeur, hauteur), en unités de la façade. */
+export const JACK: Record<PortUnit, readonly [number, number]> = {
+  switch: [0.039, 0.03],
+  firewall: [0.045, 0.034],
+  patch: [0.034, 0.026],
+};
+
+/** Une prise : un équipement et son numéro (de 0, de gauche à droite). */
+export interface PortRef {
+  unit: PortUnit;
+  index: number;
+}
+
+/** Un câble de brassage, branché d'une prise à l'autre. */
+export interface CableSpec {
+  from: PortRef;
+  to: PortRef;
+  color: number;
+}
+
+/**
+ * Le brassage : deux câbles du pare-feu (ports LAN) vers le switch, deux du
+ * switch vers le panneau de brassage. Chaque bout est dans une prise.
+ */
+export const CABLES: readonly CableSpec[] = [
+  { from: { unit: 'switch', index: 0 }, to: { unit: 'firewall', index: 1 }, color: 0x3d7cc9 },
+  { from: { unit: 'switch', index: 2 }, to: { unit: 'firewall', index: 3 }, color: 0xd9b23a },
+  { from: { unit: 'switch', index: 5 }, to: { unit: 'patch', index: 9 }, color: 0xc2492f },
+  { from: { unit: 'switch', index: 7 }, to: { unit: 'patch', index: 11 }, color: 0x4f7a45 },
+];
+
+/** Le centre d'une prise sur la façade (x, y). */
+export function portPoint(port: PortRef): [number, number] {
+  const x = PORTS[port.unit][port.index];
+  if (x === undefined) throw new Error(`prise inconnue : ${port.unit} ${port.index}`);
+  return [x, portY(port.unit)];
+}
+
+/** Les ports du switch où un câble est branché. */
+function wiredSwitchPorts(): Set<number> {
+  const wired = new Set<number>();
+  for (const cable of CABLES) {
+    for (const end of [cable.from, cable.to]) if (end.unit === 'switch') wired.add(end.index);
+  }
+  return wired;
+}
 
 /** Les LED de la baie, placées et tirées une fois pour toutes d'après la graine. */
 export function homelabLeds(seed: number = HOMELAB_SEED): LedSpec[] {
@@ -104,7 +169,11 @@ export function homelabLeds(seed: number = HOMELAB_SEED): LedSpec[] {
   add('firewall', -0.24, firewall + 0.025, 'activity', 'amber');
   const sw = unitCenter('switch');
   add('switch', -0.36, sw + 0.025, 'power', 'green');
-  for (const x of SWITCH_PORTS) add('switch', x, sw + 0.042, 'activity', 'green');
+  // Une LED par port : elle ne s'allume que si un câble y est branché.
+  const wired = wiredSwitchPorts();
+  SWITCH_PORTS.forEach((x, i) =>
+    add('switch', x, sw + 0.042, wired.has(i) ? 'activity' : 'idle', 'green'),
+  );
   return leds;
 }
 
@@ -126,6 +195,7 @@ export const LED_OFF = 0.08;
  */
 export function ledLevel(led: LedSpec, t: number, reduced: boolean): number {
   if (led.kind === 'power') return 1;
+  if (led.kind === 'idle') return LED_OFF;
   if (reduced) return led.kind === 'activity' ? 0.7 : 1;
   const slot = Math.floor(t * led.rate + led.phase);
   // Un lien reste presque toujours allumé ; l'activité scintille.

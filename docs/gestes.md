@@ -14,7 +14,7 @@ Référence de comportement : `prototype/bureau-plateau.html` (gestes et clic l.
 4. **Fiches** : une fiche HTML par objet, ouverte quand il est présenté (sur-titre, étape, titre, méta, texte, note, appel au contact, Préc. / Reposer / Suiv., flèches, Échap). Sur téléphone, elle monte du bas sans cacher l'objet tenu. Focus géré, titre annoncé, cibles de 44 px.
 5. **Netherbrain et Homelab** : un bocal au cerveau qui luit (retourné : son étiquette et sa pile), une mini baie de 10 pouces aux LED qui clignotent. Lien GitHub seulement si `repository.public` (aujourd'hui, aucun).
 6. **Coffret et signes de vie** : projets en marche, dernière activité, en route depuis, graphique sur 14 jours (`role="img"` et texte équivalent), mention « Données d'exemple ». La LED et le liseré battent au rythme de l'activité.
-7. **Son** : synthèse WebAudio, aucun fichier, coupé par défaut, bouton « Son » (`aria-pressed`), AudioContext créé au clic seulement.
+7. **Son** : synthèse WebAudio, aucun fichier. Depuis le 04/11, ouvert par défaut et sans bouton ; l'AudioContext se crée au premier geste du visiteur (règle des navigateurs).
 8. **Téléphone** : en portrait (390x844, 360x740, 412x915) et en paysage (844x390), tout le bureau utile tient à l'écran, coffret compris, sans grande bande vide : en portrait, le bureau se resserre (voir « Le bureau resserré du portrait »). Glisser au doigt sans faire défiler la page, tap pour prendre.
 9. **Mouvement réduit** : glisser reste possible, sans rebond ni inclinaison ; retournement et présentation immédiats.
 

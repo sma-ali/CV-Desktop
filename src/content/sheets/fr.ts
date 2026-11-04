@@ -15,7 +15,6 @@ export const sheetsFr = {
     upright: 'Remettre droit',
     contact: 'Me contacter',
     repository: 'Voir le dépôt',
-    sound: 'Son',
     live: {
       title: 'Signes de vie',
       sample: "Données d'exemple",
@@ -33,6 +32,76 @@ export const sheetsFr = {
         days: { one: 'il y a {n} jour', other: 'il y a {n} jours' },
       },
       age: { one: '{n} jour', other: '{n} jours' },
+    },
+    factory: {
+      circuitLabel: 'Le circuit',
+      circuit: [
+        'Création',
+        'Relecture par agents',
+        'Validation humaine',
+        'Publication',
+        'Statistiques',
+      ],
+      status: 'En marche',
+      last: 'dernière vidéo {ago}',
+      more: 'plus de {n}',
+      figures: {
+        channels: { one: 'chaîne', other: 'chaînes' },
+        videos: { one: 'vidéo', other: 'vidéos' },
+        perDay: 'par jour en moyenne',
+        views: 'vues depuis le début',
+        likes: "j'aime",
+      },
+      tabsLabel: 'Exemples',
+      stats: {
+        views: 'Vues',
+        retention: 'Rétention',
+        retentionValue: '{n} % en moyenne',
+        rejected: 'Refusées',
+        rejectedValue: '{n} % avant publication',
+        production: 'Production',
+        productionValue: '{n} min par vidéo',
+      },
+      chart: "Vidéos produites ces {days} derniers jours, du plus ancien à aujourd'hui : {values}",
+      legend: 'Vidéos produites, {days} derniers jours',
+      genres: {
+        fantasy: {
+          tab: 'Récits',
+          title: 'Récits de fantasy',
+          body: 'Des récits courts dans un univers de fantasy, racontés en voix off.',
+          rows: [
+            { term: 'Agents', value: 'sujet, scénariste, iconographe' },
+            { term: 'Publication', value: 'validation humaine avant chaque envoi' },
+          ],
+        },
+        philosophy: {
+          tab: 'Philosophie',
+          title: 'Philosophie en une minute',
+          body: "Les leçons d'un penseur en une minute : texte, œuvres d'art, voix.",
+          rows: [
+            { term: 'Agents', value: 'stratège, iconographe, juge' },
+            { term: 'Publication', value: 'validation humaine avant chaque envoi' },
+          ],
+        },
+        marbles: {
+          tab: 'Billes 3D',
+          title: 'Courses de billes',
+          body: 'Des courses de billes en 3D, simulées puis rendues sans carte graphique.',
+          rows: [
+            { term: 'Moteur', value: 'three.js, physique Rapier, rendu logiciel' },
+            { term: 'Publication', value: 'automatique' },
+          ],
+        },
+        quiz: {
+          tab: 'Quiz',
+          title: 'Quiz',
+          body: 'Un moteur commun pour plusieurs quiz, chacun avec sa direction artistique.',
+          rows: [
+            { term: 'Moteur', value: 'commun, une DA par quiz' },
+            { term: 'Données', value: 'API publiques' },
+          ],
+        },
+      },
     },
   },
   items: {
@@ -137,12 +206,12 @@ export const sheetsFr = {
       body: "Les compétences du CV, du front-end à l'infrastructure.",
     },
     chest: {
-      kicker: 'Projets perso',
-      step: 'Scellé',
-      title: "Ça tourne. C'est scellé.",
-      meta: [{ term: 'Contenu', value: 'Scellé' }],
-      body: "Le contenu ne s'ouvre pas ici. Le coffret, lui, donne des signes de vie.",
-      note: 'Le contenu se raconte en entretien.',
+      kicker: '2026',
+      step: 'Étape 3 sur 3',
+      title: "L'usine",
+      meta: [{ term: 'Circuit', value: 'de bout en bout' }],
+      body: 'Des chaînes vidéo produites de bout en bout par des agents IA, sur mon propre serveur. Je conçois le circuit, les agents font le reste.',
+      note: 'Le détail de chaque circuit se raconte en entretien.',
     },
     card: {
       kicker: 'Carte de visite',

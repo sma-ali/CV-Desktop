@@ -183,20 +183,10 @@ export const en = {
   desk: {
     canvasLabel: "Ali's desk seen from above. Each object is a step of the CV.",
     controlsLabel: 'Controls',
-    expressLink: 'Express version',
-    replay: 'Replay',
     arrivalKicker: 'Welcome to the desk of',
     glance: 'The CV at a glance',
-    perso: { title: 'Side projects', detail: 'Sealed, but alive' },
+    perso: { year: 2026, detail: 'The factory' },
     contactDetail: 'Business card',
-    clock: { visitorTime: 'It is {time} where you are.', pinned: 'Light of your choice.' },
-    moodsLabel: 'Change the light',
-    moods: {
-      morning: { name: 'Morning', light: 'Morning light.' },
-      afternoon: { name: 'Afternoon', light: 'Afternoon light.' },
-      evening: { name: 'Evening', light: 'Evening light.' },
-      night: { name: 'Night', light: 'Night. The lamp keeps watch.' },
-    },
     hint: {
       pointer: 'Click an object to take a closer look. Drag it to move it.',
       touch: 'Tap an object to take a closer look. Drag it to move it.',
@@ -221,8 +211,14 @@ export const en = {
     },
     intro: {
       preparing: 'Setting up the desk',
-      skip: 'Read the CV without waiting',
       slow: 'The 3D desk is taking too long to set up. Here is the CV in its express version.',
+      steps: {
+        code: 'Delivering the desk',
+        assets: 'Painting the objects',
+        shaders: 'Setting the lights',
+        frame: 'Final touch',
+      },
+      done: 'Ready',
     },
   },
   scene: sceneEn,

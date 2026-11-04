@@ -150,7 +150,7 @@ Tout texte factuel affiché ou peint vient du module de contenu et du CV (`src/c
 - Textes d'interface du bureau : `content.desk` (HUD, carton, puces, phrase de l'heure, ambiances, indication, aria-label du canvas, repli).
 - Textes peints dans la scène : `content.scene` (`src/content/scene/`, schéma zod, `fr.ts`, `en.ts`). Le socle n'y met qu'un squelette (étiquettes, code de l'écran) ; la partie objets le complète. Les lignes de code peuvent être vides ou indentées et tiennent en 60 caractères.
 - Décor sans marque, jeu, anime ni pseudo réels.
-- Coffret scellé : jamais les mots automatisation, usine, vidéos, ni aucun nom de chaîne, de compte ou de plateforme. Un test le vérifie sur `desk` et `scene`.
+- Coffret scellé (remplacé par l'usine le 04/11/2026, voir [`usine-et-intro.md`](usine-et-intro.md)) : jamais les mots automatisation, usine, vidéos, ni aucun nom de chaîne, de compte ou de plateforme. Un test le vérifie sur `desk` et `scene`.
 - Commentaires et textes en français, identifiants en anglais, jamais de tiret cadratin ni demi-cadratin (test sur tout le dépôt).
 
 ## Paramètres de test

@@ -14,7 +14,6 @@ export const sheetsEn = {
     upright: 'Set upright',
     contact: 'Get in touch',
     repository: 'View the repository',
-    sound: 'Sound',
     live: {
       title: 'Signs of life',
       sample: 'Sample data',
@@ -32,6 +31,70 @@ export const sheetsEn = {
         days: { one: '{n} day ago', other: '{n} days ago' },
       },
       age: { one: '{n} day', other: '{n} days' },
+    },
+    factory: {
+      circuitLabel: 'The pipeline',
+      circuit: ['Creation', 'Agent review', 'Human approval', 'Publishing', 'Analytics'],
+      status: 'Running',
+      last: 'last video {ago}',
+      more: 'over {n}',
+      figures: {
+        channels: { one: 'channel', other: 'channels' },
+        videos: { one: 'video', other: 'videos' },
+        perDay: 'per day on average',
+        views: 'views since the start',
+        likes: 'likes',
+      },
+      tabsLabel: 'Examples',
+      stats: {
+        views: 'Views',
+        retention: 'Retention',
+        retentionValue: '{n}% on average',
+        rejected: 'Rejected',
+        rejectedValue: '{n}% before publishing',
+        production: 'Production',
+        productionValue: '{n} min per video',
+      },
+      chart: 'Videos produced over the last {days} days, oldest to today: {values}',
+      legend: 'Videos produced, last {days} days',
+      genres: {
+        fantasy: {
+          tab: 'Tales',
+          title: 'Fantasy tales',
+          body: 'Short tales set in a fantasy world, told in voice-over.',
+          rows: [
+            { term: 'Agents', value: 'topic, scriptwriter, iconographer' },
+            { term: 'Publishing', value: 'human approval before every upload' },
+          ],
+        },
+        philosophy: {
+          tab: 'Philosophy',
+          title: 'Philosophy in a minute',
+          body: "A thinker's lessons in one minute: text, artworks, voice.",
+          rows: [
+            { term: 'Agents', value: 'strategist, iconographer, judge' },
+            { term: 'Publishing', value: 'human approval before every upload' },
+          ],
+        },
+        marbles: {
+          tab: '3D marbles',
+          title: 'Marble races',
+          body: 'Marble races in 3D, simulated then rendered without a graphics card.',
+          rows: [
+            { term: 'Engine', value: 'three.js, Rapier physics, software rendering' },
+            { term: 'Publishing', value: 'automatic' },
+          ],
+        },
+        quiz: {
+          tab: 'Quizzes',
+          title: 'Quizzes',
+          body: 'One shared engine for several quizzes, each with its own art direction.',
+          rows: [
+            { term: 'Engine', value: 'shared, one art direction per quiz' },
+            { term: 'Data', value: 'public APIs' },
+          ],
+        },
+      },
     },
   },
   items: {
@@ -136,12 +199,12 @@ export const sheetsEn = {
       body: 'The skills from the CV, from frontend to infrastructure.',
     },
     chest: {
-      kicker: 'Side projects',
-      step: 'Sealed',
-      title: "It runs. It's sealed.",
-      meta: [{ term: 'Contents', value: 'Sealed' }],
-      body: 'The contents do not open here. The chest, though, gives signs of life.',
-      note: 'The contents are for the interview.',
+      kicker: '2026',
+      step: 'Step 3 of 3',
+      title: 'The factory',
+      meta: [{ term: 'Pipeline', value: 'end to end' }],
+      body: 'Video channels produced end to end by AI agents, on my own server. I design the pipeline, the agents do the rest.',
+      note: 'The details of each pipeline are for the interview.',
     },
     card: {
       kicker: 'Business card',

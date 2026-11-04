@@ -1,28 +1,14 @@
 'use client';
 
 import Link from 'next/link';
-import { useState, useSyncExternalStore, type CSSProperties, type MouseEvent } from 'react';
+import { useState, useSyncExternalStore, type MouseEvent } from 'react';
 import type { DeskHudTexts, DeskStep } from '@/lib/desk';
 import { formatPlaces } from '@/scene/core/bodies';
-import { MOOD_SWATCHES } from '@/scene/core/constants';
-import { ITEM_STEP, MOOD_IDS, type MoodId } from '@/scene/core/ids';
-import { formatVisitorTime, moodOfHour, visitorNow } from '@/scene/core/mood';
+import { ITEM_STEP } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { Sheet } from './Sheet';
 import { TidyButton } from './TidyButton';
 import styles from './Desk.module.css';
-
-/** L'heure du visiteur à la minute près (null avant l'hydratation : le serveur ne la connaît pas). */
-function useVisitorMinute(offsetMs: number): number | null {
-  return useSyncExternalStore(
-    (onChange) => {
-      const timer = window.setInterval(onChange, 15_000);
-      return () => window.clearInterval(timer);
-    },
-    () => Math.floor((Date.now() + offsetMs) / 60_000),
-    () => null,
-  );
-}
 
 /** Le visiteur pointe-t-il avec le doigt ? */
 function useCoarsePointer(): boolean {
@@ -37,9 +23,10 @@ function useCoarsePointer(): boolean {
   );
 }
 
-// Le HUD du bureau, d'après le prototype : identité, commandes (dont le
-// bouton « Son »), puces du CV, heure du visiteur et ambiances, carton
-// d'arrivée, indication, fiche de l'objet présenté. Rendu par le serveur,
+// Le HUD du bureau, d'après le prototype : identité, bouton de langue, puces
+// du CV (la lumière suit l'heure du visiteur, sans réglage ni texte), carton
+// d'arrivée, indication, fiche de l'objet présenté. Le son est ouvert par
+// défaut (DeskShell), sans bouton. Rendu par le serveur,
 // visible avant la 3D. Expose l'état de la scène aux tests par des attributs
 // data-* (phase, ambiance, objet présenté, mode auto, objet retourné, glisser,
 // son, places des objets déplacés, ce qui sort du cadre, et depuis l'étape 6
@@ -60,7 +47,6 @@ export function Hud({
   const phase = useSceneStore((state) => state.phase);
   const hud = useSceneStore((state) => state.hud);
   const mood = useSceneStore((state) => state.mood);
-  const moodPinned = useSceneStore((state) => state.moodPinned);
   const autoOn = useSceneStore((state) => state.autoOn);
   const presented = useSceneStore((state) => state.presented);
   const flipped = useSceneStore((state) => state.flipped);
@@ -74,9 +60,8 @@ export function Hud({
   const tidying = useSceneStore((state) => state.tidying);
   const heldTurned = useSceneStore((state) => state.heldTurned);
   const settings = useSceneStore((state) => state.settings);
-  const minute = useVisitorMinute(settings.hourOffsetMs);
   // Ce que la région d'état annonce : seulement les gestes du visiteur
-  // (objet présenté par une puce, ambiance choisie), jamais l'heure qui passe.
+  // (objet présenté par une puce).
   const [announcement, setAnnouncement] = useState('');
 
   const presentedStep = presented ? ITEM_STEP[presented] : null;
@@ -113,17 +98,6 @@ export function Hud({
       setAnnouncement(`${step.title} ${step.detail}. ${texts.hint.presented}`);
     }
   };
-
-  const onMood = (next: MoodId) => {
-    const state = store.getState();
-    const hourMood = moodOfHour(visitorNow(state.settings.hourOffsetMs).getHours());
-    state.markUser();
-    state.setMood(next, next !== hourMood);
-    setAnnouncement(`${texts.clock.pinned} ${texts.moods[next].light}`);
-  };
-
-  const [before, after] = texts.clock.visitorTime.split('{time}');
-  const time = minute === null ? null : formatVisitorTime(new Date(minute * 60_000), texts.locale);
 
   return (
     <div
@@ -169,39 +143,16 @@ export function Hud({
           </p>
         </div>
         <nav className={styles.controls} aria-label={texts.controlsLabel}>
-          <Link href={texts.express.href} className={`${styles.button} ${styles.buttonGold}`}>
-            {texts.express.label}
-          </Link>
           <Link
             href={texts.language.href}
             hrefLang={texts.language.locale}
             lang={texts.language.locale}
+            aria-label={texts.language.name}
+            title={texts.language.name}
             className={styles.button}
           >
             {texts.language.label}
           </Link>
-          {ready ? (
-            <button
-              type="button"
-              className={styles.button}
-              aria-pressed={soundOn}
-              data-sound-toggle=""
-              onClick={() => store.getState().toggleSound()}
-            >
-              {texts.sheets.ui.sound}
-            </button>
-          ) : null}
-          {/* En mouvement réduit aussi : l'arrivée ne se rejoue pas, mais les
-              objets déplacés reprennent leur place. */}
-          {ready ? (
-            <button
-              type="button"
-              className={styles.button}
-              onClick={() => store.getState().replay(performance.now() / 1000)}
-            >
-              {texts.replay}
-            </button>
-          ) : null}
         </nav>
       </header>
 
@@ -229,39 +180,6 @@ export function Hud({
             ))}
           </ul>
         </nav>
-        <div className={styles.corner}>
-          <p className={styles.clock}>
-            {initialized && time !== null ? (
-              moodPinned ? (
-                <>
-                  {texts.clock.pinned} <em>{texts.moods[mood].light}</em>
-                </>
-              ) : (
-                <>
-                  {before}
-                  <b>{time}</b>
-                  {after} <em>{texts.moods[mood].light}</em>
-                </>
-              )
-            ) : null}
-          </p>
-          <div className={styles.moods} role="group" aria-label={texts.moodsLabel}>
-            {MOOD_IDS.map((id) => (
-              <button
-                key={id}
-                type="button"
-                className={styles.mood}
-                aria-label={texts.moods[id].name}
-                title={texts.moods[id].name}
-                aria-pressed={initialized && mood === id}
-                style={{ '--swatch': MOOD_SWATCHES[id] } as CSSProperties}
-                onClick={() => onMood(id)}
-              >
-                <i aria-hidden="true" />
-              </button>
-            ))}
-          </div>
-        </div>
         {/* Dans le footer : sous 1300 px, elle se pose juste au-dessus. */}
         <p
           className={styles.hint}

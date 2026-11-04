@@ -15,7 +15,7 @@ import { ARRIVAL, SETTLE } from './constants';
 
 describe("l'arrivée", () => {
   it('passe par ses phases dans l’ordre', () => {
-    expect([0, 1, 3, 7, SETTLE].map(arrivalPhase)).toEqual([
+    expect([0, ARRIVAL.lampOn + 0.1, ARRIVAL.screenOn + 0.1, 7, SETTLE].map(arrivalPhase)).toEqual([
       'dark',
       'lamp',
       'screen',
@@ -36,10 +36,10 @@ describe("l'arrivée", () => {
   });
 
   it("réveille l'écran, la LED du clavier puis tape le code", () => {
-    expect(screenLevel(2)).toBe(0);
-    expect(screenLevel(3)).toBe(1);
-    expect(keyboardLedLevel(2)).toBe(0);
-    expect(keyboardLedLevel(3)).toBe(1);
+    expect(screenLevel(ARRIVAL.screenOn - 0.1)).toBe(0);
+    expect(screenLevel(ARRIVAL.screenFull)).toBe(1);
+    expect(keyboardLedLevel(ARRIVAL.keyboardLedOn)).toBe(0);
+    expect(keyboardLedLevel(ARRIVAL.keyboardLedFull)).toBe(1);
     expect(typedChars(ARRIVAL.typingStart)).toBe(0);
     expect(typedChars(ARRIVAL.typingStart + 1)).toBe(ARRIVAL.typingRate);
   });
@@ -73,7 +73,7 @@ describe("l'arrivée", () => {
       tags: false,
       hint: false,
     });
-    expect(hudFlags(3).carton).toBe(true);
+    expect(hudFlags(ARRIVAL.cartonIn).carton).toBe(true);
     expect(hudFlags(SETTLE)).toEqual({
       carton: false,
       brand: true,

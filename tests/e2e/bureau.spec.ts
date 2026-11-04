@@ -55,8 +55,11 @@ test.describe('le HUD', () => {
     await expect(top.getByText('Développeur Full-Stack', { exact: true })).toBeVisible();
     await expect(top.getByText('Disponible', { exact: true })).toBeVisible();
     await expect(top.getByText('Île-de-France ou remote', { exact: true })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Version express' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'English' })).toBeVisible();
+    // Une seule commande en haut : la langue, « EN » (nom complet pour les lecteurs d'écran).
+    const controls = page.getByRole('navigation', { name: 'Commandes' });
+    await expect(controls.getByRole('link')).toHaveCount(1);
+    await expect(controls.getByRole('button')).toHaveCount(0);
+    await expect(controls.getByRole('link', { name: 'English' })).toHaveText('EN');
 
     const steps = page
       .getByRole('navigation', { name: "Le CV en un coup d'œil" })
@@ -66,7 +69,8 @@ test.describe('le HUD', () => {
     await expect(steps.nth(0)).toContainText('DEFI-METIERS');
     await expect(steps.nth(1)).toContainText('2024');
     await expect(steps.nth(2)).toContainText('Netherbrain | Homelab');
-    await expect(steps.nth(3)).toContainText('Projets perso');
+    await expect(steps.nth(3)).toContainText('2026');
+    await expect(steps.nth(3)).toContainText("L'usine");
     await expect(steps.nth(4)).toContainText('Contact');
 
     await steps.nth(1).click();
@@ -153,54 +157,30 @@ test.describe('la scène', () => {
     await expect(hud(page)).toHaveAttribute('data-presented', '');
   });
 
-  test('Rejouer relance l’arrivée', async ({ page }) => {
-    await page.goto(SETTLED);
-    await waitForScene(page);
-    await expect(hud(page)).toHaveAttribute('data-phase', 'settled');
-    await page.getByRole('button', { name: 'Rejouer' }).click();
-    await expect(hud(page)).not.toHaveAttribute('data-phase', 'settled');
-  });
-
-  test('donne la nuit à 23 h', async ({ page }) => {
+  test('donne la nuit à 23 h, sans l’écrire', async ({ page }) => {
     await page.goto('/fr?heure=23&auto=0');
     await expect(hud(page)).toHaveAttribute('data-mood', 'night');
-    await expect(page.getByRole('button', { name: 'Nuit' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    await expect(page.getByText('Chez vous, il est 23 h.')).toBeVisible();
-    await expect(page.getByText('Nuit. La lampe veille.')).toBeVisible();
+    await expect(page.getByText(/Chez vous/)).toHaveCount(0);
   });
 
-  test('change de lumière au sélecteur d’ambiance', async ({ page }) => {
-    await page.goto('/fr?heure=14&auto=0');
-    await expect(hud(page)).toHaveAttribute('data-mood', 'afternoon');
-    await page.getByRole('button', { name: 'Matin' }).click();
+  test('suit l’heure du visiteur, sans sélecteur ni phrase', async ({ page }) => {
+    await page.goto('/fr?heure=8&auto=0');
+    await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-mood', 'morning');
-    await expect(page.getByRole('button', { name: 'Matin' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-    // L'heure du bas de page le dit, et la région d'état l'annonce.
-    await expect(page.getByRole('contentinfo').getByText('Lumière choisie.')).toBeVisible();
-    await expect(page.getByRole('status').filter({ hasText: 'Lumière' })).toHaveText(
-      'Lumière choisie. Lumière du matin.',
-    );
-    await page.getByRole('button', { name: 'Après-midi' }).click();
-    await expect(page.getByText('Chez vous, il est 14 h.')).toBeVisible();
+    await expect(page.getByText(/Lumière du matin/)).toHaveCount(0);
+    await expect(page.getByRole('group', { name: 'Changer la lumière' })).toHaveCount(0);
+    await expect(page.getByRole('contentinfo').getByRole('button')).toHaveCount(0);
   });
 });
 
 test.describe('en mouvement réduit', () => {
   test.use({ reducedMotion: 'reduce' });
 
-  test('arrive posé, sans visite automatique, Rejouer compris', async ({ page }) => {
+  test('arrive posé, sans visite automatique', async ({ page }) => {
     await page.goto('/fr');
     await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-reduced', 'true');
     await expect(hud(page)).toHaveAttribute('data-phase', 'settled');
-    // Rejouer remet les objets déplacés en place, sans rejouer l'arrivée.
-    await expect(page.getByRole('button', { name: 'Rejouer' })).toBeVisible();
     // L'horloge part de REDUCED_START (11 s) : sans le mouvement réduit, la
     // visite démarrerait 1.6 s plus tard (AUTO_START). On laisse passer ce
     // moment, avec de la marge pour SwiftShader.
@@ -259,16 +239,13 @@ test.describe('les liens', () => {
     await link.click();
     await expect(page).toHaveURL(/\/en$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-    await expect(page.getByRole('link', { name: 'Express version' })).toBeVisible();
-    await expect(page.getByRole('link', { name: 'Français' })).toHaveAttribute('href', '/fr');
+    const back = page.getByRole('link', { name: 'Français' });
+    await expect(back).toHaveAttribute('href', '/fr');
+    await expect(back).toHaveText('FR');
   });
 
-  test('vont du bureau à la version express et retour', async ({ page }) => {
-    await page.goto('/fr?auto=0');
-    // Étape 6 : l'écran de chargement couvre le HUD jusqu'à la scène prête.
-    await waitForScene(page);
-    await page.getByRole('link', { name: 'Version express' }).click();
-    await expect(page).toHaveURL(/\/fr\/express$/);
+  test('ramènent de la version express au bureau', async ({ page }) => {
+    await page.goto('/fr/express');
     await page.getByRole('link', { name: 'Revenir au bureau' }).click();
     await expect(page).toHaveURL(/\/fr$/);
     await expect(hud(page)).toBeAttached();

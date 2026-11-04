@@ -2,9 +2,10 @@ import type { SoundCue, SoundPlayer } from '@/scene/core/sound';
 
 // La synthèse des sons du bureau en WebAudio, d'après le prototype (Snd) :
 // aucun fichier audio, tout part d'oscillateurs et d'un bruit calculé.
-// L'AudioContext ne se crée qu'au premier setEnabled(true), appelé par le
-// clic sur « Son » (toggleSound du store) ; tant que le son est coupé, play
-// ne fait rien et le contexte est suspendu.
+// Le son est ouvert par défaut (DeskShell appelle setSound(true) du store).
+// Les navigateurs ne laissent sonner une page qu'après un geste du visiteur :
+// l'AudioContext ne se crée qu'à son premier clic, toucher ou touche du
+// clavier ; d'ici là, play ne fait rien.
 
 type WindowWithWebkit = Window & { webkitAudioContext?: typeof AudioContext };
 
@@ -169,9 +170,6 @@ const CUES: Record<SoundCue, (synth: Synth, strength: number) => void> = {
     tone(s, 1200 + i * 90, 0.07, 0.08, 'sine');
     tone(s, 2400 + i * 120, 0.03, 0.03, 'triangle');
   },
-  rattle: (s) => {
-    for (let i = 0; i < 4; i++) noise(s, 0.05, 1800 + i * 200, 4, 0.12, 'bandpass', i * 0.06);
-  },
   hum: (s) => {
     tone(s, 220, 1.4, 0.05, 'sine', 0, 180);
     tone(s, 330, 1.4, 0.03, 'sine', 0.05, 280);
@@ -182,13 +180,40 @@ const CUES: Record<SoundCue, (synth: Synth, strength: number) => void> = {
   },
 };
 
+/** Les gestes qui autorisent une page à jouer du son. */
+const UNLOCK_EVENTS = ['pointerdown', 'keydown', 'touchend'] as const;
+
 /**
- * Le lecteur du bureau. Rien n'est créé avant le premier setEnabled(true) :
- * ni AudioContext, ni nœud, ni bruit. Couper le son suspend le contexte.
+ * Le lecteur du bureau. Rien n'est créé avant que le son soit ouvert ET que
+ * le visiteur ait agi sur la page : ni AudioContext, ni nœud, ni bruit.
+ * Couper le son suspend le contexte.
  */
 export function createWebAudioSound(): SoundPlayer {
   let synth: Synth | null = null;
   let enabled = false;
+  let armed = false;
+
+  const start = () => {
+    synth ??= createSynth();
+    if (!synth) return;
+    synth.out.gain.value = MASTER;
+    if (synth.ctx.state === 'suspended') void synth.ctx.resume().catch(() => undefined);
+  };
+  const onGesture = () => {
+    disarm();
+    if (enabled) start();
+  };
+  const disarm = () => {
+    if (!armed) return;
+    armed = false;
+    for (const type of UNLOCK_EVENTS) window.removeEventListener(type, onGesture, true);
+  };
+  const arm = () => {
+    if (armed || typeof window === 'undefined') return;
+    armed = true;
+    for (const type of UNLOCK_EVENTS) window.addEventListener(type, onGesture, true);
+  };
+
   return {
     get enabled() {
       return enabled;
@@ -202,11 +227,12 @@ export function createWebAudioSound(): SoundPlayer {
         }
         return enabled;
       }
-      synth ??= createSynth();
-      if (!synth) return (enabled = false);
-      synth.out.gain.value = MASTER;
-      if (synth.ctx.state === 'suspended') void synth.ctx.resume().catch(() => undefined);
-      return (enabled = true);
+      enabled = true;
+      // Le navigateur refuserait de jouer avant un geste : le contexte
+      // n'est créé qu'au premier clic, toucher ou touche, puis reste.
+      if (synth) start();
+      else arm();
+      return enabled;
     },
     play(cue, strength) {
       if (!enabled || !synth) return;
@@ -219,6 +245,7 @@ export function createWebAudioSound(): SoundPlayer {
     },
     dispose() {
       enabled = false;
+      disarm();
       if (synth) void synth.ctx.close().catch(() => undefined);
       synth = null;
     },

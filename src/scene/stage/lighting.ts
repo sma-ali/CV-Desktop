@@ -96,13 +96,19 @@ export function bloomStrength(lamp: number, flash: number, window: number): numb
   return 0.55 + lamp * (1 - window) * 0.35 + flash * 0.35;
 }
 
+/** Le niveau de l'image pendant la chute, avant la lampe. */
+export const NIGHT_FADE = 0.62;
+
 /**
  * Le fondu depuis le noir de l'arrivée (1 : image pleine). La lampe et la
  * fenêtre l'ouvrent ; en mouvement réduit, l'image est pleine tout de suite.
  */
 export function fadeLevel(t: number, lamp: number, window: number, reduced: boolean): number {
   if (reduced) return 1;
-  return clamp(lamp * 1.4 + window, 0, 1) * 0.9 + 0.1 * smooth(seg(t, 0.9, 2));
+  // Avant la lampe, une pénombre où l'on voit tomber les objets (core/drop.ts).
+  const lit = clamp(lamp * 1.4 + window, 0, 1);
+  const dusk = smooth(seg(t, 0.05, 0.6));
+  return lit * 0.9 + 0.1 * dusk + NIGHT_FADE * dusk * (1 - lit);
 }
 
 /** Opacité de la poussière : elle se voit dans le faisceau de la lampe et dans la lumière du jour. */

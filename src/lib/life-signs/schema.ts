@@ -1,5 +1,5 @@
 import { z } from 'zod';
-import { LIFE_SIGNS_DAYS, type LifeSigns } from './types';
+import { FACTORY_GENRES, LIFE_SIGNS_DAYS, type LifeSigns } from './types';
 
 // Le format du JSON public des signes de vie, validé par zod côté serveur
 // seulement (source.ts) : ce fichier n'est pas exporté par index.ts, pour que
@@ -18,6 +18,34 @@ const instant = z.iso
   .transform((value) => new Date(value).toISOString());
 
 const count = z.int().nonnegative();
+const percent = z.number().min(0).max(100);
+
+const genreSchema = z.object({
+  views: count,
+  retention: percent.optional(),
+  rejected: percent.optional(),
+  minutes: z
+    .number()
+    .positive()
+    .max(24 * 60)
+    .optional(),
+  activity: z.array(count).length(LIFE_SIGNS_DAYS),
+});
+
+/** Les chiffres de l'usine : facultatifs (un ancien JSON n'en a pas), complets s'ils sont là. */
+const factorySchema = z.object({
+  channels: count,
+  videos: count,
+  perDay: z.number().nonnegative(),
+  views: count,
+  likes: count,
+  genres: z.object(
+    Object.fromEntries(FACTORY_GENRES.map((id) => [id, genreSchema])) as Record<
+      (typeof FACTORY_GENRES)[number],
+      typeof genreSchema
+    >,
+  ),
+});
 
 /** Le JSON public, champ par champ (sans sample, que le serveur pose lui-même). */
 export const publicLifeSignsSchema = z.object({
@@ -26,6 +54,7 @@ export const publicLifeSignsSchema = z.object({
   since: instant,
   activity: z.array(count).length(LIFE_SIGNS_DAYS),
   measuredAt: instant,
+  factory: factorySchema.optional(),
 });
 
 export type PublicLifeSigns = z.infer<typeof publicLifeSignsSchema>;

@@ -113,12 +113,6 @@ export function presentQuaternion(
     case 'turn':
       euler.set(0.25 - py * 0.15, Math.sin(t * 0.8) * 0.7 + px * 0.4 + f * Math.PI * 0.15, 0);
       return out.setFromEuler(euler);
-    case 'shake': {
-      // Le coffret secoué quand il fait son geste (f), immobile remis à l'endroit.
-      const shake = Math.sin(t * 28) * Math.max(0, Math.sin(t * 1.7)) * 0.06 * f;
-      euler.set(0.5 - py * 0.12, -0.35 + Math.sin(t * 0.6) * 0.25 + px * 0.3 + shake, shake * 0.5);
-      return out.setFromEuler(euler);
-    }
     case 'spin':
       // Un objet debout, penché vers la caméra, qui fait un demi-tour pour montrer son dos.
       euler.set(

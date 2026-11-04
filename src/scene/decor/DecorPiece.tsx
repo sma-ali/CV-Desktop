@@ -28,6 +28,7 @@ export function DecorPiece({ id, children }: { id: DecorPieceId; children: React
     const body = store.getState().desk[id];
     group.position.set(body.x, body.y, body.z);
     group.quaternion.set(body.qx, body.qy, body.qz, body.qw);
+    group.visible = !body.waiting;
   });
 
   const onPointerDown = useCallback(

@@ -343,22 +343,6 @@
   color: var(--ambre);
 }
 
-.buttonGold,
-.buttonGold:hover,
-.buttonGold:focus-visible {
-  border-color: #e9c98a;
-  background: linear-gradient(#e6c27a, #c9973f);
-  color: #1f1710;
-  box-shadow:
-    0 2px 14px rgb(0 0 0 / 0.35),
-    inset 0 1px 0 rgb(255 255 255 / 0.45);
-}
-
-.buttonGold:hover,
-.buttonGold:focus-visible {
-  background: linear-gradient(#f2d394, #d8a84d);
-}
-
 /* ------------------------------------------------------------------
    Indication
    ------------------------------------------------------------------ */
@@ -420,7 +404,7 @@
 }
 
 /* ------------------------------------------------------------------
-   Bas de page : le CV d'un coup d'œil, l'heure et les ambiances
+   Bas de page : le CV d'un coup d'œil
    ------------------------------------------------------------------ */
 
 .bottom {
@@ -518,67 +502,9 @@
   animation: pulse 1.6s ease-in-out infinite;
 }
 
-.corner {
-  text-align: right;
-  pointer-events: auto;
-}
-
-.clock {
-  min-height: 1.4em;
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.4;
-  color: rgb(243 233 212 / 0.8);
-  text-shadow: 0 1px 8px rgb(0 0 0 / 0.85);
-}
-
-.clock b {
-  font-weight: 600;
-  color: var(--clair);
-}
-
-.clock em {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 14px;
-  color: var(--ambre);
-}
-
-.moods {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-top: 7px;
-}
-
-.mood {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid rgb(243 233 212 / 0.3);
-  border-radius: 50%;
-  background: rgb(18 12 8 / 0.5);
-  cursor: pointer;
-}
-
-.mood i {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--swatch);
-}
-
-.mood[aria-pressed='true'],
-.mood:hover,
-.mood:focus-visible {
-  border-color: var(--ambre);
-}
 
 @media (prefers-reduced-motion: no-preference) {
-  .button,
-  .mood {
+  .button {
     transition:
       color 0.2s,
       border-color 0.2s,
@@ -608,8 +534,8 @@
   }
 }
 
-/* Sous 1000 px, puces et ambiances ne tiennent plus sur une ligne : l'heure
-   et les ambiances passent au-dessus, les cinq puces se partagent la largeur. */
+/* Sous 1000 px, les puces ne tiennent plus sur une ligne : les cinq se
+   partagent la largeur. */
 @media (max-width: 1000px) {
   .bottom {
     flex-direction: column;
@@ -617,19 +543,6 @@
     gap: 8px;
   }
 
-  .corner {
-    display: flex;
-    order: -1;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    text-align: left;
-  }
-
-  .moods {
-    flex: none;
-    margin-top: 0;
-  }
 
   .steps {
     display: grid;
@@ -685,17 +598,6 @@
     gap: 8px;
   }
 
-  .corner {
-    display: flex;
-    order: -1;
-    align-items: center;
-    justify-content: space-between;
-    text-align: left;
-  }
-
-  .moods {
-    margin-top: 0;
-  }
 
   .status {
     row-gap: 4px;
@@ -783,7 +685,7 @@
     display: none;
   }
 
-  /* Sans leur détail, les puces laissent la place à l'heure sur la même ligne. */
+  /* Sans leur détail, les puces tiennent sur une ligne. */
   .bottom {
     flex-direction: row;
     align-items: flex-end;
@@ -794,17 +696,6 @@
     gap: 6px;
   }
 
-  .corner {
-    display: block;
-    flex: 0 1 auto;
-    order: 0;
-    min-width: 0;
-    text-align: right;
-  }
-
-  .moods {
-    margin-top: 6px;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {
@@ -1190,6 +1081,161 @@
   letter-spacing: 0.12em;
   text-transform: uppercase;
   color: var(--gris);
+}
+
+/* ------------------------------------------------------------------
+   L'usine (projets perso) : circuit, chiffres, genres en onglets
+   d'intercalaire (FactoryPanel.tsx). Même hauteur quel que soit l'onglet.
+   ------------------------------------------------------------------ */
+
+.factory {
+  margin-top: 12px;
+}
+
+.circuit {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 4px 0;
+  margin: 10px 0 12px;
+  padding: 0;
+  list-style: none;
+  font-size: 10px;
+}
+
+.circuit li {
+  display: flex;
+  align-items: center;
+  white-space: nowrap;
+}
+
+/* La flèche entre deux étapes, hors du cadre. */
+.circuit li + li::before {
+  content: '›';
+  padding: 0 4px;
+  color: var(--gris);
+}
+
+.circuit span {
+  padding: 2px 5px;
+  border: 1px solid rgb(31 23 16 / 0.35);
+  border-radius: 2px;
+  background: rgb(255 255 255 / 0.25);
+}
+
+/* La validation humaine, mise en avant. */
+.circuit li[data-human] span {
+  border-color: var(--brique);
+  color: var(--brique);
+  font-weight: 700;
+}
+
+.figures {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin: 0 0 14px;
+  padding: 0;
+}
+
+.figures > div {
+  display: flex;
+  flex-direction: column-reverse;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris);
+}
+
+.figures > div[data-wide] {
+  grid-column: span 3;
+  flex-direction: row-reverse;
+  justify-content: flex-end;
+  align-items: baseline;
+  gap: 8px;
+  padding-top: 4px;
+  border-top: 1px dashed rgb(31 23 16 / 0.3);
+}
+
+.figures dd {
+  margin: 0;
+  font-size: 18px;
+  font-weight: 700;
+  letter-spacing: 0;
+  text-transform: none;
+  color: var(--encre);
+}
+
+.tabs {
+  display: flex;
+  border-bottom: 1.5px solid var(--encre);
+}
+
+.tabs button {
+  flex: 1;
+  min-width: 0;
+  margin-right: -1px;
+  padding: 6px 2px 5px;
+  border: 1.5px solid rgb(31 23 16 / 0.3);
+  border-bottom: none;
+  border-radius: 3px 3px 0 0;
+  background: rgb(31 23 16 / 0.06);
+  color: var(--gris);
+  font: inherit;
+  font-size: 10.5px;
+  cursor: pointer;
+}
+
+.tabs button[aria-selected='true'] {
+  position: relative;
+  top: 1.5px;
+  border-color: var(--encre);
+  background: var(--papier);
+  color: var(--encre);
+  font-weight: 700;
+}
+
+.tabs button:focus-visible {
+  outline: 2px solid var(--brique);
+  outline-offset: 1px;
+}
+
+.tabPanel {
+  min-height: 210px;
+  padding-top: 10px;
+}
+
+.tabPanel h3 {
+  margin: 0 0 4px;
+  font-family: var(--serif);
+  font-size: 16px;
+}
+
+.tabPanel p {
+  margin: 0 0 6px;
+  font-size: 12.5px;
+  line-height: 1.5;
+}
+
+.tabPanel dl {
+  display: grid;
+  grid-template-columns: auto 1fr;
+  gap: 2px 10px;
+  margin: 6px 0 8px;
+  padding: 0;
+  font-size: 11.5px;
+}
+
+.tabPanel dl > div {
+  display: contents;
+}
+
+.tabPanel dt {
+  color: var(--gris);
+}
+
+.tabPanel dd {
+  margin: 0;
 }
 
 /* Retourner, l'appel au contact, le dépôt (s'il est public). */

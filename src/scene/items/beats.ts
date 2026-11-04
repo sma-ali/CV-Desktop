@@ -25,12 +25,3 @@ export function heartbeat(t: number, { period, strength }: Pulse): number {
 export function breath(t: number, period = 4.4): number {
   return 0.5 - 0.5 * Math.cos((2 * Math.PI * t) / period);
 }
-
-/**
- * Le coffret présenté tremble par à-coups (mode shake de la présentation,
- * quand sin(t * 1.7) est positif). Vrai à l'image où un à-coup commence :
- * c'est là qu'il fait son bruit de « rattle ».
- */
-export function rattleStarts(previousT: number, t: number): boolean {
-  return t > previousT && Math.sin(previousT * 1.7) <= 0 && Math.sin(t * 1.7) > 0;
-}

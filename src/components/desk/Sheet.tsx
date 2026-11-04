@@ -5,6 +5,8 @@ import { ContactForm } from '@/components/contact/ContactForm';
 import type { DeskHudTexts, DeskSheets } from '@/lib/desk';
 import { ITEM_STEP, neighborItem, type ItemId } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
+import { FactoryPanel } from './FactoryPanel';
+import { factoryView } from './factoryView';
 import { chestLiveView } from './lifeSignsView';
 import styles from './Desk.module.css';
 import { UPRIGHT_KEY, UprightButton } from './UprightButton';
@@ -183,8 +185,14 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
   // L'horloge avance par pas : jamais avant l'instant de la mesure, sinon
   // « il y a 2 h 14 » se lirait « 2 h 13 » juste après le chargement.
   const measuredAt = lifeSigns ? Date.parse(lifeSigns.measuredAt) : Number.NaN;
+  const clockNow = Number.isFinite(measuredAt) && now !== null ? Math.max(now, measuredAt) : now;
+  // L'usine montre ses chiffres ; un ancien JSON sans eux garde les signes de vie.
+  const factory =
+    presented === 'chest' && clockNow !== null
+      ? factoryView(lifeSigns, clockNow, ui.factory, ui.live, locale)
+      : null;
   const live =
-    presented === 'chest' && now !== null
+    presented === 'chest' && now !== null && !factory
       ? chestLiveView(
           lifeSigns,
           Number.isFinite(measuredAt) ? Math.max(now, measuredAt) : now,
@@ -222,28 +230,33 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
           <h2 id="sheet-title" ref={titleRef} className={styles.sheetTitle} tabIndex={-1}>
             {sheet.title}
           </h2>
-          <dl className={styles.sheetMeta}>
-            {sheet.meta.map((row) => (
-              <div key={row.term}>
-                <dt>{row.term}</dt>
-                <dd>
-                  {row.href ? (
-                    <a
-                      href={row.href}
-                      {...(row.href.startsWith('https:')
-                        ? { target: '_blank', rel: 'noopener noreferrer' }
-                        : {})}
-                    >
-                      {row.value}
-                    </a>
-                  ) : (
-                    row.value
-                  )}
-                </dd>
-              </div>
-            ))}
-          </dl>
+          {factory ? null : (
+            <dl className={styles.sheetMeta}>
+              {sheet.meta.map((row) => (
+                <div key={row.term}>
+                  <dt>{row.term}</dt>
+                  <dd>
+                    {row.href ? (
+                      <a
+                        href={row.href}
+                        {...(row.href.startsWith('https:')
+                          ? { target: '_blank', rel: 'noopener noreferrer' }
+                          : {})}
+                      >
+                        {row.value}
+                      </a>
+                    ) : (
+                      row.value
+                    )}
+                  </dd>
+                </div>
+              ))}
+            </dl>
+          )}
           <p className={styles.sheetBody}>{sheet.body}</p>
+          {factory ? (
+            <FactoryPanel view={factory} texts={ui.factory} sampleLabel={ui.live.sample} />
+          ) : null}
           {sheet.note ? <p className={styles.sheetNote}>{sheet.note}</p> : null}
 
           {/* La carte de visite porte le formulaire de contact. */}

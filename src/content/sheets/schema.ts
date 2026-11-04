@@ -59,6 +59,53 @@ const liveSchema = z.strictObject({
   age: pluralSchema,
 });
 
+// Un genre montré en exemple dans la fiche de l'usine : jamais de nom de
+// chaîne, de compte ni de lien (sheets.test.ts le vérifie).
+const genreSchema = z.strictObject({
+  /** Le texte de l'onglet, court. */
+  tab: text,
+  title: text,
+  body: text,
+  rows: z.array(z.strictObject({ term: text, value: text })).min(1),
+});
+
+// La fiche de l'usine (FactoryPanel) : le circuit, les chiffres globaux et
+// les genres en onglets. Les chiffres viennent des signes de vie.
+const factorySchema = z.strictObject({
+  circuitLabel: text,
+  /** Les cinq étapes ; la troisième, la validation humaine, est mise en avant. */
+  circuit: z.array(text).length(5),
+  status: text,
+  last: template('ago'),
+  more: template('n'),
+  figures: z.strictObject({
+    // Le libellé sous le chiffre, au singulier ou au pluriel (sans {n}).
+    channels: z.strictObject({ one: text, other: text }),
+    videos: z.strictObject({ one: text, other: text }),
+    perDay: text,
+    views: text,
+    likes: text,
+  }),
+  tabsLabel: text,
+  stats: z.strictObject({
+    views: text,
+    retention: text,
+    retentionValue: template('n'),
+    rejected: text,
+    rejectedValue: template('n'),
+    production: text,
+    productionValue: template('n'),
+  }),
+  chart: template('days', 'values'),
+  legend: template('days'),
+  genres: z.strictObject({
+    fantasy: genreSchema,
+    philosophy: genreSchema,
+    marbles: genreSchema,
+    quiz: genreSchema,
+  }),
+});
+
 const uiSchema = z.strictObject({
   /** Nom de la région de la fiche pour les lecteurs d'écran. */
   label: text,
@@ -78,9 +125,8 @@ const uiSchema = z.strictObject({
   contact: text,
   /** Le lien vers le dépôt d'un projet public. */
   repository: text,
-  /** Le bouton « Son » du HUD (aria-pressed porte l'état). */
-  sound: text,
   live: liveSchema,
+  factory: factorySchema,
 });
 
 export const sheetsSchema = z.strictObject({

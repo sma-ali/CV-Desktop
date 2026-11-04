@@ -10,8 +10,8 @@ import { activityPulse } from '../../src/lib/life-signs/types';
 // data-desk-share sur le canvas : la part de la hauteur libre entre les
 // bandes du HUD que couvre le bureau, qui remplit l'écran en portrait).
 
-/** Part minimale de la hauteur libre couverte par le bureau resserré (0.69 mesuré en 412x915). */
-const PORTRAIT_SHARE = 0.65;
+/** Part minimale de la hauteur libre couverte par le bureau resserré (0.64 mesuré en 412x915 le 04/11). */
+const PORTRAIT_SHARE = 0.62;
 
 const SETTLED = '/fr?t=11000&fige&auto=0&heure=14';
 
@@ -115,7 +115,7 @@ test.describe('Netherbrain et Homelab', () => {
   test('se présentent par la puce des projets et par leur étiquette', async ({ page }) => {
     await page.goto(SETTLED);
     await waitForScene(page);
-    await page.getByRole('link', { name: /2026/ }).click();
+    await page.getByRole('link', { name: /Netherbrain/ }).click();
     await expect(hud(page)).toHaveAttribute('data-presented', 'netherbrain');
     await page.keyboard.press('Escape');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
@@ -162,14 +162,14 @@ test.describe('Netherbrain et Homelab', () => {
   }
 });
 
-test.describe('le coffret scellé', () => {
+test.describe("l'usine", () => {
   test('bat au rythme de ses signes de vie', async ({ page, isMobile }) => {
     test.skip(isMobile, 'un cadrage suffit : la mesure est la même');
     test.slow();
     // Le battement suit activityPulse des signes de vie d'exemple : sous
     // &fige, l'image ne dépend que de T. Au coup (phase 0.08) et au repos
-    // (phase 0.6) d'un même battement, la LED et la lueur verte du coffret
-    // changent : les pixels autour du coffret verdissent.
+    // (phase 0.6) d'un même battement, les fenêtres et la lueur chaude de
+    // l'usine changent : les pixels autour de l'usine se réchauffent.
     const { period } = activityPulse(sampleLifeSigns(Date.now()));
     const at = (phase: number) => Math.round((5 + phase) * period * 1000);
     const region = async (t: number) => {
@@ -187,13 +187,13 @@ test.describe('le coffret scellé', () => {
     };
     const beat = await region(at(0.08));
     const still = await region(at(0.6));
-    let greener = 0;
+    let warmer = 0;
     for (let i = 0; i < beat.length; i += 4) {
       const dr = beat[i]! - still[i]!;
-      const dg = beat[i + 1]! - still[i + 1]!;
-      if (dg > 12 && dg > dr + 4) greener++;
+      const db = beat[i + 2]! - still[i + 2]!;
+      if (dr > 8 && dr > db + 4) warmer++;
     }
-    expect(greener).toBeGreaterThan(30);
+    expect(warmer).toBeGreaterThan(30);
   });
 });
 

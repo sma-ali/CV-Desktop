@@ -1,6 +1,7 @@
 import type { ContactFormContent, Content, SheetContent, SheetsContent } from '@/content';
 import { localeNames, type Locale } from '@/content/locales';
-import { SHEET_ORDER, STEP_ITEM, type ItemId, type MoodId, type StepId } from '@/scene/core/ids';
+import { SHEET_ORDER, STEP_ITEM, type ItemId, type StepId } from '@/scene/core/ids';
+import type { LoadStep } from '@/scene/core/loading';
 import type { SceneTexts } from '@/scene/core/texts';
 import { deskPath, expressPath } from './site';
 
@@ -13,7 +14,7 @@ export interface DeskStep {
   id: StepId;
   /** L'objet que la scène présente quand on la choisit. */
   item: ItemId;
-  /** Le grand repère (« 2020 », « Projets perso »). */
+  /** Le grand repère (« 2020 », « Contact »). */
   title: string;
   /** Le détail en petites capitales (« DEFI-METIERS »). */
   detail: string;
@@ -51,15 +52,13 @@ export interface DeskHudTexts {
   availability: string;
   location: string;
   controlsLabel: string;
-  express: { label: string; href: string };
-  language: { label: string; href: string; locale: Locale };
-  replay: string;
+  /** La version express : le repli sans 3D. */
+  expressHref: string;
+  /** La langue de l'autre version : label court (« EN »), nom complet pour les lecteurs d'écran. */
+  language: { label: string; name: string; href: string; locale: Locale };
   arrivalKicker: string;
   glance: string;
   steps: DeskStep[];
-  clock: { visitorTime: string; pinned: string };
-  moodsLabel: string;
-  moods: Record<MoodId, { name: string; light: string }>;
   hint: {
     pointer: string;
     touch: string;
@@ -78,8 +77,13 @@ export interface DeskHudTexts {
   };
   /** Étape 6 : le bouton de rangement (partie B) et ses annonces. */
   tidy: { offer: string; tidying: string; done: string };
-  /** Étape 6 : l'écran de chargement (partie C), son lien vers la version express et le repli s'il tarde. */
-  intro: { preparing: string; skip: string; slow: string };
+  /** Étape 6 : l'écran de chargement (partie C) et le repli s'il tarde. */
+  intro: {
+    preparing: string;
+    slow: string;
+    steps: Record<LoadStep, string>;
+    done: string;
+  };
 }
 
 const otherLocale: Record<Locale, Locale> = { fr: 'en', en: 'fr' };
@@ -118,7 +122,7 @@ export function buildDeskSteps(content: Content, locale: Locale): DeskStep[] {
     {
       id: 'perso',
       item: STEP_ITEM.perso,
-      title: desk.perso.title,
+      title: String(desk.perso.year),
       detail: desk.perso.detail,
       // La version express n'a pas (encore) de section dédiée : les projets.
       href: `${expressPath(locale)}#projects`,
@@ -170,15 +174,16 @@ export function buildDeskTexts(content: Content, locale: Locale): DeskHudTexts {
     availability: profile.availability,
     location: profile.location,
     controlsLabel: desk.controlsLabel,
-    express: { label: desk.expressLink, href: expressPath(locale) },
-    language: { label: localeNames[other], href: deskPath(other), locale: other },
-    replay: desk.replay,
+    expressHref: expressPath(locale),
+    language: {
+      label: other.toUpperCase(),
+      name: localeNames[other],
+      href: deskPath(other),
+      locale: other,
+    },
     arrivalKicker: desk.arrivalKicker,
     glance: desk.glance,
     steps: buildDeskSteps(content, locale),
-    clock: desk.clock,
-    moodsLabel: desk.moodsLabel,
-    moods: desk.moods,
     hint: desk.hint,
     sheets: buildDeskSheets(content, locale),
     fallback: desk.fallback,

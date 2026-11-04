@@ -1,5 +1,6 @@
 // L'avancement du chargement de la scène (étape 6), montré par l'écran de
-// chargement : le filament de la lampe qui chauffe (partie C). Des étapes
+// chargement : la barre façon jeu vidéo sous le nom, son pourcentage et
+// l'étape en cours. Des étapes
 // réelles, chacune de 0 à 1, écrites dans le store (setLoad) :
 //
 // - code : le fichier JavaScript de la scène (DeskShell, à l'arrivée du module) ;
@@ -67,10 +68,16 @@ export function loadTimeout(search: string): number {
 
 /**
  * Ce que montre l'écran de chargement : l'avancement réel, arrondi au
- * centième (le filament ne change pas de dessin pour un millième), et 1
+ * centième (le trait ne change pas de longueur pour un millième), et 1
  * quand la scène est prête.
  */
 export function introProgress(load: LoadProgress, ready: boolean): number {
   if (ready) return 1;
   return Math.floor(loadProgress(load) * 100) / 100;
+}
+
+/** L'étape en cours, nommée sous la barre : la première qui n'est pas finie (null : tout est prêt). */
+export function currentLoadStep(load: LoadProgress, ready: boolean): LoadStep | null {
+  if (ready) return null;
+  return LOAD_STEPS.find((step) => load[step] < 1) ?? 'frame';
 }

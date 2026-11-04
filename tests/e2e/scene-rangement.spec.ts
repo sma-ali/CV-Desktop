@@ -73,7 +73,7 @@ test.describe('le désordre et le rangement', () => {
     await page.goto(`${SETTLED}&desordre`);
     await waitForMess(page);
     // Le bouton est dans l'ordre du clavier : on y arrive par Tab depuis la barre du haut.
-    await page.getByRole('button', { name: 'Rejouer' }).focus();
+    await page.getByRole('link', { name: 'English' }).focus();
     let reached = false;
     for (let i = 0; i < 30 && !reached; i++) {
       await page.keyboard.press('Tab');
@@ -114,15 +114,6 @@ test.describe('le désordre et le rangement', () => {
     await tidyButton(page).click();
     await expectTidy(page);
     await expect(status(page)).toHaveText('Bureau rangé.');
-  });
-
-  test('sont remis à zéro par Rejouer', async ({ page }) => {
-    await page.goto(`${SETTLED}&desordre`);
-    await waitForMess(page);
-    await page.getByRole('button', { name: 'Rejouer' }).click();
-    await expect(hud(page)).toHaveAttribute('data-disorder', '0.00');
-    await expect(hud(page)).toHaveAttribute('data-places', '');
-    await expect(hud(page)).toHaveAttribute('data-fallen', '');
   });
 
   test('parlent anglais en anglais', async ({ page, isMobile }) => {

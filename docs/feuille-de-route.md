@@ -28,6 +28,10 @@ Fait sur la branche `feat/routes-serveur`, en attente de la validation d'Ali : c
 
 Tout ce qui est posé sur le bureau devient un corps physique (Rapier) : on le glisse, on le lance, il bascule, s'empile, tombe. L'objet présenté se tourne dans tous les sens. Un bouton range le bureau quand il est sens dessus dessous. Décor revu (kimono à la place du matériel de stream et des gants) et vrai écran de chargement avant l'arrivée. Contrat dans [`bureau-vivant.md`](bureau-vivant.md) ; socle posé sur la branche `feat/bureau-vivant`.
 
+## 6 bis. L'usine et la nouvelle intro
+
+Le coffret scellé devient une mini usine low poly, dont la fiche montre le circuit, des chiffres globaux et quatre genres en onglets, sans aucun nom de chaîne. L'écran de chargement devient un écran noir avec le nom et un trait de progression ; à l'arrivée, les objets tombent un à un, puis la lampe s'allume en dernier. Contrat dans [`usine-et-intro.md`](usine-et-intro.md) ; branche `feat/usine-et-intro`. Les chiffres affichés sont ceux de l'exemple tant que le JSON public n'est pas en ligne.
+
 ## 7. Tests réels et performances
 
 Suite Playwright des parcours : clic sur un objet, retournement, glisser, formulaire, version express, bascule FR/EN, téléphone. Budget de poids, Lighthouse, test sur un vrai téléphone.

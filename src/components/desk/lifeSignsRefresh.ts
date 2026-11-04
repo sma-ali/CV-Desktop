@@ -1,4 +1,9 @@
-import type { LifeSigns } from '@/lib/life-signs';
+import {
+  FACTORY_GENRES,
+  type FactoryGenreStats,
+  type FactoryStats,
+  type LifeSigns,
+} from '@/lib/life-signs';
 
 // Le rafraîchissement des signes de vie à l'ouverture de la fiche du coffret.
 // La page est régénérée au plus toutes les 10 minutes, mais un visiteur peut
@@ -22,6 +27,52 @@ const isInstant = (value: unknown): value is string =>
 const isCount = (value: unknown): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
+const isNumber = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isFinite(value) && value >= 0;
+
+const optional = (value: unknown): number | undefined | null =>
+  value === undefined ? undefined : isNumber(value) ? value : null;
+
+function toGenre(value: unknown): FactoryGenreStats | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const data = value as Record<string, unknown>;
+  const { views, activity } = data;
+  if (!isCount(views) || !Array.isArray(activity) || !activity.every(isCount)) return null;
+  const retention = optional(data.retention);
+  const rejected = optional(data.rejected);
+  const minutes = optional(data.minutes);
+  if (retention === null || rejected === null || minutes === null) return null;
+  const genre: FactoryGenreStats = { views, activity: [...activity] };
+  if (retention !== undefined) genre.retention = retention;
+  if (rejected !== undefined) genre.rejected = rejected;
+  if (minutes !== undefined) genre.minutes = minutes;
+  return genre;
+}
+
+/** Les chiffres de l'usine, ou null si leur forme est fausse (champ par champ, rien de plus). */
+function toFactory(value: unknown): FactoryStats | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const data = value as Record<string, unknown>;
+  const { channels, videos, perDay, views, likes, genres } = data;
+  if (!isCount(channels) || !isCount(videos) || !isNumber(perDay)) return null;
+  if (!isCount(views) || !isCount(likes)) return null;
+  if (typeof genres !== 'object' || genres === null) return null;
+  const parsed: Partial<FactoryStats['genres']> = {};
+  for (const id of FACTORY_GENRES) {
+    const genre = toGenre((genres as Record<string, unknown>)[id]);
+    if (!genre) return null;
+    parsed[id] = genre;
+  }
+  return {
+    channels,
+    videos,
+    perDay,
+    views,
+    likes,
+    genres: parsed as FactoryStats['genres'],
+  };
+}
+
 /**
  * Les signes de vie reçus de la route, ou null si leur forme est fausse.
  * Seuls les champs connus sont gardés.
@@ -33,7 +84,18 @@ export function toLifeSigns(value: unknown): LifeSigns | null {
   if (!isCount(running) || !Array.isArray(activity) || !activity.every(isCount)) return null;
   if (!isInstant(lastActivityAt) || !isInstant(since) || !isInstant(measuredAt)) return null;
   if (typeof sample !== 'boolean') return null;
-  return { running, lastActivityAt, since, activity: [...activity], measuredAt, sample };
+  const signs: LifeSigns = {
+    running,
+    lastActivityAt,
+    since,
+    activity: [...activity],
+    measuredAt,
+    sample,
+  };
+  // Les chiffres de l'usine sont facultatifs : mal formés, ils sont ignorés.
+  const factory = data.factory === undefined ? null : toFactory(data.factory);
+  if (factory) signs.factory = factory;
+  return signs;
 }
 
 /** La mesure a-t-elle plus de LIFE_SIGNS_STALE_MS à l'instant now ? Illisible ou absente : oui. */

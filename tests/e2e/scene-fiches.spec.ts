@@ -7,8 +7,8 @@ import { SHEET_ORDER } from '../../src/scene/core/ids';
 // (#sheet, data-open et data-sheet), Préc. / Suiv., Page précédente et
 // Page suivante (les flèches tournent l'objet présenté depuis l'étape 6,
 // voir scene-rotation.spec.ts), Retourner,
-// focus, signes de vie du coffret, le bouton « Son » (aria-pressed, et
-// data-sound sur #hud), l'indication du HUD, la feuille du bas sur téléphone.
+// focus, signes de vie du coffret, le son ouvert par défaut (data-sound sur
+// #hud), l'indication du HUD, la feuille du bas sur téléphone.
 
 const SETTLED = 't=11000&fige&auto=0&heure=14';
 const at = (locale: Locale, extra = '') => `/${locale}?${SETTLED}${extra ? `&${extra}` : ''}`;
@@ -30,15 +30,16 @@ function collectErrors(page: Page): string[] {
 }
 
 /** Les mots qui trahiraient le contenu du coffret (même liste que content.test.ts). */
+// L'usine montre des genres, jamais une chaîne, un compte ni une plateforme.
 const FORBIDDEN =
-  /automatisation|automation|\busines?\b|factory|vid[ée]os?|tiktok|youtube|instagram|twitch|\bcha[iî]nes?\b|channel|usine/i;
+  /tiktok|youtube|shorts|instagram|twitch|upload-?post|@|https?:/i;
 
 test.describe('la fiche', () => {
   test('s’ouvre avec l’objet présenté et se ferme en le reposant', async ({ page }) => {
     await page.goto(at('fr'));
     await waitForScene(page);
     await expect(sheet(page)).toHaveAttribute('data-open', 'false');
-    await page.getByRole('link', { name: /2026/ }).click();
+    await page.getByRole('link', { name: /Netherbrain/ }).click();
     await expect(sheet(page)).toHaveAttribute('data-open', 'true');
     await expect(sheet(page)).toHaveAttribute('data-sheet', 'netherbrain');
     await expect(sheet(page).getByRole('heading', { name: 'Netherbrain' })).toBeVisible();
@@ -146,11 +147,11 @@ test.describe('la fiche', () => {
   test('la visite automatique ne vole pas le focus', async ({ page }) => {
     await page.goto('/fr?t=11000&heure=14');
     await waitForScene(page);
-    const mood = page.getByRole('button', { name: 'Nuit' });
-    await mood.focus();
+    const language = page.getByRole('link', { name: 'English' });
+    await language.focus();
     await expect(hud(page)).not.toHaveAttribute('data-presented', '', { timeout: 20_000 });
     await expect(sheet(page)).toHaveAttribute('data-open', 'true');
-    await expect(mood).toBeFocused();
+    await expect(language).toBeFocused();
   });
 
   test('Retourner : le bouton et la touche R', async ({ page }) => {
@@ -217,39 +218,62 @@ test.describe('la fiche', () => {
   });
 });
 
-test.describe('la fiche du coffret', () => {
+test.describe("la fiche de l'usine", () => {
   for (const locale of ['fr', 'en'] as const) {
-    test(`montre ses signes de vie, sans rien trahir (${locale})`, async ({ page }) => {
-      const { live } = getContent(locale).sheets.ui;
+    test(`montre le circuit, les chiffres et les genres, sans rien trahir (${locale})`, async ({
+      page,
+    }) => {
+      const { live, factory } = getContent(locale).sheets.ui;
       await page.goto(at(locale, 'prendre=chest'));
       await waitForScene(page);
       await expect(sheet(page)).toHaveAttribute('data-sheet', 'chest');
-      const block = sheet(page).locator('[data-live]');
+      const block = sheet(page).locator('[data-factory]');
       await expect(block).toBeVisible();
-      await expect(block).toContainText(live.title);
+      const status = ((await block.locator('[data-factory-status]').textContent()) ?? '').replace(
+        /\s+/g,
+        ' ',
+      );
+      expect(status).toBe(
+        locale === 'fr'
+          ? 'En marche | dernière vidéo il y a 2 h 14'
+          : 'Running | last video 2 h 14 min ago',
+      );
       await expect(block).toContainText(live.sample);
-      await expect(block.locator('[data-live-running]')).toHaveText('3');
-      const last = (await block.locator('[data-live-last]').innerText()).replace(/\s+/g, ' ');
-      expect(last).toBe(locale === 'fr' ? 'il y a 2 h 14' : '2 h 14 min ago');
-      const since = (await block.locator('[data-live-since]').innerText()).replace(/\s+/g, ' ');
-      expect(since).toBe(locale === 'fr' ? '47 jours' : '47 days');
+      await expect(block.getByRole('listitem')).toHaveText(factory.circuit);
+      await expect(block).toContainText(factory.figures.views);
 
-      const chart = block.getByRole('img');
-      await expect(chart).toHaveAttribute('aria-label', /14/);
-      await expect(chart).toHaveAttribute('aria-label', /3, 5, 2, 0, 4, 6, 3, 7, 5, 2, 6, 4, 8, 5/);
+      // Un onglet par genre ; les flèches passent de l'un à l'autre.
+      const tabs = block.getByRole('tab');
+      await expect(tabs).toHaveCount(4);
+      await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
+      const panel = block.getByRole('tabpanel');
+      await expect(panel).toContainText(factory.genres.fantasy.title);
+      await tabs.first().focus();
+      await page.keyboard.press('ArrowRight');
+      await expect(tabs.nth(1)).toBeFocused();
+      await expect(panel).toContainText(factory.genres.philosophy.title);
+      await page.keyboard.press('ArrowLeft');
+      await page.keyboard.press('ArrowLeft');
+      await expect(tabs.nth(3)).toHaveAttribute('aria-selected', 'true');
+      await expect(panel).toContainText(factory.genres.quiz.title);
+      await tabs.nth(2).click();
+      await expect(panel).toContainText(factory.genres.marbles.title);
+
+      const chart = panel.getByRole('img');
+      await expect(chart).toHaveAttribute('aria-label', /6, 7, 6, 8, 7, 7, 8, 6, 7, 8, 8, 7, 8, 8/);
       await expect(chart.locator('i')).toHaveCount(14);
-      await expect(block).toContainText(live.axisEnd);
 
+      // Aucune chaîne, aucun compte, aucun lien.
       const text = await sheet(page).innerText();
       expect(text).not.toMatch(FORBIDDEN);
-      expect(await chart.getAttribute('aria-label')).not.toMatch(FORBIDDEN);
+      await expect(block.locator('a')).toHaveCount(0);
     });
   }
 });
 
 test.describe('le son', () => {
   test.beforeEach(async ({ page }) => {
-    // Compte les AudioContext créés : aucun avant le clic sur « Son ».
+    // Compte les AudioContext créés : aucun avant le premier geste du visiteur.
     await page.addInitScript(() => {
       const w = window as unknown as { __audioContexts: number; AudioContext: typeof AudioContext };
       w.__audioContexts = 0;
@@ -267,35 +291,24 @@ test.describe('le son', () => {
   const contexts = (page: Page) =>
     page.evaluate(() => (window as unknown as { __audioContexts: number }).__audioContexts);
 
-  test('est coupé jusqu’au clic sur « Son », sans erreur', async ({ page }) => {
+  test('est ouvert par défaut et sonne au premier geste, sans erreur', async ({ page }) => {
     const errors = collectErrors(page);
     await page.goto(at('fr'));
     await waitForScene(page);
-    const button = page.getByRole('button', { name: 'Son' });
-    await expect(button).toHaveAttribute('aria-pressed', 'false');
-    await expect(hud(page)).toHaveAttribute('data-sound', 'off');
-
-    // Prendre et reposer un objet ne crée aucun son.
-    await page.locator('[data-step="contact"]').click();
-    await expect(sheet(page)).toHaveAttribute('data-sheet', 'card');
-    await page.keyboard.press('Escape');
+    // Ouvert, sans bouton pour le couper.
+    await expect(hud(page)).toHaveAttribute('data-sound', 'on');
+    await expect(page.getByRole('button', { name: /^(Son|Sound)$/ })).toHaveCount(0);
+    // Le navigateur ne laisse pas sonner une page avant un geste : rien n'est créé.
     expect(await contexts(page)).toBe(0);
 
-    await button.click();
-    await expect(button).toHaveAttribute('aria-pressed', 'true');
-    await expect(hud(page)).toHaveAttribute('data-sound', 'on');
-    expect(await contexts(page)).toBe(1);
-
-    // Avec le son : prendre, retourner, reposer.
+    // Le premier clic crée le contexte audio ; prendre, retourner, reposer.
     await page.locator('[data-step="contact"]').click();
+    await expect(sheet(page)).toHaveAttribute('data-sheet', 'card');
+    expect(await contexts(page)).toBe(1);
     await sheet(page).getByRole('button', { name: 'Retourner', exact: true }).click();
     await page.keyboard.press('Escape');
-
-    await button.click();
-    await expect(button).toHaveAttribute('aria-pressed', 'false');
-    await expect(hud(page)).toHaveAttribute('data-sound', 'off');
-    await button.click();
-    await expect(button).toHaveAttribute('aria-pressed', 'true');
+    await expect(hud(page)).toHaveAttribute('data-presented', '');
+    // Un seul contexte pour toute la visite.
     expect(await contexts(page)).toBe(1);
     await page.waitForTimeout(300);
     expect(errors).toEqual([]);
@@ -367,19 +380,7 @@ test.describe('sur téléphone', () => {
     const width = await sheet(page).evaluate((element) => (element as HTMLElement).offsetWidth);
     expect(width).toBeLessThanOrEqual(Math.min(400, 844 * 0.36) + 1);
     expect(box.y + box.height).toBeLessThanOrEqual(390);
-    const sound = (await page.getByRole('button', { name: 'Son' }).boundingBox())!;
-    expect(sound.y + sound.height).toBeLessThanOrEqual(box.y);
-    // Le bouton « Son » ne chevauche aucune autre commande.
-    const controls = page.getByRole('navigation', { name: 'Commandes' }).locator('a, button');
-    for (const other of await controls.all()) {
-      if ((await other.getAttribute('data-sound-toggle')) !== null) continue;
-      const b = (await other.boundingBox())!;
-      const apart =
-        b.x + b.width <= sound.x ||
-        sound.x + sound.width <= b.x ||
-        b.y + b.height <= sound.y ||
-        sound.y + sound.height <= b.y;
-      expect(apart).toBe(true);
-    }
+    const language = (await page.getByRole('link', { name: 'English' }).boundingBox())!;
+    expect(language.y + language.height).toBeLessThanOrEqual(box.y);
   });
 });

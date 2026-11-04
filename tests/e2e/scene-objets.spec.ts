@@ -35,12 +35,12 @@ test.describe('les objets du CV', () => {
       await expect(tag(page, item)).toHaveAttribute('data-shown', 'true');
     }
     await expect(tag(page, 'book')).toHaveText(/2020\s*DEFI-METIERS/);
-    await expect(tag(page, 'chest')).toHaveText(/Projets perso\s*Scellé/);
+    await expect(tag(page, 'chest')).toHaveText(/2026\s*L'usine/);
     await expect(tag(page, 'book').locator('..')).toHaveAttribute('aria-hidden', 'true');
 
     await page.goto('/en?t=11000&fige&auto=0&heure=14');
     await waitForScene(page);
-    await expect(tag(page, 'chest')).toHaveText(/Side projects\s*Sealed/);
+    await expect(tag(page, 'chest')).toHaveText(/2026\s*The factory/);
   });
 
   test('cachent les étiquettes pendant l’arrivée', async ({ page }) => {
@@ -53,7 +53,7 @@ test.describe('les objets du CV', () => {
     await page.goto(SETTLED);
     await waitForScene(page);
     // La puce des projets présente Netherbrain (étape 4).
-    await page.getByRole('link', { name: /2026/ }).click();
+    await page.getByRole('link', { name: /Netherbrain/ }).click();
     await expect(hud(page)).toHaveAttribute('data-presented', 'netherbrain');
     // Pendant la présentation, les étiquettes s'effacent.
     await expect(tag(page, 'netherbrain')).toHaveAttribute('data-shown', 'false');

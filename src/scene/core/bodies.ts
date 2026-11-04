@@ -268,6 +268,8 @@ export interface DeskBodyState extends DeskPose {
   fallen: boolean;
   /** Le corps n'existe pas dans ce format (décor caché en portrait). */
   hidden: boolean;
+  /** Pendant l'arrivée, le corps n'est pas encore tombé sur le bureau (core/drop.ts) : il n'est pas dessiné. */
+  waiting: boolean;
 }
 
 /** Les corps du bureau : un état par corps. */
@@ -322,6 +324,7 @@ function newBody(pose: DeskPose, hidden: boolean): DeskBodyState {
     moved: false,
     fallen: false,
     hidden,
+    waiting: false,
   };
   setHomePose(body, pose);
   return body;

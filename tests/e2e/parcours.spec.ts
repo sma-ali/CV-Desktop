@@ -2,7 +2,7 @@ import { expect, test, type Page } from '@playwright/test';
 
 // Les parcours du visiteur sur le bureau assemblé (décor, objets et mise en
 // scène ensemble) : clavier, gros plan sur l'écran, visite automatique,
-// Rejouer, ambiance, langue et aller-retour avec la version express. Tout se
+// langue et retour depuis la version express. Tout se
 // lit sur l'état que le HUD expose (#hud[data-*]) : jamais d'attente fixe,
 // SwiftShader est lent et sa cadence varie.
 
@@ -101,42 +101,6 @@ test.describe('la visite automatique', () => {
   });
 });
 
-test.describe('Rejouer', () => {
-  test('repose l’objet présenté et rejoue toute l’arrivée', async ({ page }) => {
-    await page.goto(SETTLED);
-    await waitForScene(page);
-    await page.locator('a[data-step="contact"]').click();
-    await expect(hud(page)).toHaveAttribute('data-presented', 'card');
-    await page.getByRole('button', { name: 'Rejouer' }).click();
-    await expect(hud(page)).toHaveAttribute('data-presented', '');
-    await expect(hud(page)).not.toHaveAttribute('data-phase', 'settled');
-    // Rejouer dégèle l'horloge : l'arrivée va jusqu'au bout.
-    await expect(hud(page)).toHaveAttribute('data-phase', 'settled', { timeout: 45_000 });
-    await expect(tag(page, 'card')).toHaveAttribute('data-shown', 'true');
-  });
-
-  test('garde l’ambiance choisie', async ({ page }) => {
-    await page.goto(SETTLED);
-    await waitForScene(page);
-    await page.getByRole('button', { name: 'Nuit' }).click();
-    await expect(hud(page)).toHaveAttribute('data-mood', 'night');
-    // Le choix s'annonce une fois ; l'heure qui passe, jamais.
-    await expect(page.locator('#hud [role="status"]:not([data-tidy-status])')).toHaveText(
-      'Lumière choisie. Nuit. La lampe veille.',
-    );
-    await expect(page.locator('#hud [aria-live]')).toHaveCount(0);
-    await page.getByRole('button', { name: 'Rejouer' }).click();
-    await expect(hud(page)).not.toHaveAttribute('data-phase', 'settled');
-    await expect(hud(page)).toHaveAttribute('data-mood', 'night');
-    // Le bas de page revient à la fin de l'arrivée, avec la nuit choisie.
-    await expect(hud(page)).toHaveAttribute('data-phase', 'settled', { timeout: 45_000 });
-    await expect(page.getByRole('button', { name: 'Nuit' })).toHaveAttribute(
-      'aria-pressed',
-      'true',
-    );
-  });
-});
-
 test.describe('la langue et la version express', () => {
   test('le bureau passe en anglais, scène comprise', async ({ page }) => {
     // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
@@ -150,18 +114,13 @@ test.describe('la langue et la version express', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     // Les étiquettes de la scène arrivent en anglais à la fin de l'arrivée.
     await expect(tag(page, 'chest')).toHaveAttribute('data-shown', 'true', { timeout: 45_000 });
-    await expect(tag(page, 'chest')).toHaveText(/Side projects\s*Sealed/);
+    await expect(tag(page, 'chest')).toHaveText(/2026\s*The factory/);
     expect(errors).toEqual([]);
   });
 
-  test('l’aller-retour avec la version express relance la scène', async ({ page }) => {
-    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
-    test.slow();
+  test('le retour depuis la version express lance la scène', async ({ page }) => {
     const errors = collectErrors(page);
-    await page.goto('/fr?auto=0&heure=14');
-    await waitForScene(page);
-    await page.getByRole('link', { name: 'Version express' }).click();
-    await expect(page).toHaveURL(/\/fr\/express$/);
+    await page.goto('/fr/express');
     await expect(page.locator('canvas')).toHaveCount(0);
     await page.getByRole('link', { name: 'Revenir au bureau' }).click();
     await expect(page).toHaveURL(/\/fr$/);
@@ -205,16 +164,11 @@ test.describe('le HUD sur tablette et téléphone à l’horizontale', () => {
       await page.goto(SETTLED);
       await waitForScene(page);
       await expect(page.locator('#hud p[data-on]')).toBeVisible();
-      // Les quatre ambiances restent dans la fenêtre, donc à portée de doigt.
-      const moods = page.getByRole('group', { name: 'Changer la lumière' }).getByRole('button');
-      await expect(moods).toHaveCount(4);
-      for (const mood of await moods.all()) {
-        const box = await mood.boundingBox();
-        expect(box).not.toBeNull();
-        expect(box!.x).toBeGreaterThanOrEqual(0);
-        expect(box!.x + box!.width).toBeLessThanOrEqual(size.width);
-        expect(box!.y + box!.height).toBeLessThanOrEqual(size.height);
-      }
+      // Le bouton de langue reste dans la fenêtre, donc à portée de doigt.
+      const language = await page.getByRole('link', { name: 'English' }).boundingBox();
+      expect(language).not.toBeNull();
+      expect(language!.x).toBeGreaterThanOrEqual(0);
+      expect(language!.x + language!.width).toBeLessThanOrEqual(size.width);
       // L'indication ne passe ni sous les commandes, ni sous l'identité, ni sur le bas de page.
       const hint = await page.locator('#hud p[data-on]').boundingBox();
       const others = [

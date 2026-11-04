@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { activityPulse, type LifeSigns } from '@/lib/life-signs/types';
-import { breath, heartbeat, rattleStarts } from './beats';
+import { breath, heartbeat } from './beats';
 
 const signs = (activity: number[]): LifeSigns => ({
   running: 3,
@@ -65,17 +65,5 @@ describe('le bocal de Netherbrain', () => {
       expect(breath(t)).toBeGreaterThanOrEqual(0);
       expect(breath(t)).toBeLessThanOrEqual(1);
     }
-  });
-});
-
-describe('le coffret présenté', () => {
-  it('fait un bruit au début de chaque à-coup, une seule fois', () => {
-    let count = 0;
-    for (let t = 10; t < 10 + (2 * Math.PI) / 1.7; t += 1 / 60) {
-      if (rattleStarts(t, t + 1 / 60)) count++;
-    }
-    expect(count).toBe(1);
-    // Horloge gelée : rien.
-    expect(rattleStarts(12, 12)).toBe(false);
   });
 });

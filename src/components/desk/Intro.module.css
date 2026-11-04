@@ -1,7 +1,7 @@
 /* L'écran de chargement du bureau : rendu par le serveur, il couvre tout le
    bureau (scène et HUD) tant que la scène se prépare. Un écran noir, le nom,
-   et un trait fin qui se trace au rythme de --p (0 à 1, l'avancement réel),
-   posé par Intro.tsx. Les animations passent par transform et opacity : le
+   et une barre façon jeu vidéo dont les blocs dorés se dévoilent au rythme
+   de --p (0 à 1, l'avancement réel), posé par Intro.tsx. Les animations passent par transform et opacity : le
    navigateur les joue même quand la compilation des shaders occupe la page. */
 
 .intro {
@@ -22,7 +22,7 @@
     visibility 0s linear 1.15s;
 }
 
-/* La scène est prête : le trait se termine, puis tout s'efface. */
+/* La scène est prête : la barre se remplit, puis tout s'efface. */
 .intro[data-done] {
   opacity: 0;
   visibility: hidden;
@@ -61,30 +61,76 @@
   color: #f7ecd6;
 }
 
-/* Le trait de progression : un fil à peine visible, et dessus le trait qui
-   se trace de gauche à droite. */
-.track {
+/* La barre : un cadre clair, et dedans des blocs dorés. Les blocs restent
+   fixes : le remplissage les dévoile de gauche à droite (clip-path), comme
+   une barre de chargement de jeu, au lieu de les étirer. */
+.bar {
   position: relative;
-  width: min(220px, 60vw);
-  height: 1px;
-  margin-top: 22px;
-  background: rgb(243 233 212 / 0.12);
-  overflow: hidden;
+  width: min(340px, 76vw);
+  height: 20px;
+  margin-top: 28px;
+  padding: 3px;
+  border: 2px solid rgb(243 233 212 / 0.8);
+  background: #0a0806;
+  box-shadow:
+    0 0 0 1px #000,
+    0 0 22px rgb(230 194 122 / 0.12);
 }
 
-.line {
+.fill {
+  position: relative;
+  display: block;
+  height: 100%;
+  overflow: hidden;
+  background-image:
+    repeating-linear-gradient(90deg, transparent 0 9px, #0a0806 9px 12px),
+    linear-gradient(#f6dc9f, #e2b65e 55%, #b98431);
+  clip-path: inset(0 calc((1 - var(--p)) * 100%) 0 0);
+  transition: clip-path 0.5s cubic-bezier(0.2, 0.7, 0.2, 1);
+}
+
+/* Un reflet qui balaie la barre, en boucle. */
+.fill::after {
+  content: '';
   position: absolute;
   inset: 0;
-  background: rgb(243 233 212 / 0.85);
-  transform: scaleX(var(--p));
-  transform-origin: left center;
-  transition: transform 0.6s cubic-bezier(0.2, 0.7, 0.2, 1);
-  will-change: transform;
+  background: linear-gradient(
+    100deg,
+    transparent 30%,
+    rgb(255 255 255 / 0.45) 50%,
+    transparent 70%
+  );
+  transform: translateX(-100%);
+  animation: sheen 1.8s ease-in-out infinite;
 }
 
-.intro[data-done] .line {
-  transform: scaleX(1);
+@keyframes sheen {
+  to {
+    transform: translateX(100%);
+  }
+}
+
+.intro[data-done] .fill {
+  clip-path: inset(0 0 0 0);
   transition-duration: 0.3s;
+}
+
+/* Sous la barre : l'étape en cours à gauche, le pourcentage à droite. */
+.status {
+  display: flex;
+  justify-content: space-between;
+  gap: 16px;
+  width: min(340px, 76vw);
+  margin: 12px 0 0;
+  font-size: 10.5px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: rgb(243 233 212 / 0.6);
+}
+
+.percent {
+  font-variant-numeric: tabular-nums;
+  color: #e6c27a;
 }
 
 .skip {
@@ -114,10 +160,16 @@
   outline-offset: 2px;
 }
 
-/* Mouvement réduit : le trait saute d'une étape à l'autre, un simple fondu. */
+/* Mouvement réduit : la barre saute d'une étape à l'autre, sans reflet, et
+   l'écran part en simple fondu. */
 @media (prefers-reduced-motion: reduce) {
-  .line {
+  .fill {
     transition: none;
+  }
+
+  .fill::after {
+    animation: none;
+    display: none;
   }
 
   .intro {

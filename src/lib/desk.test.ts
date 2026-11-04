@@ -28,8 +28,8 @@ describe('les étapes du bureau', () => {
       {
         id: 'perso',
         item: 'chest',
-        title: 'Projets perso',
-        detail: 'Une usine à vidéos',
+        title: '2026',
+        detail: "L'usine",
         href: '/fr/express#projects',
       },
       {
@@ -65,8 +65,8 @@ describe('les textes du bureau', () => {
       headline: 'Développeur Full-Stack',
       availability: 'Disponible',
       location: 'Île-de-France ou remote',
-      express: { label: 'Version express', href: '/fr/express' },
-      language: { label: 'English', href: '/en', locale: 'en' },
+      expressHref: '/fr/express',
+      language: { label: 'EN', name: 'English', href: '/en', locale: 'en' },
     });
     expect(Object.keys(texts.moods)).toEqual(['morning', 'afternoon', 'evening', 'night']);
   });

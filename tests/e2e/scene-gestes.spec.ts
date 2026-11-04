@@ -259,10 +259,7 @@ test.describe('les gestes', () => {
     await expect(hud(page)).toHaveAttribute('data-flipped', 'true');
   });
 
-  test('reposent un objet déplacé à sa nouvelle place, jusqu’à Rejouer', async ({
-    page,
-    isMobile,
-  }) => {
+  test('reposent un objet déplacé à sa nouvelle place', async ({ page, isMobile }) => {
     await page.goto(SETTLED);
     await waitForPhysics(page);
     const card = await pointOnItem(page, 'card');
@@ -278,8 +275,6 @@ test.describe('les gestes', () => {
     await nextFrames(page, 6);
     const after = await placeOf(page, 'card');
     expect(Math.hypot(after.x - before.x, after.z - before.z)).toBeLessThan(0.05);
-    await page.getByRole('button', { name: 'Rejouer' }).click();
-    await expect(hud(page)).toHaveAttribute('data-places', '');
   });
 
   test('jouent ?glisse : le portable posé sur la carte, sans interpénétration', async ({
@@ -316,10 +311,6 @@ test.describe('les gestes', () => {
     await expect(hud(page)).toHaveAttribute('data-dragging', '');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     await expectNoOverlap(page, 90_000);
-    // Rejouer reste là en mouvement réduit : il remet les objets en place.
-    await page.getByRole('button', { name: 'Rejouer' }).click();
-    await expect(hud(page)).toHaveAttribute('data-places', '');
-    await expect(hud(page)).toHaveAttribute('data-phase', 'settled');
   });
 
   test('laissent présenté l’objet qu’on glissait, choisi au clavier', async ({

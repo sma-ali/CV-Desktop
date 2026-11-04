@@ -498,14 +498,6 @@ export const MOODS = {
   },
 } as const satisfies Record<MoodId, MoodSettings>;
 
-/** Pastille de chaque ambiance dans le sélecteur du HUD. */
-export const MOOD_SWATCHES = {
-  morning: '#f2d39a',
-  afternoon: '#fff2d6',
-  evening: '#e9824f',
-  night: '#3d5a86',
-} as const satisfies Record<MoodId, string>;
-
 /** Couleur de la lampe (cône et spot). */
 export const LAMP_COLOR = 0xffb565;
 

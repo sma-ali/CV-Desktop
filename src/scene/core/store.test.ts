@@ -249,24 +249,24 @@ describe('les gestes dans le store (étape 4)', () => {
     expect(state.desk.book).toMatchObject(homePlace('book', false));
   });
 
-  it('reste muet tant que le visiteur n’a pas ouvert le son', () => {
+  it('reste muet tant que le son n’est pas ouvert, puis joue chaque geste', () => {
     const { store, sound } = withSound();
     store.getState().present('book', 'click');
     store.getState().toggleFlip();
     store.getState().putBack();
     expect(sound.played).toEqual([]);
     expect(store.getState().soundOn).toBe(false);
-    store.getState().toggleSound();
+    store.getState().setSound(true);
     expect(store.getState().soundOn).toBe(true);
     store.getState().present('card', 'click');
     store.getState().toggleFlip();
     store.getState().putBack();
     store.getState().toggleLamp();
     store.getState().startDrag('mug');
-    expect(sound.played).toEqual(['blip', 'pick', 'flip', 'putBack', 'switch', 'slide']);
-    store.getState().toggleSound();
+    expect(sound.played).toEqual(['pick', 'flip', 'putBack', 'switch', 'slide']);
+    store.getState().setSound(false);
     store.getState().present('monitor', 'click');
-    expect(sound.played).toHaveLength(6);
+    expect(sound.played).toHaveLength(5);
   });
 
   it('note ce qui sort du cadre seulement quand cela change', () => {

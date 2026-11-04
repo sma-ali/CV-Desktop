@@ -1,5 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import {
+  currentLoadStep,
   EMPTY_LOAD,
   introProgress,
   LOAD_STEPS,
@@ -89,5 +90,15 @@ describe('l’attente qui compte', () => {
     expect(idleWait(500, 0, false)).toBe(500);
     expect(idleWait(500, -20, false)).toBe(500);
     expect(idleWait(500, Number.NaN, false)).toBe(500);
+  });
+});
+
+describe("l'étape nommée sous la barre", () => {
+  it('suit la première étape qui n’est pas finie, puis plus rien une fois prête', () => {
+    expect(currentLoadStep(EMPTY_LOAD, false)).toBe('code');
+    expect(currentLoadStep({ ...EMPTY_LOAD, code: 1 }, false)).toBe('assets');
+    expect(currentLoadStep({ code: 1, assets: 1, shaders: 0.5, frame: 0 }, false)).toBe('shaders');
+    expect(currentLoadStep({ code: 1, assets: 1, shaders: 1, frame: 1 }, false)).toBe('frame');
+    expect(currentLoadStep(EMPTY_LOAD, true)).toBeNull();
   });
 });

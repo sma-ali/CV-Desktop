@@ -15,7 +15,6 @@ export const sheetsFr = {
     upright: 'Remettre droit',
     contact: 'Me contacter',
     repository: 'Voir le dépôt',
-    sound: 'Son',
     live: {
       title: 'Signes de vie',
       sample: "Données d'exemple",
@@ -207,8 +206,8 @@ export const sheetsFr = {
       body: "Les compétences du CV, du front-end à l'infrastructure.",
     },
     chest: {
-      kicker: 'Projets perso',
-      step: "L'usine",
+      kicker: '2026',
+      step: 'Étape 3 sur 3',
       title: "L'usine",
       meta: [{ term: 'Circuit', value: 'de bout en bout' }],
       body: 'Des chaînes vidéo produites de bout en bout par des agents IA, sur mon propre serveur. Je conçois le circuit, les agents font le reste.',

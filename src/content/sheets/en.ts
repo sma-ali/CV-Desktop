@@ -14,7 +14,6 @@ export const sheetsEn = {
     upright: 'Set upright',
     contact: 'Get in touch',
     repository: 'View the repository',
-    sound: 'Sound',
     live: {
       title: 'Signs of life',
       sample: 'Sample data',
@@ -200,8 +199,8 @@ export const sheetsEn = {
       body: 'The skills from the CV, from frontend to infrastructure.',
     },
     chest: {
-      kicker: 'Side projects',
-      step: 'The factory',
+      kicker: '2026',
+      step: 'Step 3 of 3',
       title: 'The factory',
       meta: [{ term: 'Pipeline', value: 'end to end' }],
       body: 'Video channels produced end to end by AI agents, on my own server. I design the pipeline, the agents do the rest.',

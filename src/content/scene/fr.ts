@@ -8,7 +8,7 @@ export const sceneFr = {
     postit: { mark: '2024', text: 'DARES' },
     laptop: { mark: 'Pile', text: 'Compétences' },
     card: { mark: 'Ali', text: 'Contact' },
-    chest: { mark: 'Projets perso', text: "L'usine" },
+    chest: { mark: '2026', text: "L'usine" },
     netherbrain: { mark: '2026', text: 'Netherbrain' },
     homelab: { mark: '2026', text: 'Homelab' },
   },

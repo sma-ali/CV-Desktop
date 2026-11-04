@@ -343,22 +343,6 @@
   color: var(--ambre);
 }
 
-.buttonGold,
-.buttonGold:hover,
-.buttonGold:focus-visible {
-  border-color: #e9c98a;
-  background: linear-gradient(#e6c27a, #c9973f);
-  color: #1f1710;
-  box-shadow:
-    0 2px 14px rgb(0 0 0 / 0.35),
-    inset 0 1px 0 rgb(255 255 255 / 0.45);
-}
-
-.buttonGold:hover,
-.buttonGold:focus-visible {
-  background: linear-gradient(#f2d394, #d8a84d);
-}
-
 /* ------------------------------------------------------------------
    Indication
    ------------------------------------------------------------------ */
@@ -544,41 +528,8 @@
   color: var(--ambre);
 }
 
-.moods {
-  display: flex;
-  justify-content: flex-end;
-  gap: 6px;
-  margin-top: 7px;
-}
-
-.mood {
-  display: grid;
-  place-items: center;
-  width: 24px;
-  height: 24px;
-  padding: 0;
-  border: 1px solid rgb(243 233 212 / 0.3);
-  border-radius: 50%;
-  background: rgb(18 12 8 / 0.5);
-  cursor: pointer;
-}
-
-.mood i {
-  width: 10px;
-  height: 10px;
-  border-radius: 50%;
-  background: var(--swatch);
-}
-
-.mood[aria-pressed='true'],
-.mood:hover,
-.mood:focus-visible {
-  border-color: var(--ambre);
-}
-
 @media (prefers-reduced-motion: no-preference) {
-  .button,
-  .mood {
+  .button {
     transition:
       color 0.2s,
       border-color 0.2s,
@@ -624,11 +575,6 @@
     justify-content: space-between;
     gap: 12px;
     text-align: left;
-  }
-
-  .moods {
-    flex: none;
-    margin-top: 0;
   }
 
   .steps {
@@ -691,10 +637,6 @@
     align-items: center;
     justify-content: space-between;
     text-align: left;
-  }
-
-  .moods {
-    margin-top: 0;
   }
 
   .status {
@@ -800,10 +742,6 @@
     order: 0;
     min-width: 0;
     text-align: right;
-  }
-
-  .moods {
-    margin-top: 6px;
   }
 }
 

@@ -1,5 +1,6 @@
 // L'avancement du chargement de la scène (étape 6), montré par l'écran de
-// chargement : le trait qui se trace sous le nom (partie C). Des étapes
+// chargement : la barre façon jeu vidéo sous le nom, son pourcentage et
+// l'étape en cours. Des étapes
 // réelles, chacune de 0 à 1, écrites dans le store (setLoad) :
 //
 // - code : le fichier JavaScript de la scène (DeskShell, à l'arrivée du module) ;
@@ -73,4 +74,10 @@ export function loadTimeout(search: string): number {
 export function introProgress(load: LoadProgress, ready: boolean): number {
   if (ready) return 1;
   return Math.floor(loadProgress(load) * 100) / 100;
+}
+
+/** L'étape en cours, nommée sous la barre : la première qui n'est pas finie (null : tout est prêt). */
+export function currentLoadStep(load: LoadProgress, ready: boolean): LoadStep | null {
+  if (ready) return null;
+  return LOAD_STEPS.find((step) => load[step] < 1) ?? 'frame';
 }

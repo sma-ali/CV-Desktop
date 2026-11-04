@@ -282,8 +282,8 @@ export interface SceneState {
   requestUpright(): void;
   /** Partie C : une étape du chargement avance (0 à 1, jamais en arrière). */
   setLoad(step: LoadStep, value: number): void;
-  /** Ouvre ou coupe le son ; appelée seulement par un clic du visiteur. */
-  toggleSound(): void;
+  /** Ouvre ou coupe le son (ouvert par défaut par DeskShell). */
+  setSound(on: boolean): void;
   /** Réservé au cadrage (partie objets) : ce qui sort du cadre. */
   setOffscreen(ids: readonly string[]): void;
   /** Les signes de vie reçus du serveur (étape 5 : rafraîchis par /api/signes-de-vie). */
@@ -564,10 +564,8 @@ export function createSceneStore(
       if (next !== load[step]) set({ load: { ...load, [step]: next } });
     },
 
-    toggleSound() {
-      const next = sound.setEnabled(!get().soundOn);
-      set({ soundOn: next });
-      if (next) sound.play('blip');
+    setSound(on) {
+      set({ soundOn: sound.setEnabled(on) });
     },
 
     setOffscreen(ids) {

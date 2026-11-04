@@ -123,6 +123,8 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
     store
       .getState()
       .init(settingsFromParams(params, prefersReduced, offset), mood, mood !== hourMood);
+    // Le son est ouvert par défaut ; il sonne au premier geste du visiteur.
+    store.getState().setSound(true);
     // Le premier rendu côté client doit égaler celui du serveur : le choix
     // entre la scène et le repli se fait juste après.
     const webgl = hasWebGL();
@@ -204,14 +206,14 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
         <Intro
           name={hud.name}
           texts={hud.intro}
-          expressHref={hud.express.href}
+          expressHref={hud.expressHref}
           state={status === 'ready' ? 'ready' : fallback ? 'fallback' : 'loading'}
         />
 
         <section className={styles.fallback} aria-label={hud.fallback.expressLink}>
           <p className={styles.fallbackNotice}>
             {reason}{' '}
-            <a href={hud.express.href} className={styles.fallbackLink}>
+            <a href={hud.expressHref} className={styles.fallbackLink}>
               {hud.fallback.expressLink}
             </a>
           </p>

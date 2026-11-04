@@ -2,7 +2,7 @@
 
 import { useSyncExternalStore, type CSSProperties } from 'react';
 import type { DeskHudTexts } from '@/lib/desk';
-import { introProgress } from '@/scene/core/loading';
+import { currentLoadStep, introProgress } from '@/scene/core/loading';
 import { useSceneStore } from '@/scene/core/store-context';
 import styles from './Intro.module.css';
 
@@ -15,18 +15,19 @@ function useHydrated(): boolean {
   );
 }
 
-// Étape 6, partie C, revue le 04/11 : l'écran de chargement. Rendu par le
-// serveur dès le premier octet (CSS seulement : rien ne dépend de
+// L'écran de chargement, revu le 04/11 : une barre façon jeu vidéo. Rendu
+// par le serveur dès le premier octet (CSS seulement : rien ne dépend de
 // JavaScript pour l'afficher), il cache tout le bureau tant que la scène se
-// prépare : un écran noir, « Ali Smaani », et dessous un trait fin qui se
-// trace au rythme du chargement réel (store.load, core/loading.ts). Quand la
-// scène est prête (done), le trait se termine, l'écran s'efface en fondu,
-// et l'arrivée commence : les objets tombent un à un dans la pénombre
-// (core/drop.ts), puis la lampe s'allume en dernier. Mouvement réduit : un
-// simple fondu. Sans JavaScript, la feuille de style le cache (la version
-// express s'affiche) ; si JavaScript ne démarre jamais, il s'efface de
-// lui-même (Intro.module.css). Un lien mène à la version express pendant
-// l'attente.
+// prépare : un écran noir, « Ali Smaani », et dessous une barre encadrée
+// dont les blocs dorés se remplissent au rythme du chargement réel
+// (store.load, core/loading.ts), avec le pourcentage et l'étape en cours.
+// Quand la scène est prête (done), la barre se remplit, l'écran s'efface en
+// fondu, et l'arrivée commence : les objets tombent un à un dans la
+// pénombre (core/drop.ts), puis la lampe s'allume en dernier. Mouvement
+// réduit : un simple fondu. Sans JavaScript, la feuille de style le cache
+// (la version express s'affiche) ; si JavaScript ne démarre jamais, il
+// s'efface de lui-même (Intro.module.css). Un lien discret mène à la
+// version express pendant l'attente.
 export function Intro({
   name,
   texts,
@@ -47,7 +48,10 @@ export function Intro({
   const hydrated = useHydrated();
   const done = state !== 'loading';
   const progress = useSceneStore((state) => introProgress(state.load, state.ready));
+  const step = useSceneStore((state) => currentLoadStep(state.load, state.ready));
   const shown = done ? 1 : progress;
+  const percent = Math.round(shown * 100);
+  const label = done || step === null ? texts.done : texts.steps[step];
 
   return (
     <div
@@ -61,15 +65,20 @@ export function Intro({
       <div className={styles.center}>
         <p className={styles.name}>{name}</p>
         <div
-          className={styles.track}
+          className={styles.bar}
           role="progressbar"
           aria-label={texts.preparing}
           aria-valuemin={0}
           aria-valuemax={100}
-          aria-valuenow={Math.round(shown * 100)}
+          aria-valuenow={percent}
+          aria-valuetext={`${label} | ${percent} %`}
         >
-          <i className={styles.line} aria-hidden="true" />
+          <i className={styles.fill} aria-hidden="true" />
         </div>
+        <p className={styles.status} aria-hidden="true">
+          <span className={styles.step}>{hydrated ? label : texts.preparing}</span>
+          <span className={styles.percent}>{percent}&nbsp;%</span>
+        </p>
       </div>
       <a className={styles.skip} href={expressHref} tabIndex={done ? -1 : undefined}>
         {texts.skip}

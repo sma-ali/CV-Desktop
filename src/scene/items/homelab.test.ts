@@ -143,9 +143,7 @@ describe('le brassage de la baie', () => {
         .filter((end) => end.unit === 'switch')
         .map((end) => PORTS.switch[end.index]),
     );
-    const portLeds = homelabLeds().filter(
-      (led) => led.unit === 'switch' && led.kind !== 'power',
-    );
+    const portLeds = homelabLeds().filter((led) => led.unit === 'switch' && led.kind !== 'power');
     expect(portLeds).toHaveLength(PORTS.switch.length);
     for (const led of portLeds) {
       expect(led.kind).toBe(wired.has(led.x) ? 'activity' : 'idle');

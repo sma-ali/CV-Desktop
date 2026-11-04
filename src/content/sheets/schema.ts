@@ -125,8 +125,6 @@ const uiSchema = z.strictObject({
   contact: text,
   /** Le lien vers le dépôt d'un projet public. */
   repository: text,
-  /** Le bouton « Son » du HUD (aria-pressed porte l'état). */
-  sound: text,
   live: liveSchema,
   factory: factorySchema,
 });

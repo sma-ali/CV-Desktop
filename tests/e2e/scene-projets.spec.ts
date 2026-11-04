@@ -115,7 +115,7 @@ test.describe('Netherbrain et Homelab', () => {
   test('se présentent par la puce des projets et par leur étiquette', async ({ page }) => {
     await page.goto(SETTLED);
     await waitForScene(page);
-    await page.getByRole('link', { name: /2026/ }).click();
+    await page.getByRole('link', { name: /Netherbrain/ }).click();
     await expect(hud(page)).toHaveAttribute('data-presented', 'netherbrain');
     await page.keyboard.press('Escape');
     await expect(hud(page)).toHaveAttribute('data-presented', '');

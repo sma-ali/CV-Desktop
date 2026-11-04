@@ -206,7 +206,6 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
         <Intro
           name={hud.name}
           texts={hud.intro}
-          expressHref={hud.expressHref}
           state={status === 'ready' ? 'ready' : fallback ? 'fallback' : 'loading'}
         />
 

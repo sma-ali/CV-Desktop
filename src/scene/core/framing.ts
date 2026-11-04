@@ -69,12 +69,12 @@ export const REST_FIT = {
 /**
  * Ce que le HUD occupe en portrait, en pixels CSS : en haut, l'identité (les
  * boutons à droite descendent plus bas, mais seulement sur le bord) ; en bas,
- * l'indication, l'heure et les puces (le haut de l'indication, à 199 px du
- * bas sur les trois portraits mesurés le 04/11, depuis le retrait des
- * pastilles de lumière : le bord avant du bureau ne passe pas dessous). Le bureau tient entre les deux, sur toute la
- * largeur (x, en coordonnées normalisées).
+ * l'indication et les puces (le haut de l'indication, à 171 px du bas sur
+ * les trois portraits mesurés le 04/11, depuis le retrait de la phrase de
+ * l'heure : le bord avant du bureau ne passe pas dessous). Le bureau tient
+ * entre les deux, sur toute la largeur (x, en coordonnées normalisées).
  */
-export const PORTRAIT_HUD = { top: 112, bottom: 203, x: 0.985 } as const;
+export const PORTRAIT_HUD = { top: 112, bottom: 175, x: 0.985 } as const;
 
 /** La vue de départ de l'arrivée, au ras du bureau (START_L et START_P). */
 export const START_L: View = { target: [-0.3, 1.2, 1.1], elev: 0.26, az: 0.3, dist: 7.8, fov: 36 };

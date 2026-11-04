@@ -56,10 +56,9 @@ test.describe('l’écran de chargement', () => {
     const fr = await (await request.get('/fr')).text();
     expect(fr).toContain('Préparation du bureau');
     expect(fr).toMatch(/role="progressbar"[^>]*aria-valuenow="0"/);
-    expect(fr).toContain('Lire le CV sans attendre');
+    expect(fr).not.toContain('Lire le CV sans attendre');
     const en = await (await request.get('/en')).text();
     expect(en).toContain('Setting up the desk');
-    expect(en).toContain('Read the CV without waiting');
   });
 
   test('avance au rythme du chargement réel, puis s’efface', async ({ page }) => {
@@ -67,7 +66,6 @@ test.describe('l’écran de chargement', () => {
     await page.goto('/fr?auto=0&heure=14');
     await waitForScene(page);
     await expect(intro(page)).toBeHidden();
-    await expect(page.getByRole('link', { name: 'Lire le CV sans attendre' })).toBeHidden();
     // Le HUD revient dans le parcours au clavier.
     await expect(hud(page)).not.toHaveAttribute('inert');
     const values = await page.evaluate(
@@ -80,7 +78,7 @@ test.describe('l’écran de chargement', () => {
     expect(values.some((value) => value > 0 && value < 100)).toBe(true);
   });
 
-  test('cache le bureau et garde le clavier sur son lien, tant que la scène se prépare', async ({
+  test('cache le bureau, sans lien, tant que la scène se prépare', async ({
     page,
   }) => {
     await holdThree(page);
@@ -89,10 +87,7 @@ test.describe('l’écran de chargement', () => {
     // La page est hydratée : le HUD caché dessous sort du parcours au clavier.
     await expect(hud(page)).toHaveAttribute('inert', '');
     await expect(hud(page)).toHaveAttribute('data-ready', 'false');
-    await page.keyboard.press('Tab');
-    const skip = page.getByRole('link', { name: 'Lire le CV sans attendre' });
-    await expect(skip).toBeFocused();
-    await expect(skip).toHaveAttribute('href', '/fr/express');
+    await expect(intro(page).getByRole('link')).toHaveCount(0);
     // Avec ?attente=0, il ne renonce jamais.
     await page.waitForTimeout(1500);
     await expect(intro(page)).toBeVisible();

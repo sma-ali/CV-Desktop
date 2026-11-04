@@ -404,7 +404,7 @@
 }
 
 /* ------------------------------------------------------------------
-   Bas de page : le CV d'un coup d'œil, l'heure et les ambiances
+   Bas de page : le CV d'un coup d'œil
    ------------------------------------------------------------------ */
 
 .bottom {
@@ -502,31 +502,6 @@
   animation: pulse 1.6s ease-in-out infinite;
 }
 
-.corner {
-  text-align: right;
-  pointer-events: auto;
-}
-
-.clock {
-  min-height: 1.4em;
-  margin: 0;
-  font-size: 11px;
-  line-height: 1.4;
-  color: rgb(243 233 212 / 0.8);
-  text-shadow: 0 1px 8px rgb(0 0 0 / 0.85);
-}
-
-.clock b {
-  font-weight: 600;
-  color: var(--clair);
-}
-
-.clock em {
-  font-family: var(--serif);
-  font-style: italic;
-  font-size: 14px;
-  color: var(--ambre);
-}
 
 @media (prefers-reduced-motion: no-preference) {
   .button {
@@ -559,8 +534,8 @@
   }
 }
 
-/* Sous 1000 px, puces et ambiances ne tiennent plus sur une ligne : l'heure
-   et les ambiances passent au-dessus, les cinq puces se partagent la largeur. */
+/* Sous 1000 px, les puces ne tiennent plus sur une ligne : les cinq se
+   partagent la largeur. */
 @media (max-width: 1000px) {
   .bottom {
     flex-direction: column;
@@ -568,14 +543,6 @@
     gap: 8px;
   }
 
-  .corner {
-    display: flex;
-    order: -1;
-    align-items: center;
-    justify-content: space-between;
-    gap: 12px;
-    text-align: left;
-  }
 
   .steps {
     display: grid;
@@ -631,13 +598,6 @@
     gap: 8px;
   }
 
-  .corner {
-    display: flex;
-    order: -1;
-    align-items: center;
-    justify-content: space-between;
-    text-align: left;
-  }
 
   .status {
     row-gap: 4px;
@@ -725,7 +685,7 @@
     display: none;
   }
 
-  /* Sans leur détail, les puces laissent la place à l'heure sur la même ligne. */
+  /* Sans leur détail, les puces tiennent sur une ligne. */
   .bottom {
     flex-direction: row;
     align-items: flex-end;
@@ -736,13 +696,6 @@
     gap: 6px;
   }
 
-  .corner {
-    display: block;
-    flex: 0 1 auto;
-    order: 0;
-    min-width: 0;
-    text-align: right;
-  }
 }
 
 @media (prefers-reduced-motion: reduce) {

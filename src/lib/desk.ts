@@ -1,6 +1,6 @@
 import type { ContactFormContent, Content, SheetContent, SheetsContent } from '@/content';
 import { localeNames, type Locale } from '@/content/locales';
-import { SHEET_ORDER, STEP_ITEM, type ItemId, type MoodId, type StepId } from '@/scene/core/ids';
+import { SHEET_ORDER, STEP_ITEM, type ItemId, type StepId } from '@/scene/core/ids';
 import type { LoadStep } from '@/scene/core/loading';
 import type { SceneTexts } from '@/scene/core/texts';
 import { deskPath, expressPath } from './site';
@@ -52,15 +52,13 @@ export interface DeskHudTexts {
   availability: string;
   location: string;
   controlsLabel: string;
-  /** La version express : le repli sans 3D et le lien de l'écran de chargement. */
+  /** La version express : le repli sans 3D. */
   expressHref: string;
   /** La langue de l'autre version : label court (« EN »), nom complet pour les lecteurs d'écran. */
   language: { label: string; name: string; href: string; locale: Locale };
   arrivalKicker: string;
   glance: string;
   steps: DeskStep[];
-  clock: { visitorTime: string };
-  moods: Record<MoodId, { light: string }>;
   hint: {
     pointer: string;
     touch: string;
@@ -79,10 +77,9 @@ export interface DeskHudTexts {
   };
   /** Étape 6 : le bouton de rangement (partie B) et ses annonces. */
   tidy: { offer: string; tidying: string; done: string };
-  /** Étape 6 : l'écran de chargement (partie C), son lien vers la version express et le repli s'il tarde. */
+  /** Étape 6 : l'écran de chargement (partie C) et le repli s'il tarde. */
   intro: {
     preparing: string;
-    skip: string;
     slow: string;
     steps: Record<LoadStep, string>;
     done: string;
@@ -187,8 +184,6 @@ export function buildDeskTexts(content: Content, locale: Locale): DeskHudTexts {
     arrivalKicker: desk.arrivalKicker,
     glance: desk.glance,
     steps: buildDeskSteps(content, locale),
-    clock: desk.clock,
-    moods: desk.moods,
     hint: desk.hint,
     sheets: buildDeskSheets(content, locale),
     fallback: desk.fallback,

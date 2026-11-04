@@ -5,23 +5,10 @@ import { useState, useSyncExternalStore, type MouseEvent } from 'react';
 import type { DeskHudTexts, DeskStep } from '@/lib/desk';
 import { formatPlaces } from '@/scene/core/bodies';
 import { ITEM_STEP } from '@/scene/core/ids';
-import { formatVisitorTime } from '@/scene/core/mood';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { Sheet } from './Sheet';
 import { TidyButton } from './TidyButton';
 import styles from './Desk.module.css';
-
-/** L'heure du visiteur à la minute près (null avant l'hydratation : le serveur ne la connaît pas). */
-function useVisitorMinute(offsetMs: number): number | null {
-  return useSyncExternalStore(
-    (onChange) => {
-      const timer = window.setInterval(onChange, 15_000);
-      return () => window.clearInterval(timer);
-    },
-    () => Math.floor((Date.now() + offsetMs) / 60_000),
-    () => null,
-  );
-}
 
 /** Le visiteur pointe-t-il avec le doigt ? */
 function useCoarsePointer(): boolean {
@@ -37,7 +24,7 @@ function useCoarsePointer(): boolean {
 }
 
 // Le HUD du bureau, d'après le prototype : identité, bouton de langue, puces
-// du CV, heure du visiteur (la lumière suit son heure, sans réglage), carton
+// du CV (la lumière suit l'heure du visiteur, sans réglage ni texte), carton
 // d'arrivée, indication, fiche de l'objet présenté. Le son est ouvert par
 // défaut (DeskShell), sans bouton. Rendu par le serveur,
 // visible avant la 3D. Expose l'état de la scène aux tests par des attributs
@@ -73,9 +60,8 @@ export function Hud({
   const tidying = useSceneStore((state) => state.tidying);
   const heldTurned = useSceneStore((state) => state.heldTurned);
   const settings = useSceneStore((state) => state.settings);
-  const minute = useVisitorMinute(settings.hourOffsetMs);
   // Ce que la région d'état annonce : seulement les gestes du visiteur
-  // (objet présenté par une puce), jamais l'heure qui passe.
+  // (objet présenté par une puce).
   const [announcement, setAnnouncement] = useState('');
 
   const presentedStep = presented ? ITEM_STEP[presented] : null;
@@ -112,9 +98,6 @@ export function Hud({
       setAnnouncement(`${step.title} ${step.detail}. ${texts.hint.presented}`);
     }
   };
-
-  const [before, after] = texts.clock.visitorTime.split('{time}');
-  const time = minute === null ? null : formatVisitorTime(new Date(minute * 60_000), texts.locale);
 
   return (
     <div
@@ -197,17 +180,6 @@ export function Hud({
             ))}
           </ul>
         </nav>
-        <div className={styles.corner}>
-          <p className={styles.clock}>
-            {initialized && time !== null ? (
-              <>
-                {before}
-                <b>{time}</b>
-                {after} <em>{texts.moods[mood].light}</em>
-              </>
-            ) : null}
-          </p>
-        </div>
         {/* Dans le footer : sous 1300 px, elle se pose juste au-dessus. */}
         <p
           className={styles.hint}

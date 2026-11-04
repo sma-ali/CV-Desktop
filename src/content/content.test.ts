@@ -161,14 +161,6 @@ describe('le schéma', () => {
     expect(contentSchema.safeParse(broken).success).toBe(false);
   });
 
-  it("refuse une phrase de l'heure sans {time}", () => {
-    const broken = {
-      ...fr,
-      desk: { ...fr.desk, clock: { ...fr.desk.clock, visitorTime: 'Chez vous.' } },
-    };
-    expect(contentSchema.safeParse(broken).success).toBe(false);
-  });
-
   it("refuse une ligne de code trop longue pour l'écran", () => {
     const broken = {
       ...fr,

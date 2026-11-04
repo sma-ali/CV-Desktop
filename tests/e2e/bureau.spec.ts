@@ -157,19 +157,17 @@ test.describe('la scène', () => {
     await expect(hud(page)).toHaveAttribute('data-presented', '');
   });
 
-  test('donne la nuit à 23 h', async ({ page }) => {
+  test('donne la nuit à 23 h, sans l’écrire', async ({ page }) => {
     await page.goto('/fr?heure=23&auto=0');
     await expect(hud(page)).toHaveAttribute('data-mood', 'night');
-    await expect(page.getByText('Chez vous, il est 23 h.')).toBeVisible();
-    await expect(page.getByText('Nuit. La lampe veille.')).toBeVisible();
+    await expect(page.getByText(/Chez vous/)).toHaveCount(0);
   });
 
-  test('suit l’heure du visiteur, sans sélecteur de lumière', async ({ page }) => {
+  test('suit l’heure du visiteur, sans sélecteur ni phrase', async ({ page }) => {
     await page.goto('/fr?heure=8&auto=0');
     await waitForScene(page);
     await expect(hud(page)).toHaveAttribute('data-mood', 'morning');
-    await expect(page.getByText('Chez vous, il est 8 h.')).toBeVisible();
-    await expect(page.getByText('Lumière du matin.')).toBeVisible();
+    await expect(page.getByText(/Lumière du matin/)).toHaveCount(0);
     await expect(page.getByRole('group', { name: 'Changer la lumière' })).toHaveCount(0);
     await expect(page.getByRole('contentinfo').getByRole('button')).toHaveCount(0);
   });

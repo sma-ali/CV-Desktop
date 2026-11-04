@@ -26,18 +26,14 @@ function useHydrated(): boolean {
 // pénombre (core/drop.ts), puis la lampe s'allume en dernier. Mouvement
 // réduit : un simple fondu. Sans JavaScript, la feuille de style le cache
 // (la version express s'affiche) ; si JavaScript ne démarre jamais, il
-// s'efface de lui-même (Intro.module.css). Un lien discret mène à la
-// version express pendant l'attente.
+// s'efface de lui-même (Intro.module.css).
 export function Intro({
   name,
   texts,
-  expressHref,
   state,
 }: {
   name: string;
   texts: DeskHudTexts['intro'];
-  /** La version express de la langue de la page. */
-  expressHref: string;
   /**
    * loading : la scène se prépare ; ready : elle a dessiné, l'écran s'efface
    * en fondu ; fallback : la version express s'affiche, l'écran disparaît
@@ -80,9 +76,6 @@ export function Intro({
           <span className={styles.percent}>{percent}&nbsp;%</span>
         </p>
       </div>
-      <a className={styles.skip} href={expressHref} tabIndex={done ? -1 : undefined}>
-        {texts.skip}
-      </a>
     </div>
   );
 }

@@ -188,13 +188,6 @@ export const fr = {
     glance: "Le CV en un coup d'œil",
     perso: { year: 2026, detail: "L'usine" },
     contactDetail: 'Carte de visite',
-    clock: { visitorTime: 'Chez vous, il est {time}.' },
-    moods: {
-      morning: { light: 'Lumière du matin.' },
-      afternoon: { light: "Lumière d'après-midi." },
-      evening: { light: 'Lumière du soir.' },
-      night: { light: 'Nuit. La lampe veille.' },
-    },
     hint: {
       pointer: 'Cliquez sur un objet pour le voir de près. Glissez-le pour le déplacer.',
       touch: 'Touchez un objet pour le voir de près. Glissez-le pour le déplacer.',
@@ -220,7 +213,6 @@ export const fr = {
     },
     intro: {
       preparing: 'Préparation du bureau',
-      skip: 'Lire le CV sans attendre',
       slow: 'Le bureau en 3D met trop de temps à se préparer. Voici le CV en version express.',
       steps: {
         code: 'Livraison du bureau',

@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { formatVisitorTime, hourOffset, moodOfHour, visitorNow } from './mood';
+import { hourOffset, moodOfHour, visitorNow } from './mood';
 import { blendMoodValues, hexToRgb, moodValues } from './mood-values';
 
 describe("l'ambiance selon l'heure", () => {
@@ -27,13 +27,6 @@ describe("l'ambiance selon l'heure", () => {
     expect([half.getHours(), half.getMinutes()]).toEqual([14, 30]);
   });
 
-  it("écrit l'heure à la française et à l'anglaise", () => {
-    expect(formatVisitorTime(new Date(2026, 0, 1, 15, 0), 'fr')).toBe('15 h');
-    expect(formatVisitorTime(new Date(2026, 0, 1, 15, 5), 'fr')).toBe('15 h 05');
-    expect(formatVisitorTime(new Date(2026, 0, 1, 15, 0), 'en')).toBe('3 pm');
-    expect(formatVisitorTime(new Date(2026, 0, 1, 0, 5), 'en')).toBe('12:05 am');
-    expect(formatVisitorTime(new Date(2026, 0, 1, 12, 0), 'en')).toBe('12 pm');
-  });
 });
 
 describe('les valeurs des ambiances', () => {

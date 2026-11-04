@@ -68,7 +68,6 @@ describe('les textes du bureau', () => {
       expressHref: '/fr/express',
       language: { label: 'EN', name: 'English', href: '/en', locale: 'en' },
     });
-    expect(Object.keys(texts.moods)).toEqual(['morning', 'afternoon', 'evening', 'night']);
   });
 
   it('ne passent à la scène que ses propres textes', () => {

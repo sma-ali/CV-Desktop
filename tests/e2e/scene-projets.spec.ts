@@ -10,8 +10,8 @@ import { activityPulse } from '../../src/lib/life-signs/types';
 // data-desk-share sur le canvas : la part de la hauteur libre entre les
 // bandes du HUD que couvre le bureau, qui remplit l'écran en portrait).
 
-/** Part minimale de la hauteur libre couverte par le bureau resserré (0.69 mesuré en 412x915). */
-const PORTRAIT_SHARE = 0.65;
+/** Part minimale de la hauteur libre couverte par le bureau resserré (0.64 mesuré en 412x915 le 04/11). */
+const PORTRAIT_SHARE = 0.62;
 
 const SETTLED = '/fr?t=11000&fige&auto=0&heure=14';
 

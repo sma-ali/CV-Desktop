@@ -187,13 +187,6 @@ export const en = {
     glance: 'The CV at a glance',
     perso: { year: 2026, detail: 'The factory' },
     contactDetail: 'Business card',
-    clock: { visitorTime: 'It is {time} where you are.' },
-    moods: {
-      morning: { light: 'Morning light.' },
-      afternoon: { light: 'Afternoon light.' },
-      evening: { light: 'Evening light.' },
-      night: { light: 'Night. The lamp keeps watch.' },
-    },
     hint: {
       pointer: 'Click an object to take a closer look. Drag it to move it.',
       touch: 'Tap an object to take a closer look. Drag it to move it.',
@@ -218,7 +211,6 @@ export const en = {
     },
     intro: {
       preparing: 'Setting up the desk',
-      skip: 'Read the CV without waiting',
       slow: 'The 3D desk is taking too long to set up. Here is the CV in its express version.',
       steps: {
         code: 'Delivering the desk',

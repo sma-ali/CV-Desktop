@@ -187,7 +187,7 @@ export const en = {
     replay: 'Replay',
     arrivalKicker: 'Welcome to the desk of',
     glance: 'The CV at a glance',
-    perso: { title: 'Side projects', detail: 'Sealed, but alive' },
+    perso: { title: 'Side projects', detail: 'A video factory' },
     contactDetail: 'Business card',
     clock: { visitorTime: 'It is {time} where you are.', pinned: 'Light of your choice.' },
     moodsLabel: 'Change the light',

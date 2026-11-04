@@ -188,7 +188,7 @@ export const fr = {
     replay: 'Rejouer',
     arrivalKicker: 'Bienvenue chez',
     glance: "Le CV en un coup d'œil",
-    perso: { title: 'Projets perso', detail: 'Scellés, mais vivants' },
+    perso: { title: 'Projets perso', detail: 'Une usine à vidéos' },
     contactDetail: 'Carte de visite',
     clock: { visitorTime: 'Chez vous, il est {time}.', pinned: 'Lumière choisie.' },
     moodsLabel: 'Changer la lumière',

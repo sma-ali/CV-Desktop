@@ -27,7 +27,7 @@ test.describe('la route des signes de vie', () => {
 
     const body = (await response.json()) as Record<string, unknown>;
     expect(Object.keys(body).sort()).toEqual(
-      ['activity', 'lastActivityAt', 'measuredAt', 'running', 'sample', 'since'].sort(),
+      ['activity', 'factory', 'lastActivityAt', 'measuredAt', 'running', 'sample', 'since'].sort(),
     );
     expect(body.sample).toBe(true);
     expect(body.activity).toHaveLength(14);
@@ -105,8 +105,9 @@ test.describe('le rafraîchissement à l’ouverture du coffret', () => {
     await page.goto(`/fr?${SETTLED}`);
     await expect(hud(page)).toHaveAttribute('data-ready', 'true', { timeout: 45_000 });
     await requested;
-    await expect(live(page)).toBeVisible();
-    await expect(live(page).locator('[data-live-running]')).toHaveText('3');
-    await expect(live(page)).toContainText(texts.sample);
+    // Elle garde l'exemple : la fiche de l'usine et sa mention.
+    const factory = page.locator('#sheet [data-factory]');
+    await expect(factory).toBeVisible();
+    await expect(factory).toContainText(texts.sample);
   });
 });

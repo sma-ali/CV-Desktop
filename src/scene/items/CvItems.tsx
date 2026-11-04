@@ -7,7 +7,7 @@ import type { SceneTexts } from '../core/texts';
 import { Badge } from './Badge';
 import { Book } from './Book';
 import { Card } from './Card';
-import { Chest } from './Chest';
+import { Factory } from './Factory';
 import { Headset } from './Headset';
 import { Homelab } from './Homelab';
 import { Laptop } from './Laptop';
@@ -59,7 +59,7 @@ export function CvItems({ texts }: { texts: SceneTexts }) {
           <Headset />
           <Laptop texts={texts} />
           <Card texts={texts} />
-          <Chest texts={texts} />
+          <Factory texts={texts} />
           <Netherbrain texts={texts} />
           <Homelab texts={texts} />
         </group>

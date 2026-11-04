@@ -30,8 +30,9 @@ function collectErrors(page: Page): string[] {
 }
 
 /** Les mots qui trahiraient le contenu du coffret (même liste que content.test.ts). */
+// L'usine montre des genres, jamais une chaîne, un compte ni une plateforme.
 const FORBIDDEN =
-  /automatisation|automation|\busines?\b|factory|vid[ée]os?|tiktok|youtube|instagram|twitch|\bcha[iî]nes?\b|channel|usine/i;
+  /tiktok|youtube|shorts|instagram|twitch|upload-?post|@|https?:/i;
 
 test.describe('la fiche', () => {
   test('s’ouvre avec l’objet présenté et se ferme en le reposant', async ({ page }) => {
@@ -217,32 +218,55 @@ test.describe('la fiche', () => {
   });
 });
 
-test.describe('la fiche du coffret', () => {
+test.describe("la fiche de l'usine", () => {
   for (const locale of ['fr', 'en'] as const) {
-    test(`montre ses signes de vie, sans rien trahir (${locale})`, async ({ page }) => {
-      const { live } = getContent(locale).sheets.ui;
+    test(`montre le circuit, les chiffres et les genres, sans rien trahir (${locale})`, async ({
+      page,
+    }) => {
+      const { live, factory } = getContent(locale).sheets.ui;
       await page.goto(at(locale, 'prendre=chest'));
       await waitForScene(page);
       await expect(sheet(page)).toHaveAttribute('data-sheet', 'chest');
-      const block = sheet(page).locator('[data-live]');
+      const block = sheet(page).locator('[data-factory]');
       await expect(block).toBeVisible();
-      await expect(block).toContainText(live.title);
+      const status = ((await block.locator('[data-factory-status]').textContent()) ?? '').replace(
+        /\s+/g,
+        ' ',
+      );
+      expect(status).toBe(
+        locale === 'fr'
+          ? 'En marche | dernière vidéo il y a 2 h 14'
+          : 'Running | last video 2 h 14 min ago',
+      );
       await expect(block).toContainText(live.sample);
-      await expect(block.locator('[data-live-running]')).toHaveText('3');
-      const last = (await block.locator('[data-live-last]').innerText()).replace(/\s+/g, ' ');
-      expect(last).toBe(locale === 'fr' ? 'il y a 2 h 14' : '2 h 14 min ago');
-      const since = (await block.locator('[data-live-since]').innerText()).replace(/\s+/g, ' ');
-      expect(since).toBe(locale === 'fr' ? '47 jours' : '47 days');
+      await expect(block.getByRole('listitem')).toHaveText(factory.circuit);
+      await expect(block).toContainText(factory.figures.views);
 
-      const chart = block.getByRole('img');
-      await expect(chart).toHaveAttribute('aria-label', /14/);
-      await expect(chart).toHaveAttribute('aria-label', /3, 5, 2, 0, 4, 6, 3, 7, 5, 2, 6, 4, 8, 5/);
+      // Un onglet par genre ; les flèches passent de l'un à l'autre.
+      const tabs = block.getByRole('tab');
+      await expect(tabs).toHaveCount(4);
+      await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
+      const panel = block.getByRole('tabpanel');
+      await expect(panel).toContainText(factory.genres.fantasy.title);
+      await tabs.first().focus();
+      await page.keyboard.press('ArrowRight');
+      await expect(tabs.nth(1)).toBeFocused();
+      await expect(panel).toContainText(factory.genres.philosophy.title);
+      await page.keyboard.press('ArrowLeft');
+      await page.keyboard.press('ArrowLeft');
+      await expect(tabs.nth(3)).toHaveAttribute('aria-selected', 'true');
+      await expect(panel).toContainText(factory.genres.quiz.title);
+      await tabs.nth(2).click();
+      await expect(panel).toContainText(factory.genres.marbles.title);
+
+      const chart = panel.getByRole('img');
+      await expect(chart).toHaveAttribute('aria-label', /6, 7, 6, 8, 7, 7, 8, 6, 7, 8, 8, 7, 8, 8/);
       await expect(chart.locator('i')).toHaveCount(14);
-      await expect(block).toContainText(live.axisEnd);
 
+      // Aucune chaîne, aucun compte, aucun lien.
       const text = await sheet(page).innerText();
       expect(text).not.toMatch(FORBIDDEN);
-      expect(await chart.getAttribute('aria-label')).not.toMatch(FORBIDDEN);
+      await expect(block.locator('a')).toHaveCount(0);
     });
   }
 });

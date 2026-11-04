@@ -150,7 +150,7 @@ test.describe('la langue et la version express', () => {
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
     // Les étiquettes de la scène arrivent en anglais à la fin de l'arrivée.
     await expect(tag(page, 'chest')).toHaveAttribute('data-shown', 'true', { timeout: 45_000 });
-    await expect(tag(page, 'chest')).toHaveText(/Side projects\s*Sealed/);
+    await expect(tag(page, 'chest')).toHaveText(/Side projects\s*The factory/);
     expect(errors).toEqual([]);
   });
 

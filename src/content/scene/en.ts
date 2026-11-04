@@ -7,7 +7,7 @@ export const sceneEn = {
     postit: { mark: '2024', text: 'DARES' },
     laptop: { mark: 'Stack', text: 'Skills' },
     card: { mark: 'Ali', text: 'Contact' },
-    chest: { mark: 'Side projects', text: 'Sealed' },
+    chest: { mark: 'Side projects', text: 'The factory' },
     netherbrain: { mark: '2026', text: 'Netherbrain' },
     homelab: { mark: '2026', text: 'Homelab' },
   },
@@ -102,7 +102,7 @@ export const sceneEn = {
   postit: { resolved: 'Ticket resolved', frame: ['Resolved', 'R / RStudio'] },
   card: { contact: 'Contact' },
   laptop: { path: '~/projects' },
-  chest: { kicker: 'SIDE PROJECTS', title: 'Sealed' },
+  chest: { kicker: 'SIDE PROJECTS', title: 'The factory' },
   netherbrain: {
     label: {
       name: 'Netherbrain',

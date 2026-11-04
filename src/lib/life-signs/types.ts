@@ -23,6 +23,45 @@ export interface LifeSigns {
   measuredAt: string;
   /** Données d'exemple, affichées comme telles. */
   sample: boolean;
+  /** Les chiffres de l'usine (fiche à onglets), absents d'un ancien JSON. */
+  factory?: FactoryStats | undefined;
+}
+
+/**
+ * Les genres montrés en exemple dans la fiche de l'usine. Jamais de nom de
+ * chaîne, de compte ni de lien : un genre seulement.
+ */
+export const FACTORY_GENRES = ['fantasy', 'philosophy', 'marbles', 'quiz'] as const;
+
+export type FactoryGenreId = (typeof FACTORY_GENRES)[number];
+
+/** Les chiffres d'un genre. Les champs facultatifs ne s'affichent que s'ils sont là. */
+export interface FactoryGenreStats {
+  /** Vues depuis le début (affichées en « plus de N », arrondi vers le bas). */
+  views: number;
+  /** Rétention moyenne, en pourcentage (0 à 100). */
+  retention?: number | undefined;
+  /** Part des vidéos refusées par les relecteurs ou le contrôle, en pourcentage. */
+  rejected?: number | undefined;
+  /** Durée moyenne de production d'une vidéo, en minutes. */
+  minutes?: number | undefined;
+  /** Vidéos produites chacun des LIFE_SIGNS_DAYS derniers jours, du plus ancien au jour de la mesure. */
+  activity: readonly number[];
+}
+
+/** Les chiffres globaux de l'usine, et ceux de chaque genre montré. */
+export interface FactoryStats {
+  /** Chaînes produites par l'usine (recomptées : publication automatique ou validée à la main). */
+  channels: number;
+  /** Vidéos produites depuis le début. */
+  videos: number;
+  /** Vidéos par jour, en moyenne (une décimale au plus). */
+  perDay: number;
+  /** Vues depuis le début, toutes chaînes. */
+  views: number;
+  /** J'aime depuis le début, toutes chaînes. */
+  likes: number;
+  genres: Record<FactoryGenreId, FactoryGenreStats>;
 }
 
 const MINUTE = 60_000;

@@ -148,7 +148,7 @@ describe('le retournement de l’objet tenu', () => {
     expect(state.f).toBe(1);
   });
 
-  it.each(['flip', 'open', 'laptop', 'turn', 'shake', 'spin'] as const)(
+  it.each(['flip', 'open', 'laptop', 'turn', 'spin'] as const)(
     'change l’orientation de l’objet en mode %s',
     (mode) => {
       const front = presentQuaternion(
@@ -168,17 +168,6 @@ describe('le retournement de l’objet tenu', () => {
       expect(front.angleTo(back)).toBeGreaterThan(0.01);
     },
   );
-
-  it('ne secoue le coffret que retourné', () => {
-    const at = (t: number, f: number) =>
-      presentQuaternion('shake', f, 0, { t, pointerX: 0, pointerY: 0 }, new Quaternion());
-    // Remis à l'endroit, il ne bouge que par son lent balancement.
-    expect(at(0.5, 0).angleTo(at(0.51, 0))).toBeLessThan(0.01);
-    let shaken = 0;
-    for (let t = 0.5; t < 1.5; t += 0.01)
-      shaken = Math.max(shaken, at(t, 1).angleTo(at(t + 0.01, 1)));
-    expect(shaken).toBeGreaterThan(0.01);
-  });
 });
 
 describe('postitRestPose', () => {

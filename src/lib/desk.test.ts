@@ -29,7 +29,7 @@ describe('les étapes du bureau', () => {
         id: 'perso',
         item: 'chest',
         title: 'Projets perso',
-        detail: 'Scellés, mais vivants',
+        detail: 'Une usine à vidéos',
         href: '/fr/express#projects',
       },
       {

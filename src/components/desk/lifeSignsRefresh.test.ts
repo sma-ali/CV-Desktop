@@ -34,6 +34,15 @@ describe('la forme des signes de vie reçus', () => {
     expect(toLifeSigns({ ...signs, extra: 'non' })).toEqual(signs);
   });
 
+  it('garde les chiffres de l’usine, et ignore ceux qui sont mal formés', () => {
+    const signs = real(1);
+    expect(toLifeSigns(signs)?.factory).toEqual(signs.factory);
+    const broken = { ...signs, factory: { ...signs.factory, views: -1 } };
+    const parsed = toLifeSigns(broken);
+    expect(parsed?.factory).toBeUndefined();
+    expect(parsed?.running).toBe(6);
+  });
+
   it('refuse une forme fausse', () => {
     const signs = real(1);
     expect(toLifeSigns(null)).toBeNull();

@@ -169,9 +169,6 @@ const CUES: Record<SoundCue, (synth: Synth, strength: number) => void> = {
     tone(s, 1200 + i * 90, 0.07, 0.08, 'sine');
     tone(s, 2400 + i * 120, 0.03, 0.03, 'triangle');
   },
-  rattle: (s) => {
-    for (let i = 0; i < 4; i++) noise(s, 0.05, 1800 + i * 200, 4, 0.12, 'bandpass', i * 0.06);
-  },
   hum: (s) => {
     tone(s, 220, 1.4, 0.05, 'sine', 0, 180);
     tone(s, 330, 1.4, 0.03, 'sine', 0.05, 280);

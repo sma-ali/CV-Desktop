@@ -78,16 +78,25 @@ describe.each(locales)('contenu %s', (locale) => {
     expect(exposed.map((leaf) => leaf.path)).toEqual([]);
   });
 
-  // Le coffret scellé ne dit jamais ce qu'il contient : ni le sujet, ni une
-  // plateforme. Vaut pour tout ce que la scène, le bureau et les fiches
-  // affichent.
-  it('ne trahit pas le contenu du coffret scellé', () => {
+  // L'usine (projets perso, décision du 04/11/2026) montre le savoir-faire,
+  // pas la vitrine : des genres, jamais un nom de chaîne, un compte, une
+  // plateforme ni un lien qui permette de les retrouver. Vaut pour tout ce
+  // que la scène, le bureau et les fiches affichent.
+  it("ne mène à aucune chaîne de l'usine", () => {
     const forbidden =
-      /automatisation|automation|\busines?\b|factory|vid[ée]os?|tiktok|youtube|instagram|twitch|\bcha[iî]nes?\b|channel/i;
+      /tiktok|youtube|shorts|instagram|twitch|upload-?post|home\.arpa|192\.168/i;
     const leaked = textLeaves(content).filter(
       (leaf) => /^(desk|scene|sheets)\./.test(leaf.path) && forbidden.test(leaf.value),
     );
     expect(leaked.map((leaf) => leaf.path)).toEqual([]);
+  });
+
+  it("n'a aucun lien dans la fiche de l'usine", () => {
+    const leaves = textLeaves(content).filter((leaf) =>
+      /^sheets\.(ui\.factory|items\.chest)\./.test(leaf.path),
+    );
+    expect(leaves.length).toBeGreaterThan(20);
+    expect(leaves.filter((leaf) => /https?:|www\.|@|\.(com|fr|io)\b/.test(leaf.value))).toEqual([]);
   });
 
   it('annonce la disponibilité', () => {

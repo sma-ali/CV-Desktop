@@ -12,17 +12,7 @@
  * clics du décor, coffret qui tremble, ronronnement de l'écran, bip du son.
  */
 export type SoundCue =
-  | 'pick'
-  | 'putBack'
-  | 'flip'
-  | 'thud'
-  | 'slide'
-  | 'lampOn'
-  | 'switch'
-  | 'tick'
-  | 'rattle'
-  | 'hum'
-  | 'blip';
+  'pick' | 'putBack' | 'flip' | 'thud' | 'slide' | 'lampOn' | 'switch' | 'tick' | 'hum' | 'blip';
 
 export interface SoundPlayer {
   /** Le son est-il ouvert ? */

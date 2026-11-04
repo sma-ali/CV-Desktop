@@ -15,14 +15,14 @@ npm run dev
 
 Le site répond sur http://localhost:3000.
 
-| Adresse              | Ce qui s'affiche                                                                        |
-| -------------------- | --------------------------------------------------------------------------------------- |
-| `/`                  | redirige vers `/fr` ou `/en` selon la langue du navigateur (`Accept-Language`)          |
-| `/fr`, `/en`         | le bureau en 3D, avec son HUD ; sans WebGL ni JavaScript, la version express à la place |
-| `/fr/express`        | la version express : le CV en une page, en français, imprimable sur une page A4         |
-| `/en/express`        | la même en anglais, chacune avec un lien « Revenir au bureau »                          |
-| `/api/contact`       | POST du formulaire de contact (JSON, ou formulaire HTML sans JavaScript)                |
-| `/api/signes-de-vie` | GET des signes de vie du coffret (JSON public validé, ou données d'exemple)             |
+| Adresse              | Ce qui s'affiche                                                                            |
+| -------------------- | ------------------------------------------------------------------------------------------- |
+| `/`                  | redirige vers `/fr` ou `/en` selon la langue du navigateur (`Accept-Language`)              |
+| `/fr`, `/en`         | le bureau en 3D, avec son HUD ; sans WebGL ni JavaScript, la version express à la place     |
+| `/fr/express`        | la version express : le CV en une page, en français, imprimable sur une page A4             |
+| `/en/express`        | la même en anglais, chacune avec un lien « Revenir au bureau »                              |
+| `/api/contact`       | POST du formulaire de contact (JSON, ou formulaire HTML sans JavaScript)                    |
+| `/api/signes-de-vie` | GET des signes de vie et des chiffres de l'usine (JSON public validé, ou données d'exemple) |
 
 Un navigateur sans langue reconnue, ou sans en-tête `Accept-Language`, arrive en français. Le site sert aussi `/sitemap.xml`, `/robots.txt` et une image de partage par langue (`/fr/express/opengraph-image`).
 
@@ -66,7 +66,7 @@ Le serveur de test tourne en dry run, avec `CLES_DIR=/nonexistent` (jamais de vr
 
 ## Le bureau en 3D
 
-La page `/fr` (ou `/en`) s'ouvre sur un écran de chargement rendu par le serveur : une ampoule dont le filament chauffe au rythme du chargement réel (code de la scène, textures, shaders, première image), « Ali Smaani » et « Préparation du bureau ». La scène React Three Fiber arrive dans un fichier JavaScript à part ; quand elle est prête, l'écran s'efface et l'arrivée commence (la lampe s'allume, le code se tape à l'écran, la caméra monte), puis une visite automatique présente les objets du CV un à un. Si la scène tarde (20 s de page inoccupée), la version express prend sa place.
+La page `/fr` (ou `/en`) s'ouvre sur un écran de chargement rendu par le serveur : un écran noir, « Ali Smaani », et un trait fin qui se trace au rythme du chargement réel (code de la scène, textures, shaders, première image). La scène React Three Fiber arrive dans un fichier JavaScript à part ; quand elle est prête, l'écran s'efface et l'arrivée commence (dans la pénombre, les objets tombent un à un à leur place, puis la lampe s'allume en dernier, le code se tape à l'écran, la caméra monte), puis une visite automatique présente les objets du CV un à un. Si la scène tarde (20 s de page inoccupée), la version express prend sa place.
 
 Un clic sur un objet, sur son étiquette ou sur une puce du bas de page le soulève devant la caméra et ouvre sa fiche (Préc. / Suiv., Page précédente et Page suivante). On fait tourner l'objet tenu dans tous les sens en le glissant (souris ou doigt, avec un peu d'élan), ou avec les flèches du clavier, et « Remettre droit » (touche Début) le redresse ; un clic sur l'objet tenu, le bouton « Retourner » ou la touche R le retourne ; Échap, « Reposer » ou un clic ailleurs le repose.
 

@@ -2,7 +2,7 @@ import type { SceneContent } from '@/content/scene/schema';
 import { fitFont, grainy, roundRect } from '../core/canvas2d';
 import type { SceneFonts } from '../core/fonts';
 import { rng } from '../core/rng';
-import { FACE, FIREWALL_PORTS, homelabLeds, SWITCH_PORTS, UNITS, type UnitId } from './homelab';
+import { FACE, homelabLeds, JACK, PORTS, portY, UNITS, type UnitId } from './homelab';
 
 // Les textures peintes des objets du CV (couvertures, pages, badge, post-it,
 // carte, portable, plaque du coffret, bocal de Netherbrain, baie du
@@ -816,28 +816,29 @@ export function paintHomelabFront(scene: SceneContent): Painter {
         for (let r = 0; r < 7; r++) {
           for (let k = 0; k < 5; k++) c.fillRect(470 + k * 30, top + 30 + r * 22, 20, 9);
         }
-      } else if (unit.id === 'firewall') {
-        for (const x of FIREWALL_PORTS) {
-          const [px] = facePx(x, 0, w, h);
-          rj45(c, px, cy, 34);
-        }
-      } else if (unit.id === 'switch') {
-        for (const x of SWITCH_PORTS) {
-          const [px] = facePx(x, 0, w, h);
-          rj45(c, px, cy + 8, 30);
+      } else if (unit.id === 'firewall' || unit.id === 'switch') {
+        // Les prises, là où les câbles se branchent (homelab.ts : PORTS, portY).
+        const jackWidth = (JACK[unit.id][0] / (FACE.x1 - FACE.x0)) * w;
+        for (const x of PORTS[unit.id]) {
+          const [px, py] = facePx(x, portY(unit.id), w, h);
+          rj45(c, px, py, jackWidth);
         }
       } else {
         // Le panneau de brassage : douze prises numérotées.
         c.textAlign = 'center';
         c.textBaseline = 'middle';
         c.font = `500 11px ${F.mono}`;
-        for (let k = 0; k < 12; k++) {
-          const px = 70 + k * 44;
+        const [jw, jh] = JACK.patch.map((size) => (size / (FACE.x1 - FACE.x0)) * w) as [
+          number,
+          number,
+        ];
+        PORTS.patch.forEach((x, k) => {
+          const [px, py] = facePx(x, portY('patch'), w, h);
           c.fillStyle = '#0b0c0d';
-          c.fillRect(px - 13, cy - 6, 26, 20);
+          c.fillRect(px - jw / 2, py - jh / 2, jw, jh);
           c.fillStyle = '#9aa0a6';
-          c.fillText(String(k + 1), px, cy - 18);
-        }
+          c.fillText(String(k + 1), px, py - jh / 2 - 12);
+        });
       }
       const name = names[unit.id];
       if (name) {

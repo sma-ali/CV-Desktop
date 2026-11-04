@@ -18,17 +18,18 @@ import { flatPlaneGeometry } from '../core/geometry';
 import { useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
 import {
+  CABLES,
   FACE,
-  FIREWALL_PORTS,
   HOMELAB_SEED,
   homelabLeds,
+  JACK,
   LED_RGB,
   ledLevel,
+  portPoint,
   RACK,
-  SWITCH_PORTS,
   UNIT_DEPTH,
-  unitCenter,
   UNITS,
+  type PortRef,
 } from './homelab';
 import { MergedBoxes, MergedParts, type BoxPiece, type ColoredPart } from './merged';
 import {
@@ -85,7 +86,10 @@ const FRAME: BoxPiece[] = [
   })),
 ];
 
-/** Un câble de brassage, d'une prise à l'autre, qui bombe vers l'avant. */
+/** Longueur de la fiche RJ45 qui sort de la prise. */
+const PLUG_DEPTH = 0.034;
+
+/** Un câble de brassage, d'une fiche à l'autre, qui bombe vers l'avant. */
 function patchCable(from: Vector3, to: Vector3, bulge: number): TubeGeometry {
   const mid = from.clone().lerp(to, 0.5);
   mid.z += bulge;
@@ -99,21 +103,30 @@ function patchCable(from: Vector3, to: Vector3, bulge: number): TubeGeometry {
   return new TubeGeometry(curve, 14, 0.011, 5, false);
 }
 
+/** La fiche enfoncée dans une prise : un petit bloc à la taille de la prise. */
+function plug(port: PortRef): BoxGeometry {
+  const [x, y] = portPoint(port);
+  const [width, height] = JACK[port.unit];
+  const geometry = new BoxGeometry(width * 0.82, height * 0.78, PLUG_DEPTH);
+  geometry.translate(x, y, FACE.z + PLUG_DEPTH / 2);
+  return geometry;
+}
+
+/** Les câbles de CABLES : chaque bout est une fiche dans sa prise, le câble part de l'arrière de la fiche. */
 function cableParts(): ColoredPart[] {
-  const z = FACE.z + 0.012;
-  const sw = unitCenter('switch') + 0.008;
-  const fw = unitCenter('firewall');
-  const patch = unitCenter('patch');
-  const port = (x: number, y: number) => new Vector3(x, y, z);
-  return [
-    { from: port(SWITCH_PORTS[0] ?? 0, sw), to: port(FIREWALL_PORTS[1] ?? 0, fw), color: 0x3d7cc9 },
-    { from: port(SWITCH_PORTS[2] ?? 0, sw), to: port(FIREWALL_PORTS[3] ?? 0, fw), color: 0xd9b23a },
-    { from: port(SWITCH_PORTS[5] ?? 0, sw), to: port(0.2, patch), color: 0xc2492f },
-    { from: port(SWITCH_PORTS[7] ?? 0, sw), to: port(0.33, patch), color: 0x4f7a45 },
-  ].map(({ from, to, color }, i) => ({
-    geometry: patchCable(from, to, 0.05 + i * 0.012),
-    color,
-  }));
+  const z = FACE.z + PLUG_DEPTH;
+  const end = (port: PortRef) => {
+    const [x, y] = portPoint(port);
+    return new Vector3(x, y, z);
+  };
+  return CABLES.flatMap(({ from, to, color }, i) => {
+    const boot = new Color(color).lerp(new Color(0xd8d4cc), 0.25).getHex();
+    return [
+      { geometry: patchCable(end(from), end(to), 0.05 + i * 0.012), color },
+      { geometry: plug(from), color: boot },
+      { geometry: plug(to), color: boot },
+    ];
+  });
 }
 
 const LEDS = homelabLeds(HOMELAB_SEED);

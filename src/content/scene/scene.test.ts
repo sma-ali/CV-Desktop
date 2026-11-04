@@ -139,7 +139,7 @@ describe.each(cases)('scène %s', (locale, content, scene) => {
 
   it('ne cite sur les objets que des outils du CV', () => {
     const text = cvText(content);
-    for (const tool of [scene.postit.frame[1], ...scene.screen.words.stackItems]) {
+    for (const tool of scene.screen.words.stackItems) {
       expect(text).toContain(tool);
     }
   });

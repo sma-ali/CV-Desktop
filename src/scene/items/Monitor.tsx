@@ -10,7 +10,6 @@ import { standardMaterial } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
 import { paintCanvasTexture, useCanvasTexture, useSceneFonts } from '../core/textures';
-import { paintPostit, POSTIT_TEXTURE } from './paint';
 import { ITEMS_PRIORITY, type PresentState } from './presentation';
 import {
   closingBand,
@@ -20,8 +19,6 @@ import {
   tokenize,
   type ScreenFrame,
 } from './screen';
-import { standingPostitGeometry } from './shapes';
-import { usePaintedMaterial } from './usePaintedMaterial';
 import { usePresentation } from './usePresentation';
 
 // L'écran principal (mon et monTilt du prototype) : pied, dalle inclinée,
@@ -45,7 +42,7 @@ function sameFrame(a: ScreenFrame, b: ScreenFrame): boolean {
 
 export function Monitor({ texts }: { texts: SceneTexts }) {
   const store = useSceneStoreApi();
-  const { screen, postit } = texts.content;
+  const { screen } = texts.content;
   const tokens = useMemo(() => screen.code.map(tokenize), [screen.code]);
   const total = useMemo(() => codeLength(screen.code), [screen.code]);
 
@@ -127,10 +124,6 @@ export function Monitor({ texts }: { texts: SceneTexts }) {
     () => new PlaneGeometry(MONITOR.screen.width, MONITOR.screen.height),
     [],
   );
-  const postitGeometries = useMemo(
-    () => [standingPostitGeometry(0.72), standingPostitGeometry(0.66)] as const,
-    [],
-  );
   useEffect(
     () => () => {
       screenMaterial.dispose();
@@ -138,18 +131,8 @@ export function Monitor({ texts }: { texts: SceneTexts }) {
       ledMaterial.dispose();
       screenGeometry.dispose();
       bandPlane.geometry.dispose();
-      postitGeometries.forEach((geometry) => geometry.dispose());
     },
-    [screenMaterial, bandMaterial, ledMaterial, screenGeometry, bandPlane, postitGeometries],
-  );
-
-  const pinkPostit = usePaintedMaterial(
-    useMemo(() => paintPostit('#f2a48f', 62, postit.frame[0]), [postit.frame]),
-    { ...POSTIT_TEXTURE, redrawKey: texts.locale, roughness: 0.85 },
-  );
-  const greenPostit = usePaintedMaterial(
-    useMemo(() => paintPostit('#bfe0b5', 63, postit.frame[1]), [postit.frame]),
-    { ...POSTIT_TEXTURE, redrawKey: texts.locale, roughness: 0.85 },
+    [screenMaterial, bandMaterial, ledMaterial, screenGeometry, bandPlane],
   );
 
   const rest = useMemo(
@@ -255,21 +238,6 @@ export function Monitor({ texts }: { texts: SceneTexts }) {
             material={standardMaterial(0x1e1c1a)}
           />
         </group>
-        {/* Les post-it décoratifs du bord gauche (le post-it du CV est un objet à part). */}
-        <mesh
-          geometry={postitGeometries[0]}
-          material={pinkPostit}
-          position={[-2.66, -1.02, 0.09]}
-          rotation={[0, 0, 0.12]}
-          castShadow
-        />
-        <mesh
-          geometry={postitGeometries[1]}
-          material={greenPostit}
-          position={[-2.7, -0.3, 0.1]}
-          rotation={[0, 0, -0.08]}
-          castShadow
-        />
       </group>
     </group>
   );

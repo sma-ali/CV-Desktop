@@ -99,7 +99,7 @@ export const sceneEn = {
     ],
     lines: ['SQL queries redesigned', 'for high-volume data.'],
   },
-  postit: { resolved: 'Ticket resolved', frame: ['Resolved', 'R / RStudio'] },
+  postit: { resolved: 'Ticket resolved' },
   card: { contact: 'Contact' },
   laptop: { path: '~/projects' },
   chest: { kicker: 'SIDE PROJECTS', title: 'The factory' },

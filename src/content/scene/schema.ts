@@ -121,11 +121,7 @@ export const sceneContentSchema = z.strictObject({
     /** La phrase sous le code, sur la migration (faits du CV). */
     lines: texts,
   }),
-  postit: z.strictObject({
-    resolved: text,
-    /** Les deux post-it décoratifs du cadre de l'écran. */
-    frame: z.tuple([text, text]),
-  }),
+  postit: z.strictObject({ resolved: text }),
   card: z.strictObject({ contact: text }),
   laptop: z.strictObject({ path: text }),
   chest: z.strictObject({ kicker: text, title: text }),

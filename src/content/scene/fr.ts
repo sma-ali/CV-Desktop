@@ -100,7 +100,7 @@ export const sceneFr = {
     ],
     lines: ['Requêtes SQL refondues', 'pour une forte volumétrie.'],
   },
-  postit: { resolved: 'Ticket résolu', frame: ['Résolu', 'R / RStudio'] },
+  postit: { resolved: 'Ticket résolu' },
   card: { contact: 'Contact' },
   laptop: { path: '~/projets' },
   chest: { kicker: 'PROJETS PERSO', title: "L'usine" },

@@ -4,16 +4,16 @@ import { sceneFr } from './scene/fr';
 import { sheetsFr } from './sheets/fr';
 import { contact } from './shared';
 
-// Source : le CV d'Ali en français (mis à jour le 05/11/2026). Ne rien reformuler ici
+// Source : le CV d'Ali « Full Stack + IA » en français (05/11/2026). Ne rien reformuler ici
 // sans l'avoir changé dans le CV.
 export const fr = {
   profile: {
     name: 'Ali Smaani',
-    headline: 'Développeur Full-Stack',
+    headline: 'Développeur Full-Stack & IA',
     summary:
-      "Développeur full-stack (React, Node.js, TypeScript), doublé d'une expérience du support applicatif et de la gestion de données en environnement à forte criticité. Curieux, je fais le lien entre le code, l'infrastructure et la sécurité, de la conception au déploiement.",
-    location: 'Île-de-France ou remote',
-    availability: 'Disponible',
+      "Développeur full-stack React / TypeScript et Python / FastAPI. Je conçois des applications qui intègrent l'IA générative de bout en bout : interface React, API FastAPI, PostgreSQL, et LLM multi-fournisseurs avec tool calling, sorties structurées, RAG et streaming. En parallèle, je fais tourner en production une plateforme d'automatisation multi-agents auto-hébergée. 3 ans de développement web puis 2 ans et demi d'ingénierie applicative.",
+    location: 'Île-de-France · remote possible',
+    availability: 'Disponible immédiatement',
   },
   contact,
   sections: {
@@ -35,9 +35,8 @@ export const fr = {
       organizationDetail: 'Ministère du Travail',
       period: { start: '2024-01', end: '2026-06' },
       highlights: [
-        "Support applicatif N1/N2 d'un parc de ~300 utilisateurs (statisticiens, économistes) en contexte à forte criticité : habilitations, déploiement applicatif, accès aux bases de données distantes (ODBC), environnements statistiques (R / RStudio).",
-        'Sécurisation des échanges de données sensibles avec les partenaires (INSEE, France Travail) : chiffrement / déchiffrement via les bulles sécurisées du CASD (SD-Box).',
-        'Gestion de ~100 tickets/mois : recueil et traduction des besoins métiers, qualification, suivi, validation et pilotage par KPI.',
+        "Support applicatif N1/N2 d'un parc de ~300 utilisateurs en contexte à forte criticité : déploiement applicatif, habilitations, accès aux bases distantes (ODBC), environnements statistiques R / RStudio.",
+        "Sécurisation des échanges de données sensibles avec l'INSEE et France Travail (chiffrement via les bulles sécurisées du CASD) ; ~100 tickets/mois, du recueil du besoin métier à la validation.",
       ],
     },
     {
@@ -47,8 +46,8 @@ export const fr = {
       organizationDetail: 'CARIF-OREF Île-de-France',
       period: { start: '2020-09', end: '2023-08' },
       highlights: [
-        "Développement et maintenance (évolutive, corrective) des plateformes web du CARIF-OREF francilien (Drupal / PHP), au service des organismes de formation, des demandeurs d'emploi et des conseillers d'orientation.",
-        "Migration du catalogue de formations d'Île-de-France de Dokelio vers Ofeli, les deux bases de données régionales de l'offre de formation : refonte et optimisation des requêtes SQL pour améliorer les temps de réponse sur une forte volumétrie.",
+        "Développement et maintenance évolutive et corrective des plateformes web du CARIF-OREF francilien (Drupal / PHP), au service des organismes de formation et des conseillers d'orientation.",
+        'Migration du catalogue régional de formations de Dokelio vers Ofeli : refonte et optimisation des requêtes SQL sur une forte volumétrie.',
       ],
     },
   ],
@@ -56,13 +55,14 @@ export const fr = {
     {
       id: 'netherbrain',
       name: 'Netherbrain',
-      tagline: 'plateforme LLM auto-hébergée',
+      tagline: "plateforme d'orchestration de LLM",
       year: 2026,
       repository: { url: 'https://github.com/sma-ali/Netherbrain', public: false },
       highlights: [
-        'Plateforme de chat orchestrant des LLM open source locaux (Ollama / GPU) et distants via API compatible OpenAI : FastAPI, PostgreSQL + pgvector, Next.js / React / TypeScript.',
-        'Streaming temps réel (SSE), RAG sur documents joints, agent de code avec diff et validation avant chaque écriture.',
-        '236 tests automatisés, CI GitHub Actions sur PostgreSQL réel, déploiement Docker Compose multi-étapes non-root, migrations Alembic.',
+        'Full-stack Python / React : backend FastAPI (Pydantic, SQLAlchemy, migrations Alembic), PostgreSQL + pgvector, front React / TypeScript, streaming temps réel en Server-Sent Events.',
+        'Intégration LLM multi-fournisseurs : SDK OpenAI et toute API compatible (Ollama en local sur GPU, OpenRouter, Groq), métriques par réponse (latence du 1er token, tokens/s).',
+        "Agent outillé : boucle de tool calling multi-tours (lecture, recherche, édition de fichiers, git), diff présenté et accord explicite de l'utilisateur avant chaque écriture.",
+        'RAG sur documents joints ; plus de 300 tests automatisés (pytest, Vitest), CI GitHub Actions sur PostgreSQL réel, Docker Compose multi-étapes non-root.',
       ],
     },
     {
@@ -74,6 +74,16 @@ export const fr = {
       highlights: [
         'Serveur dédié sous Proxmox, pare-feu OPNsense, accès exclusif par VPN WireGuard, durcissement : pare-feu IPv4 + IPv6, 2FA, SSH par clé.',
         'Sauvegardes automatiques des VM avec restauration testée ; architecture et procédures intégralement documentées et versionnées.',
+      ],
+    },
+    {
+      id: 'automation',
+      name: "Plateforme d'automatisation multi-agents",
+      tagline: 'projet personnel en production',
+      year: 2026,
+      highlights: [
+        'Pipelines LLM de bout en bout en Python : agents spécialisés, relecture automatique, validation humaine avant diffusion, planification.',
+        'Choix du modèle selon la tâche, suivi des coûts et repli automatique entre API et abonnement ; serveur auto-hébergé (Proxmox, OPNsense, WireGuard).',
       ],
     },
   ],
@@ -92,70 +102,66 @@ export const fr = {
       from: 2020,
       to: 2021,
     },
-    {
-      id: 'paris-8',
-      title: 'Développeur Web & Web Mobile',
-      school: 'Université Paris 8 · CFA AFIA, Saint-Denis',
-      from: 2019,
-      to: 2020,
-    },
-    {
-      id: 'baccalaureat',
-      title: 'Baccalauréat Littéraire',
-      school: 'Lycée Charles de Foucauld, Paris',
-      from: 2017,
-      to: 2017,
-    },
   ],
   skills: [
     {
-      id: 'languages',
-      label: 'Langages',
-      items: ['JavaScript', 'TypeScript', 'PHP', 'Python', 'SQL'],
-    },
-    {
       id: 'frontend',
       label: 'Front-end',
-      items: ['React', 'Next.js', 'Tailwind', 'HTML5/CSS3'],
+      items: ['React', 'TypeScript', 'Next.js', 'Vite', 'Tailwind', 'Three.js'],
     },
     {
       id: 'backend',
-      label: 'Back-end & BDD',
+      label: 'Back-end',
       items: [
-        'Node.js',
-        'Express',
+        'Python',
         'FastAPI',
+        'Pydantic',
         'API REST',
-        'Drupal',
+        'SSE',
         'PostgreSQL / pgvector',
-        'MySQL/MariaDB',
+        'Alembic',
+        'Node.js / Express',
+      ],
+    },
+    {
+      id: 'ai',
+      label: 'IA & LLM',
+      items: [
+        'API Anthropic',
+        'SDK OpenAI',
+        'Ollama',
+        'Tool calling',
+        'Sorties structurées',
+        'Agents IA',
+        'RAG',
+        'Prompt engineering',
       ],
     },
     {
       id: 'devops',
-      label: 'DevOps / Infra',
-      items: ['Git', 'Docker Compose', 'Linux', 'Nginx', 'CI/CD', 'GitHub Actions', 'Proxmox'],
+      label: 'DevOps & qualité',
+      items: [
+        'Docker Compose',
+        'GitHub Actions',
+        'CI/CD',
+        'Git',
+        'pytest',
+        'Vitest',
+        'Linux',
+        'Nginx',
+        'Proxmox',
+      ],
     },
     {
-      id: 'tools',
-      label: 'Outils & méthodes',
-      items: [
-        'Postman',
-        'Vitest / Jest',
-        'pytest',
-        'Jira',
-        'Agile / Scrum',
-        'IA générative',
-        'Prompt engineering',
-      ],
+      id: 'other',
+      label: 'Autres',
+      items: ['SQL', 'PHP / Drupal', 'Agile / Scrum'],
     },
   ],
   softSkills: [
+    'Autonomie & force de proposition',
     'Fast-learner',
-    'Adaptabilité',
-    'Autonomie',
-    'Curiosité',
-    "Esprit d'équipe",
+    'Traduction du besoin métier en solution logicielle',
     'Aisance écrite & orale',
   ],
   languages: [

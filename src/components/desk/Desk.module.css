@@ -5,6 +5,12 @@
    les couleurs du site. */
 
 .desk {
+  /* L'interface du bureau parle en Pixelify Sans (choisie le 05/11). */
+  --serif-read: var(--font-fraunces), 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --mono-read:
+    var(--font-plex-mono), ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Courier New', monospace;
+  --serif: var(--font-pixel), var(--serif-read);
+  --mono: var(--font-pixel), var(--mono-read);
   --nuit: #0e0a08;
   --laiton: #c9973f;
   --ambre: #ffb45e;
@@ -18,6 +24,8 @@
   background: var(--nuit);
   color: var(--creme);
   font-family: var(--mono);
+  /* Pixelify Sans n'a pas d'italique : pas de fausse pente calculée par le navigateur. */
+  font-synthesis: none;
   -webkit-tap-highlight-color: transparent;
 }
 
@@ -433,6 +441,12 @@
   margin: 0;
   padding: 0;
   list-style: none;
+  /* La liste court sur toute la largeur : seules les puces prennent les
+     clics, le bureau reste cliquable entre elles (reposer un objet). */
+  pointer-events: none;
+}
+
+.steps li {
   pointer-events: auto;
 }
 

@@ -5,7 +5,7 @@ import { getContent, locales, type Locale } from '../../src/content';
 // Valeurs écrites en dur : ces tests ne comparent pas le contenu qu'à lui-même.
 const expected = {
   fr: {
-    title: 'Ali Smaani | Développeur Full-Stack',
+    title: 'Ali Smaani | Développeur Full-Stack & IA',
     other: { name: 'English', path: '/en/express' },
     experiences: [
       { role: 'Ingénieur applicatif & gestion de données', period: 'Janv. 2024 - Juin 2026' },
@@ -14,10 +14,10 @@ const expected = {
     print: 'Imprimer',
     skip: 'Aller au contenu',
     desk: 'Revenir au bureau',
-    availability: 'Disponible',
+    availability: 'Disponible immédiatement',
   },
   en: {
-    title: 'Ali Smaani | Full-Stack Developer',
+    title: 'Ali Smaani | Full-Stack & AI Developer',
     other: { name: 'Français', path: '/fr/express' },
     experiences: [
       { role: 'Application & Data Management Engineer', period: 'Jan 2024 - Jun 2026' },
@@ -26,7 +26,7 @@ const expected = {
     print: 'Print',
     skip: 'Skip to content',
     desk: 'Back to the desk',
-    availability: 'Available',
+    availability: 'Available immediately',
   },
 } satisfies Record<Locale, unknown>;
 
@@ -122,15 +122,13 @@ for (const locale of locales) {
         const years = item.from === item.to ? [item.from] : [item.from, item.to];
         await expect(entry.locator('time')).toHaveText(years.map(String));
       }
-      // Le bac tient sur une seule année.
-      const bac = page.getByRole('listitem').filter({ hasText: content.education.at(-1)!.title });
-      await expect(bac.locator('time')).toHaveText(['2017']);
     });
 
     test('ne lie que les dépôts publics et ne donne aucun téléphone', async ({ page }) => {
       await page.goto(path);
       // Chaque projet : un lien vers son dépôt s'il est public, aucun sinon.
       for (const { repository } of content.projects) {
+        if (!repository) continue;
         await expect(page.locator(`a[href="${repository.url}"]`)).toHaveCount(
           repository.public ? 1 : 0,
         );

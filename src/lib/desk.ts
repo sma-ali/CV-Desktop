@@ -158,7 +158,7 @@ export function buildDeskSheets(content: Content, locale: Locale): DeskSheets {
   const { ui, items } = content.sheets;
   const repositoryOf = (id: ItemId): DeskSheet['repository'] => {
     const project = content.projects.find((entry) => entry.id === id);
-    return project?.repository.public
+    return project?.repository?.public
       ? { label: ui.repository, href: project.repository.url }
       : null;
   };

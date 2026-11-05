@@ -60,12 +60,15 @@ const projectSchema = z.strictObject({
   name: text,
   tagline: text,
   year,
-  repository: z.strictObject({
-    url: z.url({ protocol: /^https$/, hostname: /^github\.com$/ }),
-    // Le site ne lie le dépôt que s'il est public. À vérifier sur GitHub
-    // avant de passer à true.
-    public: z.boolean(),
-  }),
+  repository: z
+    .strictObject({
+      url: z.url({ protocol: /^https$/, hostname: /^github\.com$/ }),
+      // Le site ne lie le dépôt que s'il est public. À vérifier sur GitHub
+      // avant de passer à true.
+      public: z.boolean(),
+    })
+    // Sans dépôt : la plateforme d'automatisation (aucun code public).
+    .optional(),
   highlights: texts,
 });
 

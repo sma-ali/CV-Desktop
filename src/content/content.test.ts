@@ -44,7 +44,8 @@ function isUntranslated({ path, value }: Leaf) {
     untranslatedKeys.has(key) ||
     path === 'contact.website' ||
     path === 'profile.name' ||
-    /^projects\[\d+\]\.name$/.test(path)
+    // Netherbrain et Homelab gardent leur nom ; la plateforme d'automatisation se traduit.
+    /^projects\[[01]\]\.name$/.test(path)
   );
 }
 
@@ -100,7 +101,9 @@ describe.each(locales)('contenu %s', (locale) => {
   });
 
   it('annonce la disponibilité', () => {
-    expect(content.profile.availability).toBe(locale === 'fr' ? 'Disponible' : 'Available');
+    expect(content.profile.availability).toBe(
+      locale === 'fr' ? 'Disponible immédiatement' : 'Available immediately',
+    );
   });
 
   it('date les étiquettes de la scène comme le CV', () => {
@@ -136,8 +139,14 @@ describe('faits du CV', () => {
     ]);
   });
 
-  it('présente Netherbrain et Homelab', () => {
-    expect(fr.projects.map((project) => project.id)).toEqual(['netherbrain', 'homelab']);
+  it('présente Netherbrain, Homelab et la plateforme d’automatisation', () => {
+    expect(fr.projects.map((project) => project.id)).toEqual([
+      'netherbrain',
+      'homelab',
+      'automation',
+    ]);
+    // Aucun dépôt public pour la plateforme : rien à lier.
+    expect(fr.projects[2]?.repository).toBeUndefined();
   });
 });
 

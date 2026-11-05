@@ -92,9 +92,10 @@ describe.each(cases)('scène %s', (locale, content, scene) => {
   it('reprend les projets tels quels', () => {
     const { projects } = facts;
     expect(projects.year).toBe(String(Math.max(...content.projects.map((p) => p.year))));
-    expect(projects.items).toEqual(
-      content.projects.map(({ name, tagline }) => ({ name, tagline })),
-    );
+    // Les deux projets posés sur le bureau ; la plateforme d'automatisation,
+    // elle, est l'usine (coffret) et ne s'écrit pas sur l'ordinateur.
+    const onDesk = content.projects.filter((p) => p.id === 'netherbrain' || p.id === 'homelab');
+    expect(projects.items).toEqual(onDesk.map(({ name, tagline }) => ({ name, tagline })));
     const names = content.projects.map((project) => project.name);
     const skills = content.skills.flatMap((group) => group.items);
     for (const sticker of projects.stickers) {
@@ -131,7 +132,8 @@ describe.each(cases)('scène %s', (locale, content, scene) => {
     // Une étiquette par objet qui a un point d'accroche (TagLayer les pose d'office).
     expect(Object.keys(labels)).toEqual(ITEM_IDS.filter((id) => ITEM_POSES[id].tag !== null));
     for (const project of content.projects) {
-      const key = project.id as 'netherbrain' | 'homelab';
+      if (project.id !== 'netherbrain' && project.id !== 'homelab') continue;
+      const key = project.id;
       expect(labels[key]).toEqual({ mark: String(project.year), text: project.name });
     }
     expect(labels.laptop.text).toBe(content.sections.skills);

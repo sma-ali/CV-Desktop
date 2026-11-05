@@ -126,7 +126,7 @@ export function ExpressCv({
                   ))}
                 </ul>
                 {/* Le dépôt n'est lié que s'il est public sur GitHub. */}
-                {project.repository.public ? (
+                {project.repository?.public ? (
                   <p className={styles.repository}>
                     <span className={styles.contactLabel}>{ui.repositoryLabel}</span>{' '}
                     <a href={project.repository.url} className={styles.contactLink}>

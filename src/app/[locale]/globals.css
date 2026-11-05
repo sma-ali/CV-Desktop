@@ -14,11 +14,11 @@
   --chip: rgb(31 23 16 / 0.35);
   --shadow: 0 1.5rem 4rem rgb(70 45 20 / 0.18);
 
-  --serif:
-    var(--font-pixel), var(--font-fraunces), 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  /* Les polices de lecture (version express, impression). Le bureau les
+     précède de Pixelify Sans (Desk.module.css). */
+  --serif: var(--font-fraunces), 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
   --mono:
-    var(--font-pixel), var(--font-plex-mono), ui-monospace, 'SFMono-Regular', Menlo, Consolas,
-    'Courier New', monospace;
+    var(--font-plex-mono), ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Courier New', monospace;
 }
 
 @media (prefers-color-scheme: dark) {
@@ -59,8 +59,6 @@ body {
   line-height: 1.55;
   overflow-wrap: break-word;
   -webkit-font-smoothing: antialiased;
-  /* Pixelify Sans n'a pas d'italique : pas de fausse pente calculée par le navigateur. */
-  font-synthesis: none;
   /* Positions des glyphes sans arrondi au pixel : sans cela, Chromium sous
      Linux ouvre des blancs parasites dans Fraunces aux petites tailles
      (« f ormations », « perf ormed »), à l'écran comme dans le PDF. */

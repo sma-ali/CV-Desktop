@@ -8,7 +8,7 @@ test.describe('la racine', () => {
     await page.goto('/');
     await expect(page).toHaveURL(/\/en$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'en');
-    await expect(page).toHaveTitle('Ali Smaani | Full-Stack Developer');
+    await expect(page).toHaveTitle('Ali Smaani | Full-Stack & AI Developer');
     await context.close();
   });
 
@@ -18,7 +18,7 @@ test.describe('la racine', () => {
     await page.goto('/');
     await expect(page).toHaveURL(/\/fr$/);
     await expect(page.locator('html')).toHaveAttribute('lang', 'fr');
-    await expect(page).toHaveTitle('Ali Smaani | Développeur Full-Stack');
+    await expect(page).toHaveTitle('Ali Smaani | Développeur Full-Stack & IA');
     await context.close();
   });
 

@@ -70,9 +70,9 @@ describe('les textes du bureau', () => {
     expect(texts).toMatchObject({
       name: 'Ali Smaani',
       firstName: 'Ali',
-      headline: 'Développeur Full-Stack',
-      availability: 'Disponible',
-      location: 'Île-de-France ou remote',
+      headline: 'Développeur Full-Stack & IA',
+      availability: 'Disponible immédiatement',
+      location: 'Île-de-France · remote possible',
       expressHref: '/fr/express',
       language: { label: 'EN', name: 'English', href: '/en', locale: 'en' },
     });
@@ -127,7 +127,7 @@ describe('les fiches du bureau', () => {
       ...content,
       projects: content.projects.map((project) => ({
         ...project,
-        repository: { ...project.repository, public: false },
+        repository: project.repository && { ...project.repository, public: false },
       })),
     };
     const sheets = buildDeskSheets(closed, 'fr');

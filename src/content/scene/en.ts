@@ -22,7 +22,7 @@ export const sceneEn = {
       stack: 'stack',
       location: 'location',
       available: 'available',
-      stackItems: ['TypeScript', 'React', 'Node.js'],
+      stackItems: ['TypeScript', 'React', 'Python'],
     },
     // Généré par buildScreenCode(en, words) : ne pas retoucher à la main.
     code: [
@@ -33,8 +33,8 @@ export const sceneEn = {
       "    'Application & Data Management Engineer'),",
       '];',
       'export const ali = {',
-      "  title: 'Full-Stack Developer',",
-      "  stack: ['TypeScript', 'React', 'Node.js'],",
+      "  title: 'Full-Stack & AI Developer',",
+      "  stack: ['TypeScript', 'React', 'Python'],",
       "  location: 'Paris, France · Open to remote',",
       '  available: true,',
       '} as const;',
@@ -44,9 +44,9 @@ export const sceneEn = {
   },
   facts: {
     name: 'Ali Smaani',
-    headline: 'Full-Stack Developer',
+    headline: 'Full-Stack & AI Developer',
     location: 'Paris, France · Open to remote',
-    availability: 'Available',
+    availability: 'Available immediately',
     email: 'smanali.pro@gmail.com',
     linkedin: 'linkedin.com/in/smaali',
     defiMetiers: {
@@ -65,19 +65,19 @@ export const sceneEn = {
       role: 'Application & Data Management Engineer',
       period: 'Jan 2024 - Jun 2026',
       support: 'L1/L2 support',
-      tickets: '~100 tickets/month',
+      tickets: '~100 tickets a month',
       users: '~300 users',
       tools: 'R / RStudio',
     },
     projects: {
       year: '2026',
       items: [
-        { name: 'Netherbrain', tagline: 'self-hosted LLM platform' },
+        { name: 'Netherbrain', tagline: 'LLM orchestration platform' },
         { name: 'Homelab', tagline: 'self-hosted infrastructure' },
       ],
       stickers: ['Netherbrain', 'TypeScript', 'Homelab', 'Next.js', 'Proxmox'],
-      chips: ['Next.js', 'FastAPI', 'pgvector', 'Proxmox', 'WireGuard'],
-      tests: '236 automated tests',
+      chips: ['React', 'FastAPI', 'pgvector', 'Proxmox', 'WireGuard'],
+      tests: '300+ automated tests',
     },
   },
   book: {
@@ -110,10 +110,10 @@ export const sceneEn = {
   netherbrain: {
     label: {
       name: 'Netherbrain',
-      tagline: 'self-hosted LLM platform',
+      tagline: 'LLM orchestration platform',
       year: '2026',
-      stack: ['Ollama / GPU', 'FastAPI', 'PostgreSQL + pgvector', 'Next.js / React / TypeScript'],
-      tests: '236 automated tests',
+      stack: ['local Ollama on GPU', 'FastAPI', 'PostgreSQL + pgvector', 'React / TypeScript'],
+      tests: '300+ automated tests',
     },
   },
   homelab: {

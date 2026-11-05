@@ -23,7 +23,7 @@ export const sceneFr = {
       stack: 'pile',
       location: 'zone',
       available: 'disponible',
-      stackItems: ['TypeScript', 'React', 'Node.js'],
+      stackItems: ['TypeScript', 'React', 'Python'],
     },
     // Généré par buildScreenCode(fr, words) : ne pas retoucher à la main.
     code: [
@@ -34,9 +34,9 @@ export const sceneFr = {
       "    'Ingénieur applicatif & gestion de données'),",
       '];',
       'export const ali = {',
-      "  titre: 'Développeur Full-Stack',",
-      "  pile: ['TypeScript', 'React', 'Node.js'],",
-      "  zone: 'Île-de-France ou remote',",
+      "  titre: 'Développeur Full-Stack & IA',",
+      "  pile: ['TypeScript', 'React', 'Python'],",
+      "  zone: 'Île-de-France · remote possible',",
       '  disponible: true,',
       '} as const;',
     ],
@@ -45,9 +45,9 @@ export const sceneFr = {
   },
   facts: {
     name: 'Ali Smaani',
-    headline: 'Développeur Full-Stack',
-    location: 'Île-de-France ou remote',
-    availability: 'Disponible',
+    headline: 'Développeur Full-Stack & IA',
+    location: 'Île-de-France · remote possible',
+    availability: 'Disponible immédiatement',
     email: 'smanali.pro@gmail.com',
     linkedin: 'linkedin.com/in/smaali',
     defiMetiers: {
@@ -73,12 +73,12 @@ export const sceneFr = {
     projects: {
       year: '2026',
       items: [
-        { name: 'Netherbrain', tagline: 'plateforme LLM auto-hébergée' },
+        { name: 'Netherbrain', tagline: "plateforme d'orchestration de LLM" },
         { name: 'Homelab', tagline: 'infrastructure auto-hébergée' },
       ],
       stickers: ['Netherbrain', 'TypeScript', 'Homelab', 'Next.js', 'Proxmox'],
-      chips: ['Next.js', 'FastAPI', 'pgvector', 'Proxmox', 'WireGuard'],
-      tests: '236 tests automatisés',
+      chips: ['React', 'FastAPI', 'pgvector', 'Proxmox', 'WireGuard'],
+      tests: 'plus de 300 tests automatisés',
     },
   },
   book: {
@@ -111,10 +111,10 @@ export const sceneFr = {
   netherbrain: {
     label: {
       name: 'Netherbrain',
-      tagline: 'plateforme LLM auto-hébergée',
+      tagline: "plateforme d'orchestration de LLM",
       year: '2026',
-      stack: ['Ollama / GPU', 'FastAPI', 'PostgreSQL + pgvector', 'Next.js / React / TypeScript'],
-      tests: '236 tests automatisés',
+      stack: ['Ollama en local sur GPU', 'FastAPI', 'PostgreSQL + pgvector', 'React / TypeScript'],
+      tests: 'plus de 300 tests automatisés',
     },
   },
   homelab: {

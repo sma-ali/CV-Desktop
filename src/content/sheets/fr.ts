@@ -115,7 +115,7 @@ export const sheetsFr = {
         { term: 'Technos', value: 'Drupal / PHP' },
         { term: 'Contrat', value: 'Alternance' },
       ],
-      body: "Développement et maintenance des plateformes web du CARIF-OREF francilien, au service des organismes de formation, des demandeurs d'emploi et des conseillers d'orientation.",
+      body: "Développement et maintenance évolutive et corrective des plateformes web du CARIF-OREF francilien, au service des organismes de formation et des conseillers d'orientation.",
       note: 'Ouvert, le livre montre une page de code Drupal / PHP.',
     },
     badge: {
@@ -128,7 +128,7 @@ export const sheetsFr = {
         { term: 'Levier', value: 'Optimisation des requêtes SQL' },
         { term: 'Volume', value: 'Forte volumétrie' },
       ],
-      body: "Le catalogue de formations d'Île-de-France est passé de Dokelio à Ofeli, les deux bases de données régionales de l'offre de formation. Les requêtes SQL ont été refondues pour améliorer les temps de réponse.",
+      body: 'Le catalogue régional de formations est passé de Dokelio à Ofeli. Les requêtes SQL ont été refondues et optimisées pour tenir une forte volumétrie.',
     },
     postit: {
       kicker: 'Janv. 2024 - Juin 2026',
@@ -138,9 +138,9 @@ export const sheetsFr = {
         { term: 'Chez', value: 'DARES' },
         { term: 'Rattachement', value: 'Ministère du Travail' },
         { term: 'Volume', value: '~100 tickets/mois' },
-        { term: 'Suivi', value: 'Pilotage par KPI' },
+        { term: 'Parcours', value: 'du recueil du besoin métier à la validation' },
       ],
-      body: 'Recueil et traduction des besoins métiers, qualification, suivi et validation de chaque ticket.',
+      body: "Chaque ticket est suivi de bout en bout, du besoin exprimé par le métier jusqu'à la validation.",
     },
     headset: {
       kicker: 'Janv. 2024 - Juin 2026',
@@ -148,24 +148,25 @@ export const sheetsFr = {
       title: 'Support applicatif N1/N2',
       meta: [
         { term: 'Parc', value: '~300 utilisateurs' },
-        { term: 'Public', value: 'statisticiens, économistes' },
+        { term: 'Contexte', value: 'forte criticité' },
         { term: 'Outils', value: 'R / RStudio' },
         { term: 'Accès', value: 'ODBC' },
       ],
-      body: "Habilitations, déploiement applicatif, accès aux bases de données distantes et environnements statistiques, en contexte à forte criticité. Les échanges de données sensibles avec l'INSEE et France Travail passent par les bulles sécurisées du CASD.",
+      body: "Déploiement applicatif, habilitations, accès aux bases distantes et environnements statistiques, en contexte à forte criticité. Les échanges de données sensibles avec l'INSEE et France Travail passent par les bulles sécurisées du CASD.",
     },
     netherbrain: {
       kicker: '2026',
       step: 'Étape 3 sur 3',
       title: 'Netherbrain',
       meta: [
-        { term: 'Projet', value: 'plateforme LLM auto-hébergée' },
-        { term: 'Modèles', value: 'Ollama / GPU' },
-        { term: 'Serveur', value: 'FastAPI, PostgreSQL + pgvector' },
-        { term: 'Interface', value: 'Next.js / React / TypeScript' },
-        { term: 'Qualité', value: '236 tests automatisés' },
+        { term: 'Projet', value: "plateforme d'orchestration de LLM" },
+        { term: 'Modèles', value: 'Ollama en local sur GPU, OpenRouter, Groq' },
+        { term: 'Serveur', value: 'FastAPI (Pydantic, SQLAlchemy, migrations Alembic)' },
+        { term: 'Base', value: 'PostgreSQL + pgvector' },
+        { term: 'Interface', value: 'React / TypeScript' },
+        { term: 'Qualité', value: 'plus de 300 tests automatisés' },
       ],
-      body: 'Une plateforme de chat qui orchestre des LLM open source, locaux ou distants via une API compatible OpenAI. Streaming temps réel (SSE), RAG sur documents joints, agent de code avec diff et validation avant chaque écriture.',
+      body: "Une plateforme qui orchestre des LLM de plusieurs fournisseurs, en local ou via toute API compatible OpenAI. Streaming temps réel, RAG sur documents joints, et un agent outillé qui montre son diff et attend l'accord de l'utilisateur avant chaque écriture.",
     },
     homelab: {
       kicker: '2026',
@@ -183,26 +184,27 @@ export const sheetsFr = {
     laptop: {
       kicker: 'Compétences',
       step: 'Les outils',
-      title: 'Développeur Full-Stack',
+      title: 'Développeur Full-Stack & IA',
       meta: [
-        { term: 'Langages', value: 'JavaScript, TypeScript, PHP, Python, SQL' },
-        { term: 'Front-end', value: 'React, Next.js, Tailwind, HTML5/CSS3' },
+        { term: 'Front-end', value: 'React, TypeScript, Next.js, Vite, Tailwind, Three.js' },
         {
-          term: 'Back-end & BDD',
+          term: 'Back-end',
           value:
-            'Node.js, Express, FastAPI, API REST, Drupal, PostgreSQL / pgvector, MySQL/MariaDB',
+            'Python, FastAPI, Pydantic, API REST, SSE, PostgreSQL / pgvector, Alembic, Node.js / Express',
         },
         {
-          term: 'DevOps / Infra',
-          value: 'Git, Docker Compose, Linux, Nginx, CI/CD, GitHub Actions, Proxmox',
-        },
-        {
-          term: 'Outils & méthodes',
+          term: 'IA & LLM',
           value:
-            'Postman, Vitest / Jest, pytest, Jira, Agile / Scrum, IA générative, Prompt engineering',
+            'API Anthropic, SDK OpenAI, Ollama, Tool calling, Sorties structurées, Agents IA, RAG, Prompt engineering',
         },
+        {
+          term: 'DevOps & qualité',
+          value:
+            'Docker Compose, GitHub Actions, CI/CD, Git, pytest, Vitest, Linux, Nginx, Proxmox',
+        },
+        { term: 'Autres', value: 'SQL, PHP / Drupal, Agile / Scrum' },
       ],
-      body: "Les compétences du CV, du front-end à l'infrastructure.",
+      body: "Les compétences du CV, du front-end à l'IA et à l'infrastructure.",
     },
     chest: {
       kicker: '2026',
@@ -217,9 +219,9 @@ export const sheetsFr = {
       step: 'Contact',
       title: 'Ali Smaani',
       meta: [
-        { term: 'Poste', value: 'Développeur Full-Stack' },
-        { term: 'Zone', value: 'Île-de-France ou remote' },
-        { term: 'Statut', value: 'Disponible' },
+        { term: 'Poste', value: 'Développeur Full-Stack & IA' },
+        { term: 'Zone', value: 'Île-de-France · remote possible' },
+        { term: 'Statut', value: 'Disponible immédiatement' },
         { term: 'E-mail', value: 'smanali.pro@gmail.com', href: 'mailto:smanali.pro@gmail.com' },
         {
           term: 'LinkedIn',
@@ -227,19 +229,19 @@ export const sheetsFr = {
           href: 'https://www.linkedin.com/in/smaali',
         },
       ],
-      body: 'Vous cherchez un développeur full-stack, sur place ou à distance ? Écrivez-moi.',
+      body: 'Vous cherchez un développeur full-stack orienté IA, sur place ou à distance ? Écrivez-moi.',
     },
     monitor: {
       kicker: 'Le parcours',
       step: 'Profil',
-      title: 'Développeur Full-Stack',
+      title: 'Développeur Full-Stack & IA',
       meta: [
         { term: 'DEFI-METIERS', value: 'Sept. 2020 - Août 2023' },
         { term: 'DARES', value: 'Janv. 2024 - Juin 2026' },
         { term: 'Projets', value: '2026' },
-        { term: 'Statut', value: 'Disponible' },
+        { term: 'Statut', value: 'Disponible immédiatement' },
       ],
-      body: "Développeur full-stack (React, Node.js, TypeScript), doublé d'une expérience du support applicatif et de la gestion de données en environnement à forte criticité. Curieux, je fais le lien entre le code, l'infrastructure et la sécurité, de la conception au déploiement.",
+      body: "Développeur full-stack React / TypeScript et Python / FastAPI. Je conçois des applications qui intègrent l'IA générative de bout en bout : interface React, API FastAPI, PostgreSQL, et LLM multi-fournisseurs avec tool calling, sorties structurées, RAG et streaming. En parallèle, je fais tourner en production une plateforme d'automatisation multi-agents auto-hébergée. 3 ans de développement web puis 2 ans et demi d'ingénierie applicative.",
     },
   },
 } satisfies SheetsContent;

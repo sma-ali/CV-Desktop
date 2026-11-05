@@ -3,6 +3,13 @@
    lecture : identité, contact, profil, parcours, puis le reste. */
 
 .cv {
+  /* Le CV se lit dans ses polices de lecture, même affiché dans le bureau (repli). */
+  --serif: var(--font-fraunces), 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
+  --mono:
+    var(--font-plex-mono), ui-monospace, 'SFMono-Regular', Menlo, Consolas, 'Courier New', monospace;
+
+  font-family: var(--serif);
+  font-synthesis: weight style;
   display: grid;
   grid-template-columns: minmax(0, 1fr);
   row-gap: 1.75rem;
@@ -442,10 +449,12 @@
     margin-bottom: 2mm;
   }
 
+  /* Le CV « Full Stack + IA » (05/11) est plus dense : profil et puces se
+     resserrent pour tenir sur une page A4. */
   .summaryText {
     max-width: none;
-    font-size: 9.5pt;
-    line-height: 1.35;
+    font-size: 9pt;
+    line-height: 1.28;
   }
 
   .entry {
@@ -465,6 +474,8 @@
   .highlights {
     max-width: none;
     margin-top: 1mm;
+    font-size: 8.5pt;
+    line-height: 1.25;
   }
 
   .highlights li + li {

@@ -4,15 +4,15 @@ import { sceneEn } from './scene/en';
 import { sheetsEn } from './sheets/en';
 import { contact } from './shared';
 
-// Source : le CV d'Ali en anglais (mis à jour le 05/11/2026). Même structure que fr.ts.
+// Source : le CV d'Ali « Full Stack + AI » en anglais (05/11/2026). Même structure que fr.ts.
 export const en = {
   profile: {
     name: 'Ali Smaani',
-    headline: 'Full-Stack Developer',
+    headline: 'Full-Stack & AI Developer',
     summary:
-      'Full-stack developer (React, Node.js, TypeScript) with hands-on experience in application support and data management for high-criticality environments. Curious by nature, comfortable bridging code, infrastructure and security, from design to deployment.',
+      'Full-stack developer (React / TypeScript, Python / FastAPI). I build applications that integrate generative AI end to end: React front end, FastAPI back end, PostgreSQL, and multi-provider LLMs with tool calling, structured outputs, RAG and streaming. I also run a self-hosted multi-agent automation platform in production. 3 years of web development, then 2.5 years of application engineering.',
     location: 'Paris, France · Open to remote',
-    availability: 'Available',
+    availability: 'Available immediately',
   },
   contact,
   sections: {
@@ -34,9 +34,8 @@ export const en = {
       organizationDetail: 'French Ministry of Labour, statistics & research directorate',
       period: { start: '2024-01', end: '2026-06' },
       highlights: [
-        'Delivered L1/L2 support to ~300 users (statisticians, economists) in a high-criticality environment: access rights, application deployment, remote database access (ODBC), statistical environments (R / RStudio).',
-        "Secured sensitive data exchanges with France's national statistics institute (INSEE) and national employment agency (France Travail): encryption and decryption through the CASD secure data enclaves (SD-Box).",
-        'Owned ~100 tickets per month end to end: gathering and translating business requirements, qualification, tracking, validation and KPI reporting.',
+        'L1/L2 application support for ~300 users in a high-criticality environment: application deployment, access rights, remote database access (ODBC), statistical environments (R / RStudio).',
+        'Secured sensitive data exchanges with INSEE (national statistics) and France Travail (employment agency) through the CASD secure enclaves; ~100 tickets a month, from business requirements to validation.',
       ],
     },
     {
@@ -46,8 +45,8 @@ export const en = {
       organizationDetail: 'Greater Paris public agency for vocational training',
       period: { start: '2020-09', end: '2023-08' },
       highlights: [
-        "Developed and maintained the agency's public web platforms (Drupal / PHP) for training providers, jobseekers and career advisors.",
-        "Migrated the regional training catalogue from Dokelio to Ofeli, the region's two public training databases: redesigned and optimized SQL queries to cut response times on high-volume data.",
+        "Developed and maintained the agency's public web platforms (Drupal / PHP) for training providers and career advisors.",
+        'Migrated the regional training catalogue from Dokelio to Ofeli: redesigned and optimized SQL queries on high-volume data.',
       ],
     },
   ],
@@ -55,13 +54,14 @@ export const en = {
     {
       id: 'netherbrain',
       name: 'Netherbrain',
-      tagline: 'self-hosted LLM platform',
+      tagline: 'LLM orchestration platform',
       year: 2026,
       repository: { url: 'https://github.com/sma-ali/Netherbrain', public: false },
       highlights: [
-        'Chat platform orchestrating open-source LLMs, both local (Ollama / GPU) and remote through any OpenAI-compatible API: FastAPI, PostgreSQL + pgvector, Next.js / React / TypeScript.',
-        'Real-time SSE streaming, RAG across attached documents, and a coding agent that runs tools with a diff and user approval before every write.',
-        '236 automated tests, GitHub Actions CI against a real PostgreSQL service, multi-stage non-root Docker Compose deployment, Alembic migrations.',
+        'Full-stack Python / React: FastAPI back end (Pydantic, SQLAlchemy, Alembic migrations), PostgreSQL + pgvector, React / TypeScript front end, real-time Server-Sent Events streaming.',
+        'Multi-provider LLM integration: OpenAI SDK and any compatible API (local Ollama on GPU, OpenRouter, Groq), per-response metrics (time to first token, tokens/s).',
+        'Tool-using agent: multi-turn tool calling loop (file reading, search, editing, git), with a diff shown and explicit user approval before every write.',
+        'RAG over attached documents; 300+ automated tests (pytest, Vitest), GitHub Actions CI against a real PostgreSQL, multi-stage non-root Docker Compose.',
       ],
     },
     {
@@ -73,6 +73,16 @@ export const en = {
       highlights: [
         'Dedicated server running Proxmox behind an OPNsense firewall, reachable only through a self-hosted WireGuard VPN; hardening: IPv4 + IPv6 host firewall, 2FA, key-only SSH.',
         'Automated VM backups with a tested restore path; architecture and procedures fully documented and version-controlled.',
+      ],
+    },
+    {
+      id: 'automation',
+      name: 'Multi-agent automation platform',
+      tagline: 'personal project in production',
+      year: 2026,
+      highlights: [
+        'End-to-end LLM pipelines in Python: specialized agents, automated review, human validation before release, scheduling.',
+        'Model chosen per task, cost tracking and automatic fallback between API and subscription; self-hosted server (Proxmox, OPNsense, WireGuard).',
       ],
     },
   ],
@@ -91,70 +101,66 @@ export const en = {
       from: 2020,
       to: 2021,
     },
-    {
-      id: 'paris-8',
-      title: 'Professional Diploma | Web & Mobile Developer',
-      school: 'Université Paris 8 · CFA AFIA, Saint-Denis',
-      from: 2019,
-      to: 2020,
-    },
-    {
-      id: 'baccalaureat',
-      title: 'French Baccalauréat | Humanities',
-      school: 'Lycée Charles de Foucauld, Paris',
-      from: 2017,
-      to: 2017,
-    },
   ],
   skills: [
     {
-      id: 'languages',
-      label: 'Programming languages',
-      items: ['JavaScript', 'TypeScript', 'PHP', 'Python', 'SQL'],
-    },
-    {
       id: 'frontend',
-      label: 'Frontend',
-      items: ['React', 'Next.js', 'Tailwind', 'HTML5/CSS3'],
+      label: 'Front-end',
+      items: ['React', 'TypeScript', 'Next.js', 'Vite', 'Tailwind', 'Three.js'],
     },
     {
       id: 'backend',
-      label: 'Backend & databases',
+      label: 'Back-end',
       items: [
-        'Node.js',
-        'Express',
+        'Python',
         'FastAPI',
-        'REST APIs',
-        'Drupal',
+        'Pydantic',
+        'REST API',
+        'SSE',
         'PostgreSQL / pgvector',
-        'MySQL/MariaDB',
+        'Alembic',
+        'Node.js / Express',
+      ],
+    },
+    {
+      id: 'ai',
+      label: 'AI & LLM',
+      items: [
+        'Anthropic API',
+        'OpenAI SDK',
+        'Ollama',
+        'Tool calling',
+        'Structured outputs',
+        'AI agents',
+        'RAG',
+        'Prompt engineering',
       ],
     },
     {
       id: 'devops',
-      label: 'DevOps / Infrastructure',
-      items: ['Git', 'Docker Compose', 'Linux', 'Nginx', 'CI/CD', 'GitHub Actions', 'Proxmox'],
+      label: 'DevOps & quality',
+      items: [
+        'Docker Compose',
+        'GitHub Actions',
+        'CI/CD',
+        'Git',
+        'pytest',
+        'Vitest',
+        'Linux',
+        'Nginx',
+        'Proxmox',
+      ],
     },
     {
-      id: 'tools',
-      label: 'Tools & methods',
-      items: [
-        'Postman',
-        'Vitest / Jest',
-        'pytest',
-        'Jira',
-        'Agile / Scrum',
-        'Generative AI',
-        'Prompt engineering',
-      ],
+      id: 'other',
+      label: 'Other',
+      items: ['SQL', 'PHP / Drupal', 'Agile / Scrum'],
     },
   ],
   softSkills: [
+    'Self-directed & proactive',
     'Fast learner',
-    'Adaptable',
-    'Self-directed',
-    'Curious',
-    'Team player',
+    'Turning business needs into software',
     'Strong written & verbal communication',
   ],
   languages: [

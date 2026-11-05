@@ -52,9 +52,9 @@ test.describe('le HUD', () => {
     await page.goto('/fr');
     const top = page.locator('#hud header');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ali Smaani');
-    await expect(top.getByText('Développeur Full-Stack', { exact: true })).toBeVisible();
-    await expect(top.getByText('Disponible', { exact: true })).toBeVisible();
-    await expect(top.getByText('Île-de-France ou remote', { exact: true })).toBeVisible();
+    await expect(top.getByText('Développeur Full-Stack & IA', { exact: true })).toBeVisible();
+    await expect(top.getByText('Disponible immédiatement', { exact: true })).toBeVisible();
+    await expect(top.getByText('Île-de-France · remote possible', { exact: true })).toBeVisible();
     // Une seule commande en haut : la langue, « EN » (nom complet pour les lecteurs d'écran).
     const controls = page.getByRole('navigation', { name: 'Commandes' });
     await expect(controls.getByRole('link')).toHaveCount(1);
@@ -228,7 +228,9 @@ test.describe('le repli', () => {
         page.getByRole('heading', { level: 2, name: 'Professional experience' }),
       ).toBeVisible();
       await expect(page.getByRole('navigation', { name: 'Controls' })).toBeHidden();
-      await expect(page.getByRole('article').getByText('Available', { exact: true })).toBeVisible();
+      await expect(
+        page.getByRole('article').getByText('Available immediately', { exact: true }),
+      ).toBeVisible();
     });
   });
 });

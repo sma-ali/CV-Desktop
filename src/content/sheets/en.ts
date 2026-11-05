@@ -108,7 +108,7 @@ export const sheetsEn = {
         { term: 'Stack', value: 'Drupal / PHP' },
         { term: 'Contract', value: 'Apprenticeship' },
       ],
-      body: "Developed and maintained the agency's public web platforms for training providers, jobseekers and career advisors.",
+      body: "Developed and maintained the agency's public web platforms for training providers and career advisors.",
       note: 'Open, the book shows a page of Drupal / PHP code.',
     },
     badge: {
@@ -121,7 +121,7 @@ export const sheetsEn = {
         { term: 'Lever', value: 'Optimized SQL queries' },
         { term: 'Volume', value: 'High-volume data' },
       ],
-      body: "Migrated the regional training catalogue from Dokelio to Ofeli, the region's two public training databases. SQL queries were redesigned to cut response times.",
+      body: 'Migrated the regional training catalogue from Dokelio to Ofeli. SQL queries were redesigned and optimized to handle high-volume data.',
     },
     postit: {
       kicker: 'Jan 2024 - Jun 2026',
@@ -130,10 +130,10 @@ export const sheetsEn = {
       meta: [
         { term: 'At', value: 'DARES' },
         { term: 'Under', value: 'French Ministry of Labour' },
-        { term: 'Volume', value: '~100 tickets per month' },
-        { term: 'Tracking', value: 'KPI reporting' },
+        { term: 'Volume', value: '~100 tickets a month' },
+        { term: 'Scope', value: 'from business requirements to validation' },
       ],
-      body: 'Owned each ticket end to end: gathering and translating business requirements, qualification, tracking and validation.',
+      body: 'Each ticket followed end to end, from the business need to validation.',
     },
     headset: {
       kicker: 'Jan 2024 - Jun 2026',
@@ -141,24 +141,25 @@ export const sheetsEn = {
       title: 'L1/L2 support',
       meta: [
         { term: 'Users', value: '~300 users' },
-        { term: 'Audience', value: 'statisticians, economists' },
+        { term: 'Context', value: 'high-criticality environment' },
         { term: 'Tools', value: 'R / RStudio' },
         { term: 'Access', value: 'ODBC' },
       ],
-      body: 'Access rights, application deployment, remote database access and statistical environments, in a high-criticality environment. Sensitive data exchanges with INSEE and France Travail go through the CASD secure data enclaves.',
+      body: 'Application deployment, access rights, remote database access and statistical environments, in a high-criticality environment. Sensitive data exchanges with INSEE and France Travail go through the CASD secure data enclaves.',
     },
     netherbrain: {
       kicker: '2026',
       step: 'Step 3 of 3',
       title: 'Netherbrain',
       meta: [
-        { term: 'Project', value: 'self-hosted LLM platform' },
-        { term: 'Models', value: 'Ollama / GPU' },
-        { term: 'Server', value: 'FastAPI, PostgreSQL + pgvector' },
-        { term: 'Interface', value: 'Next.js / React / TypeScript' },
-        { term: 'Quality', value: '236 automated tests' },
+        { term: 'Project', value: 'LLM orchestration platform' },
+        { term: 'Models', value: 'local Ollama on GPU, OpenRouter, Groq' },
+        { term: 'Server', value: 'FastAPI back end (Pydantic, SQLAlchemy, Alembic migrations)' },
+        { term: 'Database', value: 'PostgreSQL + pgvector' },
+        { term: 'Interface', value: 'React / TypeScript' },
+        { term: 'Quality', value: '300+ automated tests' },
       ],
-      body: 'A chat platform orchestrating open-source LLMs, local or remote through any OpenAI-compatible API. Real-time SSE streaming, RAG across attached documents, and a coding agent with a diff and user approval before every write.',
+      body: 'A platform orchestrating LLMs from several providers, locally or through any OpenAI-compatible API. Real-time streaming, RAG over attached documents, and a tool-using agent that shows its diff and waits for user approval before every write.',
     },
     homelab: {
       kicker: '2026',
@@ -176,24 +177,25 @@ export const sheetsEn = {
     laptop: {
       kicker: 'Skills',
       step: 'The tools',
-      title: 'Full-Stack Developer',
+      title: 'Full-Stack & AI Developer',
       meta: [
-        { term: 'Programming languages', value: 'JavaScript, TypeScript, PHP, Python, SQL' },
-        { term: 'Frontend', value: 'React, Next.js, Tailwind, HTML5/CSS3' },
+        { term: 'Front-end', value: 'React, TypeScript, Next.js, Vite, Tailwind, Three.js' },
         {
-          term: 'Backend & databases',
+          term: 'Back-end',
           value:
-            'Node.js, Express, FastAPI, REST APIs, Drupal, PostgreSQL / pgvector, MySQL/MariaDB',
+            'Python, FastAPI, Pydantic, REST API, SSE, PostgreSQL / pgvector, Alembic, Node.js / Express',
         },
         {
-          term: 'DevOps / Infrastructure',
-          value: 'Git, Docker Compose, Linux, Nginx, CI/CD, GitHub Actions, Proxmox',
-        },
-        {
-          term: 'Tools & methods',
+          term: 'AI & LLM',
           value:
-            'Postman, Vitest / Jest, pytest, Jira, Agile / Scrum, Generative AI, Prompt engineering',
+            'Anthropic API, OpenAI SDK, Ollama, Tool calling, Structured outputs, AI agents, RAG, Prompt engineering',
         },
+        {
+          term: 'DevOps & quality',
+          value:
+            'Docker Compose, GitHub Actions, CI/CD, Git, pytest, Vitest, Linux, Nginx, Proxmox',
+        },
+        { term: 'Other', value: 'SQL, PHP / Drupal, Agile / Scrum' },
       ],
       body: 'The skills from the CV, from frontend to infrastructure.',
     },
@@ -210,9 +212,9 @@ export const sheetsEn = {
       step: 'Contact',
       title: 'Ali Smaani',
       meta: [
-        { term: 'Role', value: 'Full-Stack Developer' },
+        { term: 'Role', value: 'Full-Stack & AI Developer' },
         { term: 'Area', value: 'Paris, France · Open to remote' },
-        { term: 'Status', value: 'Available' },
+        { term: 'Status', value: 'Available immediately' },
         { term: 'Email', value: 'smanali.pro@gmail.com', href: 'mailto:smanali.pro@gmail.com' },
         {
           term: 'LinkedIn',
@@ -220,19 +222,19 @@ export const sheetsEn = {
           href: 'https://www.linkedin.com/in/smaali',
         },
       ],
-      body: 'Looking for a full-stack developer, on site or remote? Write to me.',
+      body: 'Looking for a full-stack developer with an AI focus, on site or remote? Write to me.',
     },
     monitor: {
       kicker: 'The journey',
       step: 'Profile',
-      title: 'Full-Stack Developer',
+      title: 'Full-Stack & AI Developer',
       meta: [
         { term: 'DEFI-METIERS', value: 'Sep 2020 - Aug 2023' },
         { term: 'DARES', value: 'Jan 2024 - Jun 2026' },
         { term: 'Projects', value: '2026' },
-        { term: 'Status', value: 'Available' },
+        { term: 'Status', value: 'Available immediately' },
       ],
-      body: 'Full-stack developer (React, Node.js, TypeScript) with hands-on experience in application support and data management for high-criticality environments. Curious by nature, comfortable bridging code, infrastructure and security, from design to deployment.',
+      body: 'Full-stack developer (React / TypeScript, Python / FastAPI). I build applications that integrate generative AI end to end: React front end, FastAPI back end, PostgreSQL, and multi-provider LLMs with tool calling, structured outputs, RAG and streaming. I also run a self-hosted multi-agent automation platform in production. 3 years of web development, then 2.5 years of application engineering.',
     },
   },
 } satisfies SheetsContent;

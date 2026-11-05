@@ -155,7 +155,9 @@ describe.each(cases)('fiches %s', (locale, content, sheets) => {
   });
 
   it('ne lient aucun dépôt (les liens publics viennent de src/lib/desk.ts)', () => {
-    const repositories = content.projects.map((entry) => entry.repository.url);
+    const repositories = content.projects.flatMap((entry) =>
+      entry.repository ? [entry.repository.url] : [],
+    );
     const hrefs = Object.values(items).flatMap((item) => item.meta.map((entry) => entry.href));
     for (const href of hrefs) {
       if (!href) continue;
@@ -165,6 +167,9 @@ describe.each(cases)('fiches %s', (locale, content, sheets) => {
   });
 
   it("n'arrondissent aucune durée", () => {
-    expect(JSON.stringify(items)).not.toMatch(/\b\d+\s*(ans|an|years?)\b/i);
+    // Le résumé de l'écran est celui du CV, mot pour mot (ses durées comprises).
+    const { body: _summary, ...monitor } = items.monitor;
+    expect(_summary).toBe(content.profile.summary);
+    expect(JSON.stringify({ ...items, monitor })).not.toMatch(/\b\d+\s*(ans|an|years?)\b/i);
   });
 });

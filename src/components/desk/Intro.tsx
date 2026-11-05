@@ -1,9 +1,10 @@
 'use client';
 
-import { useSyncExternalStore, type CSSProperties } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import type { DeskHudTexts } from '@/lib/desk';
 import { currentLoadStep, introProgress } from '@/scene/core/loading';
 import { useSceneStore } from '@/scene/core/store-context';
+import { createDevScene, INTRO_FIRST_FRAME, INTRO_VIEWBOX } from './introArt';
 import styles from './Intro.module.css';
 
 /** Vrai une fois la page hydratée (faux dans le HTML du serveur, sans écart à l'hydratation). */
@@ -15,18 +16,20 @@ function useHydrated(): boolean {
   );
 }
 
-// L'écran de chargement, revu le 04/11 : une barre façon jeu vidéo. Rendu
-// par le serveur dès le premier octet (CSS seulement : rien ne dépend de
-// JavaScript pour l'afficher), il cache tout le bureau tant que la scène se
-// prépare : un écran noir, « Ali Smaani », et dessous une barre encadrée
-// dont les blocs dorés se remplissent au rythme du chargement réel
-// (store.load, core/loading.ts), avec le pourcentage et l'étape en cours.
-// Quand la scène est prête (done), la barre se remplit, l'écran s'efface en
-// fondu, et l'arrivée commence : les objets tombent un à un dans la
-// pénombre (core/drop.ts), puis la lampe s'allume en dernier. Mouvement
-// réduit : un simple fondu. Sans JavaScript, la feuille de style le cache
-// (la version express s'affiche) ; si JavaScript ne démarre jamais, il
-// s'efface de lui-même (Intro.module.css).
+/** Après le « ting », le temps de dessiner encore pendant le fondu (ms). */
+const DRAW_AFTER_DONE_MS = 2000;
+
+// L'écran de chargement, revu le 05/11 : Ali derrière son ordinateur, qui
+// tape (introArt.ts). La barre sous l'ordinateur suit le chargement réel
+// (store.load, core/loading.ts), lissée à l'œil ; aria-valuenow garde la
+// valeur exacte. Rendu par le serveur dès le premier octet (la première
+// image du dessin est dans le HTML), il cache tout le bureau tant que la
+// scène se prépare. Quand elle est prête, ses verres s'allument, « ting ! »,
+// puis l'écran s'efface en fondu et l'arrivée commence (ClockDriver attend
+// le « ting » avant de lancer l'horloge). Mouvement réduit : un dessin
+// immobile dont seule la barre avance, et un simple fondu. Sans JavaScript,
+// la feuille de style le cache (la version express s'affiche) ; si
+// JavaScript ne démarre jamais, il s'efface de lui-même (Intro.module.css).
 export function Intro({
   name,
   texts,
@@ -35,9 +38,9 @@ export function Intro({
   name: string;
   texts: DeskHudTexts['intro'];
   /**
-   * loading : la scène se prépare ; ready : elle a dessiné, l'écran s'efface
-   * en fondu ; fallback : la version express s'affiche, l'écran disparaît
-   * sans attendre.
+   * loading : la scène se prépare ; ready : elle a dessiné, « ting », puis
+   * l'écran s'efface ; fallback : la version express s'affiche, l'écran
+   * disparaît sans attendre.
    */
   state: 'loading' | 'ready' | 'fallback';
 }) {
@@ -49,19 +52,54 @@ export function Intro({
   const percent = Math.round(shown * 100);
   const label = done || step === null ? texts.done : texts.steps[step];
 
+  const art = useRef<SVGSVGElement>(null);
+  const target = useRef(shown);
+  const phase = useRef(state);
+  useEffect(() => {
+    target.current = shown;
+    phase.current = state;
+  }, [shown, state]);
+
+  useEffect(() => {
+    const svg = art.current;
+    if (!svg) return;
+    const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
+    const render = createDevScene('intro', { still });
+    let value = 0;
+    let last = performance.now();
+    let frame = 0;
+    let doneAt: number | null = null;
+    const draw = (now: number) => {
+      // La version express a pris la place : plus rien à dessiner.
+      if (phase.current === 'fallback') return;
+      const goal = target.current;
+      // La barre rattrape le chargement réel en douceur, sans jamais reculer.
+      value = still
+        ? goal
+        : Math.min(goal, value + (goal - value) * Math.min(1, (now - last) / 160));
+      if (goal - value < 0.004) value = goal;
+      last = now;
+      svg.innerHTML = render(value, now);
+      if (value >= 1 && doneAt === null) doneAt = now;
+      if (doneAt !== null && now - doneAt > DRAW_AFTER_DONE_MS) return;
+      frame = requestAnimationFrame(draw);
+    };
+    frame = requestAnimationFrame(draw);
+    return () => cancelAnimationFrame(frame);
+  }, []);
+
   return (
     <div
       className={styles.intro}
       data-js={hydrated ? 'true' : undefined}
       data-done={done ? 'true' : undefined}
       data-state={hydrated ? state : undefined}
-      style={{ '--p': shown } as CSSProperties}
       aria-hidden={done ? 'true' : undefined}
     >
       <div className={styles.center}>
         <p className={styles.name}>{name}</p>
         <div
-          className={styles.bar}
+          className={styles.stage}
           role="progressbar"
           aria-label={texts.preparing}
           aria-valuemin={0}
@@ -69,12 +107,15 @@ export function Intro({
           aria-valuenow={percent}
           aria-valuetext={`${label} | ${percent} %`}
         >
-          <i className={styles.fill} aria-hidden="true" />
+          <svg
+            ref={art}
+            className={styles.art}
+            viewBox={INTRO_VIEWBOX}
+            aria-hidden="true"
+            focusable="false"
+            dangerouslySetInnerHTML={{ __html: INTRO_FIRST_FRAME }}
+          />
         </div>
-        <p className={styles.status} aria-hidden="true">
-          <span className={styles.step}>{hydrated ? label : texts.preparing}</span>
-          <span className={styles.percent}>{percent}&nbsp;%</span>
-        </p>
       </div>
     </div>
   );

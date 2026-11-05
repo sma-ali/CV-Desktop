@@ -166,7 +166,6 @@ export const sheetsFr = {
         { term: 'Qualité', value: '236 tests automatisés' },
       ],
       body: 'Une plateforme de chat qui orchestre des LLM open source, locaux ou distants via une API compatible OpenAI. Streaming temps réel (SSE), RAG sur documents joints, agent de code avec diff et validation avant chaque écriture.',
-      note: 'Retourné, le bocal montre son étiquette.',
     },
     homelab: {
       kicker: '2026',

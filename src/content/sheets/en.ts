@@ -159,7 +159,6 @@ export const sheetsEn = {
         { term: 'Quality', value: '236 automated tests' },
       ],
       body: 'A chat platform orchestrating open-source LLMs, local or remote through any OpenAI-compatible API. Real-time SSE streaming, RAG across attached documents, and a coding agent with a diff and user approval before every write.',
-      note: 'Turned over, the jar shows its label.',
     },
     homelab: {
       kicker: '2026',

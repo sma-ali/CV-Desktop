@@ -69,7 +69,7 @@ export const en = {
       name: 'Homelab',
       tagline: 'self-hosted infrastructure',
       year: 2026,
-      repository: { url: 'https://github.com/sma-ali/Homelab', public: false },
+      repository: { url: 'https://github.com/sma-ali/Homelab-Demo', public: true },
       highlights: [
         'Dedicated server running Proxmox behind an OPNsense firewall, reachable only through a self-hosted WireGuard VPN; hardened with CrowdSec, 2FA and key-based SSH.',
         'Automated VM backups with a tested restore path; architecture and procedures fully documented and version-controlled.',

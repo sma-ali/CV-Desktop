@@ -135,9 +135,13 @@ for (const locale of locales) {
           repository.public ? 1 : 0,
         );
       }
-      // État au 28/10/2026 : Netherbrain et Homelab sont privés. À mettre à jour
-      // le jour où l'un d'eux devient public (repository.public dans le contenu).
-      await expect(page.locator('a[href*="Netherbrain"], a[href*="Homelab"]')).toHaveCount(0);
+      // État au 05/11/2026 : la vitrine Homelab-Demo est publique, Netherbrain reste privé
+      // et le dépôt privé Homelab n'est jamais lié.
+      await expect(page.locator('a[href*="Netherbrain"]')).toHaveCount(0);
+      await expect(page.locator('a[href="https://github.com/sma-ali/Homelab"]')).toHaveCount(0);
+      await expect(page.locator('a[href="https://github.com/sma-ali/Homelab-Demo"]')).toHaveCount(
+        1,
+      );
       await expect(page.locator('a[href^="tel:"]')).toHaveCount(0);
       const text = await page.locator('body').innerText();
       expect(text).not.toMatch(/(?:\+33|\b0)\s?[1-9](?:[\s.-]?\d{2}){4}\b/);

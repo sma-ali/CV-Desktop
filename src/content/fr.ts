@@ -70,7 +70,7 @@ export const fr = {
       name: 'Homelab',
       tagline: 'infrastructure auto-hébergée',
       year: 2026,
-      repository: { url: 'https://github.com/sma-ali/Homelab', public: false },
+      repository: { url: 'https://github.com/sma-ali/Homelab-Demo', public: true },
       highlights: [
         'Serveur dédié sous Proxmox, pare-feu OPNsense, accès exclusif par VPN WireGuard, durcissement CrowdSec / 2FA / SSH par clé.',
         'Sauvegardes automatiques des VM avec restauration testée ; architecture et procédures intégralement documentées et versionnées.',

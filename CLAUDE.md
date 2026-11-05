@@ -28,7 +28,7 @@ Défauts connus du prototype, à corriger dans le vrai site :
 Source unique des faits : le CV d'Ali en HTML, version FR et version EN (chemins dans `CLAUDE.local.md`). Ne rien inventer, ne rien arrondir : dates, intitulés et chiffres viennent de là. Si le CV et le prototype divergent, le CV gagne.
 
 - Expériences : Défi métiers (développeur web Drupal/PHP, sept. 2020 à août 2023) ; DARES (ingénieur applicatif et gestion de données, support N1/N2, janv. 2024 à juin 2026).
-- Projets publics : Netherbrain et Homelab, chacun un objet du bureau avec sa fiche et son lien GitHub (vérifier que le dépôt est public avant de lier).
+- Projets publics : Netherbrain et Homelab, chacun un objet du bureau avec sa fiche et son lien GitHub (vérifier que le dépôt est public avant de lier). Homelab pointe vers sa vitrine publique sma-ali/Homelab-Demo, jamais vers le dépôt Homelab.
 - Projets perso : un coffret scellé qui donne des signes de vie (activité, ancienneté, graphique sur 14 jours) sans jamais dire ce qu'ils sont.
 - Contact : formulaire, e-mail et LinkedIn. Pas de téléphone, pas d'âge sur le site.
 - Décor perso (gants, manette, figurines, mangas, matériel de stream) : décor seulement, sans marque, jeu, anime ni pseudo réels.

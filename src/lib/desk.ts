@@ -59,6 +59,8 @@ export interface DeskHudTexts {
   arrivalKicker: string;
   glance: string;
   steps: DeskStep[];
+  /** Le lien vers la version écrite du CV, à gauche du contact. */
+  written: { title: string; detail: string; href: string };
   hint: {
     pointer: string;
     touch: string;
@@ -103,22 +105,29 @@ function experienceStep(content: Content, id: 'defi-metiers' | 'dares', locale: 
   };
 }
 
-/** Les cinq étapes du bas de page, dans l'ordre du parcours. */
+/** Une étape par projet public : son année et son nom. */
+function projectStep(content: Content, id: 'netherbrain' | 'homelab', locale: Locale): DeskStep {
+  const project = content.projects.find((entry) => entry.id === id);
+  if (!project) throw new Error(`Projet introuvable : ${id}`);
+  return {
+    id,
+    item: STEP_ITEM[id],
+    title: String(project.year),
+    detail: project.name,
+    href: `${expressPath(locale)}#projects`,
+    live: false,
+    contact: false,
+  };
+}
+
+/** Les six étapes du bas de page, dans l'ordre du parcours ; le contact en dernier. */
 export function buildDeskSteps(content: Content, locale: Locale): DeskStep[] {
-  const { projects, desk, sections } = content;
-  const projectYear = Math.max(...projects.map((project) => project.year));
+  const { desk, sections } = content;
   return [
     experienceStep(content, 'defi-metiers', locale),
     experienceStep(content, 'dares', locale),
-    {
-      id: 'projects',
-      item: STEP_ITEM.projects,
-      title: String(projectYear),
-      detail: projects.map((project) => project.name).join(' | '),
-      href: `${expressPath(locale)}#projects`,
-      live: false,
-      contact: false,
-    },
+    projectStep(content, 'netherbrain', locale),
+    projectStep(content, 'homelab', locale),
     {
       id: 'perso',
       item: STEP_ITEM.perso,
@@ -184,6 +193,7 @@ export function buildDeskTexts(content: Content, locale: Locale): DeskHudTexts {
     arrivalKicker: desk.arrivalKicker,
     glance: desk.glance,
     steps: buildDeskSteps(content, locale),
+    written: { ...desk.written, href: expressPath(locale) },
     hint: desk.hint,
     sheets: buildDeskSheets(content, locale),
     fallback: desk.fallback,

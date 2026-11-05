@@ -109,7 +109,7 @@ export const sheetsEn = {
         { term: 'Contract', value: 'Apprenticeship' },
       ],
       body: "Developed and maintained the agency's public web platforms for training providers, jobseekers and career advisors.",
-      note: 'Open, the book shows the move from Dokelio to Ofeli.',
+      note: 'Open, the book shows a page of Drupal / PHP code.',
     },
     badge: {
       kicker: 'Sep 2020 - Aug 2023',
@@ -170,13 +170,13 @@ export const sheetsEn = {
         { term: 'Server', value: 'Proxmox' },
         { term: 'Firewall', value: 'OPNsense' },
         { term: 'Access', value: 'WireGuard VPN' },
-        { term: 'Hardening', value: 'CrowdSec, 2FA and key-based SSH' },
+        { term: 'Hardening', value: 'IPv4 + IPv6 host firewall, 2FA, key-only SSH' },
       ],
       body: 'A dedicated server reachable only through a VPN. Automated VM backups with a tested restore path; architecture and procedures fully documented and version-controlled.',
     },
     laptop: {
       kicker: 'Skills',
-      step: 'The stack',
+      step: 'The tools',
       title: 'Full-Stack Developer',
       meta: [
         { term: 'Programming languages', value: 'JavaScript, TypeScript, PHP, Python, SQL' },

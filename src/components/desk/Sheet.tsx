@@ -81,7 +81,6 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
   const store = useSceneStoreApi();
   const presented = useSceneStore((state) => state.presented);
   const presentedBy = useSceneStore((state) => state.presentedBy);
-  const flipped = useSceneStore((state) => state.flipped);
   const lifeSigns = useSceneStore((state) => state.lifeSigns);
   const now = useNowMinute();
   const keyboard = useKeyboardModality();
@@ -310,22 +309,9 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
           ) : null}
 
           <div className={styles.sheetActions}>
-            {canFlip ? (
-              <button
-                type="button"
-                className={styles.sheetFlip}
-                aria-pressed={flipped}
-                aria-keyshortcuts={ui.flipKey}
-                onClick={() => store.getState().toggleFlip()}
-              >
-                {ui.flip}
-                <kbd aria-hidden="true">{ui.flipKey}</kbd>
-              </button>
-            ) : null}
+            {/* Ni « Retourner » ni « Me contacter » : on retourne l'objet d'un clic
+                (ou R au clavier), et le contact est en bas à droite. */}
             {canFlip ? <UprightButton label={ui.upright} /> : null}
-            <a href={texts.contactHref} className={styles.sheetCta}>
-              {ui.contact}
-            </a>
             {sheet.repository ? (
               <a
                 href={sheet.repository.href}

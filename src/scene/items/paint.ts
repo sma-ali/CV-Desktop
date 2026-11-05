@@ -193,7 +193,7 @@ export function paintBookLeft(scene: SceneContent): Painter {
   });
 }
 
-/** Page de droite : l'exercice, la migration du catalogue des formations. */
+/** Page de droite : l'exercice, du code Drupal / PHP sur la maintenance. */
 export function paintBookRight(scene: SceneContent): Painter {
   const { exercise, code, lines } = scene.book;
   return scaled(512, (c, w, h, F) => {
@@ -213,11 +213,18 @@ export function paintBookRight(scene: SceneContent): Painter {
     const longest = code.reduce((a, b) => (b.length > a.length ? b : a), '');
     const size = fitFont(c, longest, w - 150, 21, 500, F.mono);
     const step = Math.min(40, 270 / code.length);
-    // Le surligneur sur l'appel qui migre (l'avant-dernière ligne).
+    // Le surligneur sur l'avant-dernière ligne du code.
     const marked = Math.max(0, code.length - 2);
+    // Le contenu n'a pas d'espaces en tête : le corps d'une fonction est
+    // décalé ici, entre « function » et « } ».
+    const indent = (i: number) =>
+      code.slice(0, i).some((l) => l.startsWith('function')) &&
+      !code.slice(0, i + 1).some((l, j) => j > 0 && l === '}')
+        ? 28
+        : 0;
     c.fillStyle = 'rgba(240,200,60,.45)';
     c.fillRect(
-      66,
+      66 + indent(marked),
       166 + marked * step - size + 2,
       c.measureText(code[marked] ?? '').width + 12,
       size + 8,
@@ -225,7 +232,7 @@ export function paintBookRight(scene: SceneContent): Painter {
     code.forEach((line, i) => {
       const tag = line.startsWith('<?') || line.startsWith('?>');
       c.fillStyle = tag ? '#8d2a20' : line.startsWith('//') ? '#7b6a55' : '#1f1710';
-      c.fillText(line, 72, 166 + i * step);
+      c.fillText(line, 72 + indent(i), 166 + i * step);
     });
     c.fillStyle = '#3a2d20';
     lines.forEach((line, i) => {
@@ -282,8 +289,13 @@ export function paintBadgeFront(scene: SceneContent): Painter {
   });
 }
 
+/**
+ * Dos du badge : la migration du catalogue des formations. Le livre porte
+ * le poste et les plateformes web, le badge seulement la migration.
+ */
 export function paintBadgeBack(scene: SceneContent): Painter {
   const job = scene.facts.defiMetiers;
+  const { title, lines } = scene.badge;
   return scaled(400, (c, w, h, F) => {
     c.fillStyle = '#f1ebde';
     c.fillRect(0, 0, w, h);
@@ -298,21 +310,22 @@ export function paintBadgeBack(scene: SceneContent): Painter {
     fitFont(c, job.organization, w - 80, 16, 600, F.mono);
     c.fillText(job.organization, 40, 96);
     c.fillStyle = '#1f1710';
-    c.font = `700 46px ${F.serif}`;
-    c.fillText(job.year, 40, 170);
-    fitFont(c, job.period, w - 80, 26, 'italic 400', F.serif);
-    c.fillText(job.period, 40, 210);
-    c.fillRect(40, 236, 120, 3);
-    fitFont(c, job.role, w - 80, 32, 600, F.serif);
-    c.fillText(job.role, 40, 290);
-    c.fillStyle = '#3a2d20';
-    c.font = `400 22px ${F.serif}`;
-    wrapText(c, job.detail, w - 80)
-      .slice(0, 3)
-      .forEach((line, i) => c.fillText(line, 40, 340 + i * 30));
+    fitFont(c, title, w - 80, 46, 700, F.serif);
+    c.fillText(title, 40, 170);
+    c.fillRect(40, 196, 120, 3);
+    // Les deux bases, l'une sous l'autre, reliées par une flèche.
     c.fillStyle = '#2d5a5c';
-    fitFont(c, job.stack, w - 80, 38, 700, F.hand);
-    c.fillText(job.stack, 40, 520);
+    fitFont(c, job.migration.from, w - 80, 40, 700, F.hand);
+    c.fillText(job.migration.from, 40, 262);
+    c.font = `700 34px ${F.mono}`;
+    c.fillText('\u2193', 52, 312);
+    fitFont(c, job.migration.to, w - 80, 40, 700, F.hand);
+    c.fillText(job.migration.to, 40, 366);
+    c.fillStyle = '#3a2d20';
+    lines.forEach((line, i) => {
+      fitFont(c, line, w - 80, 22, 400, F.serif);
+      c.fillText(line, 40, 430 + i * 32);
+    });
   });
 }
 

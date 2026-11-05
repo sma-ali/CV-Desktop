@@ -4,7 +4,7 @@ import { sceneEn } from './scene/en';
 import { sheetsEn } from './sheets/en';
 import { contact } from './shared';
 
-// Source : le CV d'Ali en anglais (septembre 2026). Même structure que fr.ts.
+// Source : le CV d'Ali en anglais (mis à jour le 05/11/2026). Même structure que fr.ts.
 export const en = {
   profile: {
     name: 'Ali Smaani',
@@ -71,7 +71,7 @@ export const en = {
       year: 2026,
       repository: { url: 'https://github.com/sma-ali/Homelab', public: false },
       highlights: [
-        'Dedicated server running Proxmox behind an OPNsense firewall, reachable only through a self-hosted WireGuard VPN; hardened with CrowdSec, 2FA and key-based SSH.',
+        'Dedicated server running Proxmox behind an OPNsense firewall, reachable only through a self-hosted WireGuard VPN; hardening: IPv4 + IPv6 host firewall, 2FA, key-only SSH.',
         'Automated VM backups with a tested restore path; architecture and procedures fully documented and version-controlled.',
       ],
     },
@@ -187,6 +187,7 @@ export const en = {
     glance: 'The CV at a glance',
     perso: { year: 2026, detail: 'The factory' },
     contactDetail: 'Business card',
+    written: { title: 'CV', detail: 'Text version' },
     hint: {
       pointer: 'Click an object to take a closer look. Drag it to move it.',
       touch: 'Tap an object to take a closer look. Drag it to move it.',

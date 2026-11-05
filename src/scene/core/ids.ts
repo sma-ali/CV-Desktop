@@ -20,8 +20,17 @@ export const ITEM_IDS = [
 export type ItemId = (typeof ITEM_IDS)[number];
 
 // Les étapes du CV, dans l'ordre des puces du bas de page. Les deux premières
-// portent l'id de l'expérience dans le contenu.
-export const STEP_IDS = ['defi-metiers', 'dares', 'projects', 'perso', 'contact'] as const;
+// portent l'id de l'expérience dans le contenu, les deux suivantes celui du
+// projet. Une étape par objet : Netherbrain, Homelab et l'usine sont à égalité.
+// Le contact est posé à part, en bas à droite.
+export const STEP_IDS = [
+  'defi-metiers',
+  'dares',
+  'netherbrain',
+  'homelab',
+  'perso',
+  'contact',
+] as const;
 
 export type StepId = (typeof STEP_IDS)[number];
 
@@ -31,11 +40,11 @@ export const ITEM_STEP = {
   badge: 'defi-metiers',
   postit: 'dares',
   headset: 'dares',
-  // Le portable porte la pile technique (section compétences du CV) : il
-  // reste dans l'étape des projets, dont il est l'outil.
-  laptop: 'projects',
-  netherbrain: 'projects',
-  homelab: 'projects',
+  // Le portable porte la pile technique (section compétences du CV), commune
+  // à tous les projets : aucune puce ne lui correspond, comme l'écran.
+  laptop: null,
+  netherbrain: 'netherbrain',
+  homelab: 'homelab',
   // L'écran montre tout le parcours (les deux postes, la pile) : aucune puce
   // ne lui correspond, aucune ne s'allume pendant son gros plan.
   monitor: null,
@@ -47,7 +56,8 @@ export const ITEM_STEP = {
 export const STEP_ITEM = {
   'defi-metiers': 'book',
   dares: 'postit',
-  projects: 'netherbrain',
+  netherbrain: 'netherbrain',
+  homelab: 'homelab',
   perso: 'chest',
   contact: 'card',
 } as const satisfies Record<StepId, ItemId>;

@@ -15,7 +15,7 @@ import { usePresentation } from './usePresentation';
 
 // Le grand livre du PHP (DEFI-METIERS, 2020) : couverture, tranche, pages
 // et marque-pages. Présenté, il s'ouvre devant la caméra sur le poste
-// (page de gauche) et la migration du catalogue des formations (à droite).
+// (page de gauche) et une page de code Drupal / PHP (à droite).
 
 const W = 1.9;
 const D = 2.5;

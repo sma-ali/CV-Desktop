@@ -112,11 +112,11 @@ export const sheetsFr = {
       meta: [
         { term: 'Chez', value: 'DEFI-METIERS' },
         { term: 'Structure', value: 'CARIF-OREF Île-de-France' },
-        { term: 'Pile', value: 'Drupal / PHP' },
+        { term: 'Technos', value: 'Drupal / PHP' },
         { term: 'Contrat', value: 'Alternance' },
       ],
       body: "Développement et maintenance des plateformes web du CARIF-OREF francilien, au service des organismes de formation, des demandeurs d'emploi et des conseillers d'orientation.",
-      note: 'Ouvert, le livre montre la migration de Dokelio vers Ofeli.',
+      note: 'Ouvert, le livre montre une page de code Drupal / PHP.',
     },
     badge: {
       kicker: 'Sept. 2020 - Août 2023',
@@ -177,13 +177,13 @@ export const sheetsFr = {
         { term: 'Serveur', value: 'Proxmox' },
         { term: 'Pare-feu', value: 'OPNsense' },
         { term: 'Accès', value: 'VPN WireGuard' },
-        { term: 'Durcissement', value: 'CrowdSec / 2FA / SSH par clé' },
+        { term: 'Durcissement', value: 'Pare-feu IPv4 + IPv6, 2FA, SSH par clé' },
       ],
       body: 'Un serveur dédié joignable seulement par VPN. Sauvegardes automatiques des VM avec restauration testée ; architecture et procédures intégralement documentées et versionnées.',
     },
     laptop: {
       kicker: 'Compétences',
-      step: 'La pile',
+      step: 'Les outils',
       title: 'Développeur Full-Stack',
       meta: [
         { term: 'Langages', value: 'JavaScript, TypeScript, PHP, Python, SQL' },

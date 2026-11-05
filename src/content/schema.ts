@@ -119,6 +119,8 @@ const deskSchema = z.strictObject({
   /** Les projets perso (l'usine) : leur année, comme les autres projets, et leur nom. */
   perso: z.strictObject({ year: z.number().int(), detail: text }),
   contactDetail: text,
+  /** Le lien vers la version écrite du CV (la version express), à gauche du contact. */
+  written: z.strictObject({ title: text, detail: text }),
   hint: z.strictObject({
     pointer: text,
     touch: text,

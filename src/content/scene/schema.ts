@@ -118,9 +118,12 @@ export const sceneContentSchema = z.strictObject({
     exercise: text,
     /** Le code PHP de la page de droite. */
     code: texts,
-    /** La phrase sous le code, sur la migration (faits du CV). */
+    /** La phrase sous le code, sur la maintenance (faits du CV). */
     lines: texts,
   }),
+  // Le dos du badge : la migration du catalogue (faits du CV). Le livre
+  // garde les plateformes web, le badge la migration, sans redite.
+  badge: z.strictObject({ title: text, lines: texts }),
   postit: z.strictObject({ resolved: text }),
   card: z.strictObject({ contact: text }),
   laptop: z.strictObject({ path: text }),

@@ -81,3 +81,20 @@ export function currentLoadStep(load: LoadProgress, ready: boolean): LoadStep | 
   if (ready) return null;
   return LOAD_STEPS.find((step) => load[step] < 1) ?? 'frame';
 }
+
+/**
+ * Le « ting » de l'écran de chargement (Intro.tsx) : quand la scène est
+ * prête, les verres d'Ali s'allument, puis l'écran s'efface en fondu
+ * (Intro.module.css attend autant). L'horloge de l'arrivée attend la fin
+ * du « ting » pour que les objets ne tombent pas derrière l'écran noir.
+ */
+export const TING_MS = 900;
+
+/**
+ * Ce que l'horloge attend avant de partir (ms) : le « ting », sauf si
+ * l'arrivée est sautée (?t=…), l'horloge gelée (?fige) ou le mouvement
+ * réduit (pas de « ting », un simple fondu).
+ */
+export function clockHold(startAt: number, frozen: boolean, reducedMotion: boolean): number {
+  return startAt > 0 || frozen || reducedMotion ? 0 : TING_MS;
+}

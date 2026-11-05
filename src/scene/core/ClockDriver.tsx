@@ -4,6 +4,7 @@ import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
 import { smooth } from './arrival';
 import { MOOD_TRANSITION, PORTRAIT_MAX_ASPECT } from './constants';
+import { clockHold } from './loading';
 import type { MoodId } from './ids';
 import { blendMoodValues, copyMoodValues, moodValues, type MoodValues } from './mood-values';
 import { useSceneStoreApi } from './store-context';
@@ -30,6 +31,8 @@ export function ClockDriver({ onReady }: { onReady?: () => void }) {
   const store = useSceneStoreApi();
   const frames = useRef(0);
   const blend = useRef<MoodBlend | null>(null);
+  /** L'instant (ms) où l'horloge peut partir, fixé à la première image utile. */
+  const startAfter = useRef<number | null>(null);
 
   useEffect(() => {
     const onVisibility = () => {
@@ -47,7 +50,15 @@ export function ClockDriver({ onReady }: { onReady?: () => void }) {
     // La première image compile les shaders et envoie les textures : sur une
     // machine lente, cela prend des secondes. L'horloge ne part qu'à l'image
     // suivante, sinon le visiteur manquerait le début de l'arrivée.
-    if (frames.current >= READY_AFTER_FRAMES - 1) scene.clock.tick(performance.now() / 1000);
+    // Elle attend aussi le « ting » de l'écran de chargement (clockHold).
+    if (frames.current >= READY_AFTER_FRAMES - 1) {
+      const now = performance.now();
+      if (startAfter.current === null) {
+        const { clock, settings } = scene;
+        startAfter.current = now + clockHold(clock.t, clock.frozen, settings.reducedMotion);
+      }
+      if (now >= startAfter.current) scene.clock.tick(now / 1000);
+    }
     const frame = updateFrame(scene, state.size.width / state.size.height < PORTRAIT_MAX_ASPECT);
 
     // L'ambiance : instantanée au départ et en mouvement réduit, sinon en 1.4 s.

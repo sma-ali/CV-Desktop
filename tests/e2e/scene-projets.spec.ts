@@ -104,7 +104,7 @@ test.describe('Netherbrain et Homelab', () => {
     await waitForScene(page);
     await expect(tag(page, 'netherbrain')).toHaveText(/2026\s*Netherbrain/);
     await expect(tag(page, 'homelab')).toHaveText(/2026\s*Homelab/);
-    await expect(tag(page, 'laptop')).toHaveText(/Pile\s*Compétences/);
+    await expect(tag(page, 'laptop')).toHaveText(/<\/>\s*Compétences/);
     await page.goto('/en?t=11000&fige&auto=0&heure=14');
     await waitForScene(page);
     await expect(tag(page, 'netherbrain')).toHaveText(/2026\s*Netherbrain/);

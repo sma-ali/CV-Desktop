@@ -14,7 +14,7 @@ export const UPRIGHT_KEY = 'Home';
 // de même.
 //
 // Le bouton disparaît quand l'objet est remis droit : s'il avait le focus,
-// celui-ci passe au bouton d'avant (Retourner) au lieu de se perdre.
+// celui-ci passe au titre de la fiche au lieu de se perdre.
 export function UprightButton({ label }: { label: string }) {
   const store = useSceneStoreApi();
   const turned = useSceneStore((state) => state.presented !== null && state.heldTurned);
@@ -39,8 +39,10 @@ export function UprightButton({ label }: { label: string }) {
       data-upright=""
       aria-keyshortcuts={UPRIGHT_KEY}
       onFocus={(event) => {
-        const previous = event.currentTarget.previousElementSibling;
-        fallback.current = previous instanceof HTMLElement ? previous : null;
+        // Le titre de la fiche (focusable par script) : il n'y a plus de
+        // bouton « Retourner » juste avant.
+        fallback.current =
+          event.currentTarget.closest('aside')?.querySelector<HTMLElement>('h2') ?? null;
       }}
       onBlur={(event) => {
         if (event.relatedTarget !== null) fallback.current = null;

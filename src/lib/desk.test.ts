@@ -19,10 +19,17 @@ describe('les étapes du bureau', () => {
       },
       { id: 'dares', item: 'postit', title: '2024', detail: 'DARES', href: '/fr/express#dares' },
       {
-        id: 'projects',
+        id: 'netherbrain',
         item: 'netherbrain',
         title: '2026',
-        detail: 'Netherbrain | Homelab',
+        detail: 'Netherbrain',
+        href: '/fr/express#projects',
+      },
+      {
+        id: 'homelab',
+        item: 'homelab',
+        title: '2026',
+        detail: 'Homelab',
         href: '/fr/express#projects',
       },
       {
@@ -48,6 +55,7 @@ describe('les étapes du bureau', () => {
     expect(steps.map((step) => step.href)).toEqual([
       '/en/express#defi-metiers',
       '/en/express#dares',
+      '/en/express#projects',
       '/en/express#projects',
       '/en/express#projects',
       '/en/express#contact',

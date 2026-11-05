@@ -4,7 +4,7 @@ import { sceneFr } from './scene/fr';
 import { sheetsFr } from './sheets/fr';
 import { contact } from './shared';
 
-// Source : le CV d'Ali en français (septembre 2026). Ne rien reformuler ici
+// Source : le CV d'Ali en français (mis à jour le 05/11/2026). Ne rien reformuler ici
 // sans l'avoir changé dans le CV.
 export const fr = {
   profile: {
@@ -72,7 +72,7 @@ export const fr = {
       year: 2026,
       repository: { url: 'https://github.com/sma-ali/Homelab-Demo', public: true },
       highlights: [
-        'Serveur dédié sous Proxmox, pare-feu OPNsense, accès exclusif par VPN WireGuard, durcissement CrowdSec / 2FA / SSH par clé.',
+        'Serveur dédié sous Proxmox, pare-feu OPNsense, accès exclusif par VPN WireGuard, durcissement : pare-feu IPv4 + IPv6, 2FA, SSH par clé.',
         'Sauvegardes automatiques des VM avec restauration testée ; architecture et procédures intégralement documentées et versionnées.',
       ],
     },
@@ -188,6 +188,7 @@ export const fr = {
     glance: "Le CV en un coup d'œil",
     perso: { year: 2026, detail: "L'usine" },
     contactDetail: 'Carte de visite',
+    written: { title: 'CV', detail: 'Version écrite' },
     hint: {
       pointer: 'Cliquez sur un objet pour le voir de près. Glissez-le pour le déplacer.',
       touch: 'Touchez un objet pour le voir de près. Glissez-le pour le déplacer.',

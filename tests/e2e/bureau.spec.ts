@@ -64,14 +64,18 @@ test.describe('le HUD', () => {
     const steps = page
       .getByRole('navigation', { name: "Le CV en un coup d'œil" })
       .getByRole('link');
-    await expect(steps).toHaveCount(5);
+    // Six étapes, plus le lien vers le CV écrit, à gauche du contact.
+    await expect(steps).toHaveCount(7);
     await expect(steps.nth(0)).toContainText('2020');
     await expect(steps.nth(0)).toContainText('DEFI-METIERS');
     await expect(steps.nth(1)).toContainText('2024');
-    await expect(steps.nth(2)).toContainText('Netherbrain | Homelab');
-    await expect(steps.nth(3)).toContainText('2026');
-    await expect(steps.nth(3)).toContainText("L'usine");
-    await expect(steps.nth(4)).toContainText('Contact');
+    await expect(steps.nth(2)).toContainText('Netherbrain');
+    await expect(steps.nth(3)).toContainText('Homelab');
+    await expect(steps.nth(4)).toContainText('2026');
+    await expect(steps.nth(4)).toContainText("L'usine");
+    await expect(steps.nth(5)).toContainText('Version écrite');
+    await expect(steps.nth(5)).toHaveAttribute('href', '/fr/express');
+    await expect(steps.nth(6)).toContainText('Contact');
 
     await steps.nth(1).click();
     await expect(page).toHaveURL(/\/fr\/express#dares$/);

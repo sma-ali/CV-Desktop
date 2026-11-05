@@ -50,7 +50,7 @@ test.describe('la fiche', () => {
 
   for (const locale of ['fr', 'en'] as const) {
     test(`chaque puce ouvre la bonne fiche (${locale})`, async ({ page }) => {
-      // Cinq présentations de suite : près de 60 s avec 4 pages sous SwiftShader.
+      // Six présentations de suite : plus de 60 s avec 4 pages sous SwiftShader.
       test.slow();
       const { sheets } = getContent(locale);
       await page.goto(at(locale));
@@ -58,7 +58,8 @@ test.describe('la fiche', () => {
       const expected = [
         ['defi-metiers', 'book'],
         ['dares', 'postit'],
-        ['projects', 'netherbrain'],
+        ['netherbrain', 'netherbrain'],
+        ['homelab', 'homelab'],
         ['perso', 'chest'],
         ['contact', 'card'],
       ] as const;
@@ -70,11 +71,8 @@ test.describe('la fiche', () => {
         await expect(sheet(page)).toContainText(card.kicker);
         await expect(sheet(page)).toContainText(card.body);
         for (const row of card.meta) await expect(sheet(page)).toContainText(row.value);
-        // L'appel au contact mène à la version express.
-        await expect(sheet(page).getByRole('link', { name: sheets.ui.contact })).toHaveAttribute(
-          'href',
-          `/${locale}/express#contact`,
-        );
+        // Plus d'appel au contact dans les fiches : il est en bas à droite.
+        await expect(sheet(page).getByRole('link', { name: sheets.ui.contact })).toHaveCount(0);
         // Sur téléphone, la feuille du bas couvre les puces : on repose.
         await page.keyboard.press('Escape');
         await expect(sheet(page)).toHaveAttribute('data-open', 'false');
@@ -154,28 +152,19 @@ test.describe('la fiche', () => {
     await expect(language).toBeFocused();
   });
 
-  test('Retourner : le bouton et la touche R', async ({ page }) => {
-    // Deux scènes chargées l'une après l'autre : le temps de deux démarrages.
-    test.slow();
+  test('Retourner : la touche R, sans bouton dans la fiche', async ({ page }) => {
     await page.goto(at('fr', 'prendre=badge'));
     await waitForScene(page);
-    const flip = sheet(page).getByRole('button', { name: 'Retourner', exact: true });
     await expect(hud(page)).toHaveAttribute('data-flipped', 'true');
-    await expect(flip).toHaveAttribute('aria-pressed', 'true');
-    await expect(flip).toHaveAttribute('aria-keyshortcuts', 'R');
-    await flip.click();
-    await expect(hud(page)).toHaveAttribute('data-flipped', 'false');
-    await expect(flip).toHaveAttribute('aria-pressed', 'false');
-    await page.keyboard.press('r');
-    await expect(hud(page)).toHaveAttribute('data-flipped', 'true');
-    // Ctrl+R reste au navigateur (on ne l'envoie pas : il rechargerait la page).
-    // L'écran ne se retourne pas : pas de bouton.
-    await page.goto(at('fr', 'prendre=monitor'));
-    await waitForScene(page);
-    await expect(sheet(page)).toHaveAttribute('data-sheet', 'monitor');
+    // On retourne l'objet d'un clic dessus, ou avec R : plus de bouton.
     await expect(sheet(page).getByRole('button', { name: 'Retourner', exact: true })).toHaveCount(
       0,
     );
+    await page.keyboard.press('r');
+    await expect(hud(page)).toHaveAttribute('data-flipped', 'false');
+    await page.keyboard.press('r');
+    await expect(hud(page)).toHaveAttribute('data-flipped', 'true');
+    // Ctrl+R reste au navigateur (on ne l'envoie pas : il rechargerait la page).
   });
 
   test('seule la fiche Homelab lie un dépôt, sa vitrine publique', async ({ page }) => {
@@ -213,9 +202,10 @@ test.describe('la fiche', () => {
   test('ses boutons et ses liens font au moins 44 px', async ({ page }) => {
     await page.goto(at('fr', 'prendre=card'));
     await waitForScene(page);
-    // Tous les liens, ceux de la méta compris (e-mail, LinkedIn).
+    // Tous les liens, ceux de la méta compris (e-mail, LinkedIn), et les
+    // boutons du pied (Préc., Reposer, Suiv.).
     const targets = sheet(page).locator('button, a');
-    expect(await targets.count()).toBeGreaterThanOrEqual(7);
+    expect(await targets.count()).toBeGreaterThanOrEqual(5);
     for (const target of await targets.all()) {
       const box = await target.boundingBox();
       expect(box!.height, (await target.textContent()) ?? '').toBeGreaterThanOrEqual(44);
@@ -313,7 +303,7 @@ test.describe('le son', () => {
     await page.locator('[data-step="contact"]').click();
     await expect(sheet(page)).toHaveAttribute('data-sheet', 'card');
     expect(await contexts(page)).toBe(1);
-    await sheet(page).getByRole('button', { name: 'Retourner', exact: true }).click();
+    await page.keyboard.press('r');
     await page.keyboard.press('Escape');
     await expect(hud(page)).toHaveAttribute('data-presented', '');
     // Un seul contexte pour toute la visite.

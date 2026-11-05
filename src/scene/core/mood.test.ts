@@ -26,7 +26,6 @@ describe("l'ambiance selon l'heure", () => {
     const half = visitorNow(hourOffset(14.5, now), now.getTime());
     expect([half.getHours(), half.getMinutes()]).toEqual([14, 30]);
   });
-
 });
 
 describe('les valeurs des ambiances', () => {

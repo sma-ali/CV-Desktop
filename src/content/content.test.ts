@@ -3,6 +3,7 @@ import { en } from './en';
 import { fr } from './fr';
 import { getContent, locales, type Locale } from './index';
 import { contentSchema, type Content } from './schema';
+import { forbiddenPattern } from '../../tests/forbidden-terms';
 
 type Leaf = { path: string; value: string | number | boolean };
 
@@ -84,8 +85,16 @@ describe.each(locales)('contenu %s', (locale) => {
   // plateforme ni un lien qui permette de les retrouver. Vaut pour tout ce
   // que la scène, le bureau et les fiches affichent.
   it("ne mène à aucune chaîne de l'usine", () => {
-    const forbidden =
-      /tiktok|youtube|shorts|instagram|twitch|upload-?post|home\.arpa|192\.168/i;
+    const forbidden = forbiddenPattern([
+      'tiktok',
+      'youtube',
+      'shorts',
+      'instagram',
+      'twitch',
+      'upload-?post',
+      'home\\.arpa',
+      '192\\.168',
+    ]);
     const leaked = textLeaves(content).filter(
       (leaf) => /^(desk|scene|sheets)\./.test(leaf.path) && forbidden.test(leaf.value),
     );

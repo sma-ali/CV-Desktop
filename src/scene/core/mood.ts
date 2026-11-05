@@ -25,4 +25,3 @@ export function hourOffset(hour: number | null, now: Date): number {
 export function visitorNow(offsetMs: number, now: number = Date.now()): Date {
   return new Date(now + offsetMs);
 }
-

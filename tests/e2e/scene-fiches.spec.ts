@@ -2,6 +2,7 @@ import AxeBuilder from '@axe-core/playwright';
 import { expect, test, type Page } from '@playwright/test';
 import { getContent, type Locale } from '../../src/content';
 import { SHEET_ORDER } from '../../src/scene/core/ids';
+import { forbiddenPattern } from '../forbidden-terms';
 
 // Les fiches (partie « fiches », étape 4) : le bristol de l'objet présenté
 // (#sheet, data-open et data-sheet), Préc. / Suiv., Page précédente et
@@ -31,8 +32,16 @@ function collectErrors(page: Page): string[] {
 
 /** Les mots qui trahiraient le contenu du coffret (même liste que content.test.ts). */
 // L'usine montre des genres, jamais une chaîne, un compte ni une plateforme.
-const FORBIDDEN =
-  /tiktok|youtube|shorts|instagram|twitch|upload-?post|@|https?:/i;
+const FORBIDDEN = forbiddenPattern([
+  'tiktok',
+  'youtube',
+  'shorts',
+  'instagram',
+  'twitch',
+  'upload-?post',
+  '@',
+  'https?:',
+]);
 
 test.describe('la fiche', () => {
   test('s’ouvre avec l’objet présenté et se ferme en le reposant', async ({ page }) => {

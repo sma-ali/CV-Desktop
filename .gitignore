@@ -1,5 +1,6 @@
 # Contexte privé
 CLAUDE.local.md
+*.local.txt
 
 # Worktrees des agents (git worktree add .claude/worktrees/<nom>)
 .claude/worktrees/

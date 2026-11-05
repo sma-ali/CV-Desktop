@@ -78,9 +78,7 @@ test.describe('l’écran de chargement', () => {
     expect(values.some((value) => value > 0 && value < 100)).toBe(true);
   });
 
-  test('cache le bureau, sans lien, tant que la scène se prépare', async ({
-    page,
-  }) => {
+  test('cache le bureau, sans lien, tant que la scène se prépare', async ({ page }) => {
     await holdThree(page);
     await page.goto('/fr?auto=0&attente=0');
     await expect(intro(page)).toBeVisible();

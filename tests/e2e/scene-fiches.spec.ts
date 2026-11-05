@@ -178,13 +178,21 @@ test.describe('la fiche', () => {
     );
   });
 
-  test('aucun lien vers un dépôt privé', async ({ page }) => {
+  test('seule la fiche Homelab lie un dépôt, sa vitrine publique', async ({ page }) => {
     await page.goto(at('fr', 'prendre=book'));
     await waitForScene(page);
     const next = sheet(page).getByRole('button', { name: 'Objet suivant' });
     for (let i = 0; i < SHEET_ORDER.length; i++) {
-      await expect(sheet(page).locator('a[href*="github"]')).toHaveCount(0);
-      await expect(sheet(page).locator('[data-repository]')).toHaveCount(0);
+      const id = await sheet(page).getAttribute('data-sheet');
+      if (id === 'homelab') {
+        await expect(sheet(page).locator('a[href*="github"]')).toHaveCount(1);
+        await expect(
+          sheet(page).locator('a[href="https://github.com/sma-ali/Homelab-Demo"]'),
+        ).toHaveCount(1);
+      } else {
+        await expect(sheet(page).locator('a[href*="github"]'), id ?? '').toHaveCount(0);
+        await expect(sheet(page).locator('[data-repository]'), id ?? '').toHaveCount(0);
+      }
       await next.click();
     }
   });

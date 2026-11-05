@@ -100,28 +100,29 @@ describe('les fiches du bureau', () => {
     expect(buildDeskSheets(getContent('en'), 'en').contactHref).toBe('/en/express#contact');
   });
 
-  it('ne lient pas un dépôt privé', () => {
-    const content = getContent('fr');
-    expect(content.projects.every((project) => !project.repository.public)).toBe(true);
-    const sheets = buildDeskSheets(content, 'fr');
-    for (const id of SHEET_ORDER) expect(sheets.items[id].repository, id).toBeNull();
-  });
-
-  it('lient le dépôt d’un projet public', () => {
-    const content = getContent('fr');
-    const opened = {
-      ...content,
-      projects: content.projects.map((project) =>
-        project.id === 'homelab'
-          ? { ...project, repository: { ...project.repository, public: true } }
-          : project,
-      ),
-    };
-    const sheets = buildDeskSheets(opened, 'fr');
+  it('ne lient que le dépôt public, la vitrine Homelab', () => {
+    // État au 05/11/2026 : la vitrine Homelab-Demo est publique, Netherbrain reste privé.
+    const sheets = buildDeskSheets(getContent('fr'), 'fr');
+    for (const id of SHEET_ORDER) {
+      if (id === 'homelab') continue;
+      expect(sheets.items[id].repository, id).toBeNull();
+    }
     expect(sheets.items.homelab.repository).toEqual({
       label: 'Voir le dépôt',
-      href: 'https://github.com/sma-ali/Homelab',
+      href: 'https://github.com/sma-ali/Homelab-Demo',
     });
-    expect(sheets.items.netherbrain.repository).toBeNull();
+  });
+
+  it('ne lient pas un dépôt marqué privé', () => {
+    const content = getContent('fr');
+    const closed = {
+      ...content,
+      projects: content.projects.map((project) => ({
+        ...project,
+        repository: { ...project.repository, public: false },
+      })),
+    };
+    const sheets = buildDeskSheets(closed, 'fr');
+    for (const id of SHEET_ORDER) expect(sheets.items[id].repository, id).toBeNull();
   });
 });

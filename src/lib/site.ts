@@ -16,6 +16,11 @@ export function expressPath(locale: Locale): string {
   return `/${locale}/express`;
 }
 
+// Chemin des mentions légales dans une langue (« /fr/legal »).
+export function legalPath(locale: Locale): string {
+  return `/${locale}/legal`;
+}
+
 // Adresse complète d'un chemin du site.
 export function absoluteUrl(path: string): string {
   return new URL(path, SITE_ORIGIN).toString();

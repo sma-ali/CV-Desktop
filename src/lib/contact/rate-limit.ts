@@ -46,6 +46,23 @@ export const DEFAULT_GLOBAL: Window = { max: 30, windowMs: HOUR };
 export const DEFAULT_GLOBAL_DAILY: Window = { max: 100, windowMs: 24 * HOUR };
 const DEFAULT_MAX_KEYS = 10_000;
 
+// Les tentatives, comptées avant toute lecture du corps : valides ou non,
+// piège rempli ou saisie trop rapide. Par IP seulement, jamais pour toute
+// l'instance : un robot qui martèle la route se freine lui-même sans couper
+// le formulaire des autres visiteurs.
+export const DEFAULT_ATTEMPTS: Window = { max: 20, windowMs: 10 * MINUTE };
+
+/** La fenêtre des tentatives, relevée avec le maximum par IP (tests de bout en bout). */
+export function attemptWindows(perKeyMax: number = DEFAULT_PER_KEY.max): {
+  perKey: Window[];
+  global: Window[];
+} {
+  return {
+    perKey: [{ ...DEFAULT_ATTEMPTS, max: Math.max(DEFAULT_ATTEMPTS.max, perKeyMax * 4) }],
+    global: [],
+  };
+}
+
 /**
  * Les fenêtres par défaut, avec un maximum par IP éventuellement relevé
  * (CONTACT_RATE_LIMIT_MAX, pour les tests de bout en bout où tout vient de

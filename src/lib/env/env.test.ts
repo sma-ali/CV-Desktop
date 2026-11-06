@@ -93,6 +93,16 @@ describe('configuration de l’envoi', () => {
     expect(readContactConfig({ ...complete, CONTACT_DRY_RUN: '0' }).mode).toBe('mailjet');
   });
 
+  it('refuse le dry run en production sur Vercel, même avec toutes les clés', () => {
+    expect(
+      readContactConfig({ ...complete, CONTACT_DRY_RUN: '1', VERCEL_ENV: 'production' }),
+    ).toEqual({ mode: 'unavailable', problems: ['CONTACT_DRY_RUN'] });
+    // Les aperçus Vercel gardent le dry run.
+    expect(readContactConfig({ CONTACT_DRY_RUN: '1', VERCEL_ENV: 'preview' })).toEqual({
+      mode: 'dry-run',
+    });
+  });
+
   it('nomme les variables absentes ou invalides, jamais leurs valeurs', () => {
     expect(readContactConfig({ CONTACT_TO: 'boite@exemple.fr', MAILJET_API_KEY: '' })).toEqual({
       mode: 'unavailable',

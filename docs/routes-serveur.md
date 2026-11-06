@@ -52,13 +52,14 @@ L'horodatage de début de saisie est devenu une durée (`typingMs`) : l'horloge 
 
 1. Origine : un en-tête `Origin` présent doit être celui du site (`SITE_URL`, `src/lib/site.ts`) ou l'hôte de la requête (local, aperçus Vercel), en HTTPS hors de `localhost`, `127.0.0.1` et `[::1]`. Sinon 403. Sans `Origin`, la requête passe (la limite de débit tient toujours).
 2. Type de contenu : JSON ou formulaire, sinon 415.
-3. Taille : 16 ko lus au plus (`Content-Length` d'abord, puis lecture bornée du flux), sinon 413.
-4. Piège rempli (toute valeur non vide, quel que soit son type) : succès apparent, rien n'est envoyé.
-5. Validation zod : 400 avec le code de chaque champ fautif.
-6. Saisie trop rapide (`typingMs` sous 3000, ou absent d'un envoi JSON) : succès apparent, rien n'est envoyé.
-7. Configuration de l'envoi absente : 503.
-8. Limite de débit : 429 avec `Retry-After`.
-9. Envoi : 502 s'il échoue.
+3. Tentatives : 20 par IP et par 10 minutes, valides ou non, comptées avant la lecture du corps ; sinon 429 avec `Retry-After`. Aucun plafond commun : un robot se freine lui-même sans couper le formulaire des autres.
+4. Taille : 16 ko lus au plus (`Content-Length` d'abord, puis lecture bornée du flux), sinon 413.
+5. Piège rempli (toute valeur non vide, quel que soit son type) : succès apparent, rien n'est envoyé.
+6. Validation zod : 400 avec le code de chaque champ fautif.
+7. Saisie trop rapide (`typingMs` sous 3000, ou absent d'un envoi JSON) : succès apparent, rien n'est envoyé.
+8. Configuration de l'envoi absente, ou dry run demandé en production sur Vercel : 503.
+9. Limite de débit : 429 avec `Retry-After`.
+10. Envoi : 502 s'il échoue.
 
 Les envois refusés avant la limite (invalides, piège, saisie trop rapide) ne consomment pas le quota.
 

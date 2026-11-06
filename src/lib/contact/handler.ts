@@ -21,7 +21,10 @@ import { contactRequestSchema, fieldErrors } from './schema';
 export type MailerResolution = { ok: true; mailer: Mailer } | { ok: false; problems: string[] };
 
 export interface ContactDeps {
+  /** Les envois : par IP et pour toute l'instance (quota d'envoi). */
   limiter: RateLimiter;
+  /** Les tentatives, valides ou non, par IP, comptées avant la lecture du corps. */
+  attemptLimiter: RateLimiter;
   /** L'envoi configuré, ou la liste des variables qui manquent. */
   resolveMailer: () => MailerResolution;
   now: () => number;
@@ -203,6 +206,15 @@ export async function handleContactPost(request: Request, deps: ContactDeps): Pr
   const kind = bodyKind(request.headers);
   if (kind === null) return json({ ok: false, error: 'unsupported' }, 415);
 
+  const key = clientKey(request.headers);
+  const attempt = deps.attemptLimiter.hit(key, deps.now());
+  if (!attempt.ok) {
+    logger.warn('contact : trop de tentatives');
+    return fail(kind, fallbackTarget, 'rate_limited', {
+      headers: { 'Retry-After': String(attempt.retryAfterSeconds) },
+    });
+  }
+
   const text = await readBody(request, MAX_BODY_BYTES);
   if (text === null) return fail(kind, fallbackTarget, 'too_large');
 
@@ -239,7 +251,7 @@ export async function handleContactPost(request: Request, deps: ContactDeps): Pr
     return fail(kind, target, 'unavailable');
   }
 
-  const limit = deps.limiter.hit(clientKey(request.headers), deps.now());
+  const limit = deps.limiter.hit(key, deps.now());
   if (!limit.ok) {
     logger.warn('contact : limite de débit atteinte');
     return fail(kind, target, 'rate_limited', {

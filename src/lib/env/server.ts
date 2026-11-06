@@ -48,8 +48,16 @@ const MAILJET_KEYS = [
   'MAILJET_API_SECRET',
 ] as const;
 
-/** La configuration de l'envoi, d'après env (process.env par défaut). */
+/**
+ * La configuration de l'envoi, d'après env (process.env par défaut). En
+ * production sur Vercel, un dry run est refusé : posé par erreur, il ferait
+ * croire au visiteur que son message est parti. Le formulaire répond alors
+ * 503 et propose l'e-mail.
+ */
 export function readContactConfig(env: Env = loadedEnv()): ContactConfig {
+  if (env.CONTACT_DRY_RUN === '1' && env.VERCEL_ENV === 'production') {
+    return { mode: 'unavailable', problems: ['CONTACT_DRY_RUN'] };
+  }
   const pick = Object.fromEntries(
     [...MAILJET_KEYS, 'CONTACT_DRY_RUN'].map((name) => [name, env[name]]),
   );
@@ -62,15 +70,16 @@ export function readContactConfig(env: Env = loadedEnv()): ContactConfig {
   }
   const values = parsed.data;
   if (values.CONTACT_DRY_RUN === '1') return { mode: 'dry-run' };
-  const missing = MAILJET_KEYS.filter((name) => values[name] === undefined);
-  if (missing.length > 0) return { mode: 'unavailable', problems: missing };
-  return {
-    mode: 'mailjet',
-    to: values.CONTACT_TO!,
-    from: values.CONTACT_FROM!,
-    apiKey: values.MAILJET_API_KEY!,
-    apiSecret: values.MAILJET_API_SECRET!,
-  };
+  const {
+    CONTACT_TO: to,
+    CONTACT_FROM: from,
+    MAILJET_API_KEY: apiKey,
+    MAILJET_API_SECRET: apiSecret,
+  } = values;
+  if (!to || !from || !apiKey || !apiSecret) {
+    return { mode: 'unavailable', problems: MAILJET_KEYS.filter((name) => !values[name]) };
+  }
+  return { mode: 'mailjet', to, from, apiKey, apiSecret };
 }
 
 /** Le maximum d'envois par IP et par fenêtre ; une valeur invalide garde le défaut. */

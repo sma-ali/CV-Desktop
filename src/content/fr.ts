@@ -1,4 +1,5 @@
 import { contactFormFr } from './contact/fr';
+import { legalFr } from './legal/fr';
 import type { Content } from './schema';
 import { sceneFr } from './scene/fr';
 import { sheetsFr } from './sheets/fr';
@@ -186,6 +187,7 @@ export const fr = {
     repositoryLabel: 'Dépôt',
     backToTop: 'Haut de page',
     backToDesk: 'Revenir au bureau',
+    legalLink: 'Mentions légales',
   },
   desk: {
     canvasLabel: "Le bureau d'Ali vu d'en haut. Chaque objet est une étape du CV.",
@@ -233,4 +235,5 @@ export const fr = {
   scene: sceneFr,
   sheets: sheetsFr,
   contactForm: contactFormFr,
+  legal: legalFr,
 } satisfies Content;

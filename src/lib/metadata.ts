@@ -1,7 +1,7 @@
 import type { Metadata } from 'next';
 import type { Content } from '@/content';
 import { locales, type Locale } from '@/content/locales';
-import { absoluteUrl, deskPath, expressPath } from './site';
+import { absoluteUrl, deskPath, expressPath, legalPath } from './site';
 
 const openGraphLocales: Record<Locale, string> = { fr: 'fr_FR', en: 'en_US' };
 
@@ -31,6 +31,26 @@ export function deskAlternates(): Record<string, string> {
 // opengraph-image.tsx de la route, que Next.js ajoute de lui-même.
 export function buildExpressMetadata(content: Content, locale: Locale): Metadata {
   return buildMetadata(content, locale, absoluteUrl(expressPath(locale)), expressAlternates());
+}
+
+// Adresses des mentions légales dans chaque langue, plus x-default (le français).
+export function legalAlternates(): Record<string, string> {
+  return {
+    ...Object.fromEntries(locales.map((locale) => [locale, absoluteUrl(legalPath(locale))])),
+    'x-default': absoluteUrl(legalPath('fr')),
+  };
+}
+
+// Métadonnées des mentions légales : leur propre titre, pas d'image de partage.
+export function buildLegalMetadata(content: Content, locale: Locale): Metadata {
+  const url = absoluteUrl(legalPath(locale));
+  const title = `${content.legal.title} | ${content.profile.name}`;
+  return {
+    title,
+    description: content.legal.intro,
+    alternates: { canonical: url, languages: legalAlternates() },
+    openGraph: { type: 'website', title, url, locale: openGraphLocales[locale] },
+  };
 }
 
 // Métadonnées du bureau en 3D. Il partage l'image de partage de la version

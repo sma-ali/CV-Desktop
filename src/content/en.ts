@@ -1,4 +1,5 @@
 import { contactFormEn } from './contact/en';
+import { legalEn } from './legal/en';
 import type { Content } from './schema';
 import { sceneEn } from './scene/en';
 import { sheetsEn } from './sheets/en';
@@ -185,6 +186,7 @@ export const en = {
     repositoryLabel: 'Repository',
     backToTop: 'Back to top',
     backToDesk: 'Back to the desk',
+    legalLink: 'Legal notice',
   },
   desk: {
     canvasLabel: "Ali's desk seen from above. Each object is a step of the CV.",
@@ -231,4 +233,5 @@ export const en = {
   scene: sceneEn,
   sheets: sheetsEn,
   contactForm: contactFormEn,
+  legal: legalEn,
 } satisfies Content;

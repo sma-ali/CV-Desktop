@@ -6,7 +6,7 @@ import { PrintButton } from '@/components/express/PrintButton';
 import { getContent, isLocale, localeNames, type Locale } from '@/content';
 import { buildProfilePageJsonLd, serializeJsonLd } from '@/lib/json-ld';
 import { buildExpressMetadata } from '@/lib/metadata';
-import { deskPath, expressPath } from '@/lib/site';
+import { deskPath, expressPath, legalPath } from '@/lib/site';
 import { displayUrl } from '@/lib/urls';
 import styles from './page.module.css';
 
@@ -68,9 +68,14 @@ export default async function ExpressPage({ params }: PageProps<'/[locale]/expre
           <p className={styles.footerText}>
             {profile.name} | <a href={contact.website}>{displayUrl(contact.website)}</a>
           </p>
-          <a href="#haut" className={styles.footerLink}>
-            {ui.backToTop}
-          </a>
+          <span className={styles.footerLinks}>
+            <Link href={legalPath(locale)} className={styles.footerLink}>
+              {ui.legalLink}
+            </Link>
+            <a href="#haut" className={styles.footerLink}>
+              {ui.backToTop}
+            </a>
+          </span>
         </footer>
       </div>
     </div>

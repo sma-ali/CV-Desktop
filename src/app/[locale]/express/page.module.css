@@ -141,6 +141,11 @@
   margin: 0;
 }
 
+.footerLinks {
+  display: flex;
+  gap: 1rem;
+}
+
 .footerLink {
   color: var(--muted);
 }

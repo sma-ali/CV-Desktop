@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { contactFormSchema } from './contact/schema';
+import { legalSchema } from './legal/schema';
 import { sceneContentSchema } from './scene/schema';
 import { sheetsSchema } from './sheets/schema';
 import { text, texts } from './text';
@@ -108,6 +109,7 @@ const uiSchema = z.strictObject({
   repositoryLabel: text,
   backToTop: text,
   backToDesk: text,
+  legalLink: text,
 });
 
 // Une ambiance de lumière : sa phrase (coin de l'heure).
@@ -170,6 +172,7 @@ export const contentSchema = z.strictObject({
   scene: sceneContentSchema,
   sheets: sheetsSchema,
   contactForm: contactFormSchema,
+  legal: legalSchema,
 });
 
 export type Content = z.infer<typeof contentSchema>;

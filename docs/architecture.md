@@ -22,26 +22,26 @@ Les pages `/fr`, `/en`, `/fr/express`, `/en/express` et les mentions légales so
 
 ## Arborescence
 
-| Dossier                  | Contenu                                                                                                 |
-| ------------------------ | ------------------------------------------------------------------------------------------------------- |
-| `src/app/`               | routes Next (App Router) : bureau, version express, mentions légales, API, `sitemap.ts`, `robots.ts`    |
-| `src/content/`           | le seul module de contenu, FR et EN : CV, textes d'interface, fiches (`sheets/`), textes peints (`scene/`), formulaire (`contact/`), mentions (`legal/`) |
-| `src/components/desk/`   | la page du bureau côté navigateur : `DeskShell`, repli, grain, synthèse des sons                         |
-| `src/components/desk/hud/`   | le HUD : puces des étapes, indication, bouton de rangement, `HudProbe` (état exposé aux tests)       |
-| `src/components/desk/sheet/` | la fiche de l'objet tenu, et celle de l'usine (`FactoryPanel`)                                    |
-| `src/components/desk/intro/` | l'écran de chargement                                                                             |
-| `src/components/express/`    | le CV en HTML, composant serveur, aussi repli du bureau                                           |
-| `src/components/paper/`      | la page de papier commune à la version express et aux mentions légales                            |
-| `src/components/contact/`    | le formulaire de contact, qui marche aussi sans JavaScript                                        |
-| `src/lib/`               | fonctions pures testées : langue, dates, JSON-LD, métadonnées, adresses, textes du bureau (`desk.ts`)    |
-| `src/lib/contact/`       | traitement du formulaire : règles, schéma, limite de débit, envoi                                         |
-| `src/lib/env/`           | lecture validée des variables du serveur                                                                 |
-| `src/lib/life-signs/`    | signes de vie de l'usine : schéma, lecture, arrondi, rafraîchissement                                    |
-| `src/scene/`             | la scène React Three Fiber, en couches (voir plus bas)                                                   |
-| `tests/unit/`            | vérifications sur tout le dépôt (typographie), sitemap et robots                                         |
-| `tests/e2e/`             | parcours Playwright sur le build de production                                                           |
-| `scripts/capture.mjs`    | capture d'une page avec la 3D (Chromium sans écran, SwiftShader)                                         |
-| `prototype/`             | le prototype en Three.js d'un seul fichier, référence visuelle                                           |
+| Dossier                      | Contenu                                                                                                                                                  |
+| ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
+| `src/app/`                   | routes Next (App Router) : bureau, version express, mentions légales, API, `sitemap.ts`, `robots.ts`                                                     |
+| `src/content/`               | le seul module de contenu, FR et EN : CV, textes d'interface, fiches (`sheets/`), textes peints (`scene/`), formulaire (`contact/`), mentions (`legal/`) |
+| `src/components/desk/`       | la page du bureau côté navigateur : `DeskShell`, repli, grain, synthèse des sons                                                                         |
+| `src/components/desk/hud/`   | le HUD : puces des étapes, indication, bouton de rangement, `HudProbe` (état exposé aux tests)                                                           |
+| `src/components/desk/sheet/` | la fiche de l'objet tenu, et celle de l'usine (`FactoryPanel`)                                                                                           |
+| `src/components/desk/intro/` | l'écran de chargement                                                                                                                                    |
+| `src/components/express/`    | le CV en HTML, composant serveur, aussi repli du bureau                                                                                                  |
+| `src/components/paper/`      | la page de papier commune à la version express et aux mentions légales                                                                                   |
+| `src/components/contact/`    | le formulaire de contact, qui marche aussi sans JavaScript                                                                                               |
+| `src/lib/`                   | fonctions pures testées : langue, dates, JSON-LD, métadonnées, adresses, textes du bureau (`desk.ts`)                                                    |
+| `src/lib/contact/`           | traitement du formulaire : règles, schéma, limite de débit, envoi                                                                                        |
+| `src/lib/env/`               | lecture validée des variables du serveur                                                                                                                 |
+| `src/lib/life-signs/`        | signes de vie de l'usine : schéma, lecture, arrondi, rafraîchissement                                                                                    |
+| `src/scene/`                 | la scène React Three Fiber, en couches (voir plus bas)                                                                                                   |
+| `tests/unit/`                | vérifications sur tout le dépôt (typographie), sitemap et robots                                                                                         |
+| `tests/e2e/`                 | parcours Playwright sur le build de production                                                                                                           |
+| `scripts/capture.mjs`        | capture d'une page avec la 3D (Chromium sans écran, SwiftShader)                                                                                         |
+| `prototype/`                 | le prototype en Three.js d'un seul fichier, référence visuelle                                                                                           |
 
 Les tests unitaires vivent à côté du code (`*.test.ts`) ; `tests/unit/` garde les tests qui portent sur tout le dépôt.
 
@@ -49,14 +49,14 @@ Les tests unitaires vivent à côté du code (`*.test.ts`) ; `tests/unit/` garde
 
 `src/scene/` est découpé en couches. Une couche n'importe que les couches plus basses : la règle est vérifiée par ESLint (`SCENE_LAYERS` dans `eslint.config.mjs`).
 
-| Couche              | Rôle                                                                                         |
-| ------------------- | -------------------------------------------------------------------------------------------- |
-| `core/`             | Canvas, horloge, store zustand, constantes, identifiants, chargement, outils de géométrie     |
-| `gestures/`         | hub des gestes : appui, clic, glisser, à la souris comme au doigt                            |
-| `decor/`, `items/`  | la pièce, la lampe, le clavier et les objets du décor ; l'écran et les objets du CV, étiquettes, présentation |
-| `stage/`            | lumières, ciel, caméra et cadrage, visite automatique, post-traitement, qualité adaptative   |
-| `physics/`, `rotation/` | moteur Rapier ; rotation libre de l'objet tenu                                           |
-| `tidy/`             | désordre, retour des objets tombés, rangement                                                |
+| Couche                  | Rôle                                                                                                          |
+| ----------------------- | ------------------------------------------------------------------------------------------------------------- |
+| `core/`                 | Canvas, horloge, store zustand, constantes, identifiants, chargement, outils de géométrie                     |
+| `gestures/`             | hub des gestes : appui, clic, glisser, à la souris comme au doigt                                             |
+| `decor/`, `items/`      | la pièce, la lampe, le clavier et les objets du décor ; l'écran et les objets du CV, étiquettes, présentation |
+| `stage/`                | lumières, ciel, caméra et cadrage, visite automatique, post-traitement, qualité adaptative                    |
+| `physics/`, `rotation/` | moteur Rapier ; rotation libre de l'objet tenu                                                                |
+| `tidy/`                 | désordre, retour des objets tombés, rangement                                                                 |
 
 Deux autres règles ESLint protègent le navigateur : ni zod ni le module de contenu n'entrent dans `src/scene/**` et `src/components/desk/**` (la scène reçoit ses textes en props, `SceneTexts`), et le HUD, qui part dans le JavaScript initial, n'importe aucun module qui dépend de three.
 

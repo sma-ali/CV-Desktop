@@ -311,6 +311,6 @@ describe('le décor du bureau resserré (portrait)', () => {
 
   it('ne cache que du décor qui ne trouve pas sa place, jamais la lampe ni la plante', () => {
     const hidden = DECOR_PIECE_IDS.filter((id) => decorPlacement(id, true).hidden);
-    expect(hidden).toEqual(['rope', 'wraps', 'fox', 'wanderer']);
+    expect(hidden).toEqual(['rope', 'wraps', 'manga', 'fox', 'wanderer']);
   });
 });

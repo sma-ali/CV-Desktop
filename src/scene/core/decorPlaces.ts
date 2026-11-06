@@ -67,26 +67,27 @@ export interface DecorPlacement {
 
 /**
  * Les places du décor en portrait. La lampe passe derrière le bord gauche
- * de l'écran, sa tête vers l'avant gauche (elle éclaire le livre), au-dessus
- * de la plante ; le kimono plié se pose derrière le clavier, entre la
- * lampe, le coffret et le pied de l'écran ; la souris se rapproche du
- * clavier ; la plante se serre dans le coin du fond à gauche, sous la
- * fenêtre, et les mangas et leur robot passent devant le clavier (le casque
- * va à droite de l'écran, HEADSET_PORTRAIT). La corde, les bandes et deux
- * figurines ne trouvent pas de place sans entasser le plateau ou cacher un
- * objet du CV : cachés en portrait.
+ * de l'écran, sa tête vers l'avant gauche (elle éclaire le livre et le
+ * coffret ; elle peut sortir en partie du cadre) ; le kimono plié se pose
+ * derrière le clavier, à droite, entre le pied de l'écran et le casque
+ * (HEADSET_PORTRAIT) ; le clavier avance un peu (le coffret passe derrière
+ * lui, à gauche) et la souris le suit ; la plante se pose devant le
+ * clavier, à gauche, derrière le livre. La corde, les bandes, les mangas
+ * avec leur robot et deux figurines ne trouvent pas de place sans élargir
+ * le bureau (la caméra reculerait et tous les objets rapetisseraient) ou
+ * cacher un objet du CV : cachés en portrait.
  */
 export const PORTRAIT_DECOR: Readonly<
   Record<DecorPieceId, { x: number; z: number; ry?: number; hidden?: boolean }>
 > = {
   lamp: { x: -2.4, z: -3.0, ry: -0.75 },
-  keyboard: { x: KEYBOARD[0], z: KEYBOARD[2] },
-  kimono: { x: -1.3, z: -1.92, ry: -0.1 },
-  mouse: { x: 2.85, z: -0.5 },
+  keyboard: { x: KEYBOARD[0], z: KEYBOARD[2] + 0.13 },
+  kimono: { x: 1.95, z: -1.9, ry: -0.1 },
+  mouse: { x: 2.85, z: -0.4 },
   rope: { ...pointXZ(DECOR_ANCHORS.rope), hidden: true },
   wraps: { ...pointXZ(DECOR_ANCHORS.wraps), hidden: true },
-  plant: { x: -3.5, z: -3.15 },
-  manga: { x: 1.6, z: 0.9, ry: 0.12 },
+  plant: { x: -2.3, z: 0.95 },
+  manga: { ...pointXZ(DECOR_ANCHORS.manga), hidden: true },
   fox: { ...pointXZ(DECOR_ANCHORS.fox), hidden: true },
   wanderer: { ...pointXZ(DECOR_ANCHORS.wanderer), hidden: true },
 };

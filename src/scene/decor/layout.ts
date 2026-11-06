@@ -329,7 +329,7 @@ export const FIGURES: readonly FigureSpec[] = [
 export const STEAM_COUNT = 6;
 
 /**
- * Le kimono de grappling plié, bleu marine, sa ceinture blanche nouée posée
+ * Le kimono plié, bleu marine, sa ceinture blanche nouée posée
  * dessus (aucune marque, aucun écusson ; pièces dans kimono.ts) : à gauche
  * du clavier, sous la lampe. Assez
  * loin derrière le livre pour que sa tranche ne le cache pas.

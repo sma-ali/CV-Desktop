@@ -1,6 +1,6 @@
 import type { Vec3 } from '../core/constants';
 
-// Le kimono de grappling plié et sa ceinture nouée, en données pures (sans
+// Le kimono plié et sa ceinture nouée, en données pures (sans
 // three) : des pavés posés dans le repère du kimono (origine au centre de
 // son pied, au ras du plateau, avant sa rotation). Kimono.tsx en fait des
 // pièces fusionnées ; kimono.test.ts vérifie qu'elles tiennent dans la

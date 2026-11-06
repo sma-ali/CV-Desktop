@@ -93,7 +93,7 @@ La lumière suit l'heure du visiteur, en quatre ambiances (matin, après-midi, s
 
 ### Téléphone
 
-En portrait, les objets se rangent sur un bureau plus étroit et plus profond (`PORTRAIT_PLACES`, `core/views.ts`) : tout le bureau utile reste à l'écran, et un test E2E vérifie qu'aucun objet n'en sort. La fiche devient une feuille en bas de l'écran, et le glisser au doigt ne fait pas défiler la page.
+En portrait, le bureau tient en largeur : les objets se rangent sur une zone plus étroite et plus profonde (`BOUNDS_PORTRAIT`, `core/constants.ts` ; places dans `core/views.ts` et `core/decorPlaces.ts`), en rangées autour de l'écran et du clavier, ce qui rapproche la caméra (objets environ 26 % plus gros qu'avec la disposition du paysage). Le décor secondaire est caché, et une étiquette ne se pose jamais sur un objet du CV. Tout le bureau utile reste à l'écran, et un test E2E vérifie qu'aucun objet n'en sort. La fiche devient une feuille en bas de l'écran, et le glisser au doigt ne fait pas défiler la page.
 
 ## Choix techniques
 

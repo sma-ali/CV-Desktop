@@ -359,7 +359,7 @@ test.describe('les gestes', () => {
     // haut (le bureau resserré dépasse entre les deux, mais le livre qui
     // s'ouvre finit par le couvrir) : on glisse pendant la pause de la
     // visite qui suit le livre (AUTO_TIMING.gap, puis le post-it, qui ne
-    // glisse pas). La baie, à droite, est loin du livre qui revient à
+    // glisse pas). Le portable, à droite, est loin du livre qui revient à
     // gauche ; son point se mesure au début de la pause.
     const reachable = async () => {
       for (const [id, point] of points) {
@@ -376,7 +376,7 @@ test.describe('les gestes', () => {
       await expect(hud(page)).toHaveAttribute('data-presented', '', { timeout: 20_000 });
       await expect(hud(page)).toHaveAttribute('data-auto', 'true');
       target = isPortraitPage(page)
-        ? { id: 'homelab', point: await pointOnItem(page, 'homelab') }
+        ? { id: 'laptop', point: await pointOnItem(page, 'laptop') }
         : await reachable();
     }
     if (!target) throw new Error('aucun corps hors de la fiche');

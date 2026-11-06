@@ -122,14 +122,14 @@ node scripts/capture.mjs /fr --params "t=11000&fige&auto=0&heure=14&prendre=book
 
 - `src/content/` : le contenu du CV en français et en anglais, typé et validé par zod, avec les textes de l'interface et ceux du bureau (`src/content/scene/` pour les textes peints dans la 3D). C'est la seule source des textes : la scène 3D et la version express la lisent toutes les deux. Un contenu invalide fait échouer le build.
 - `src/app/[locale]/page.tsx` : le bureau, rendu au build pour chaque langue (HUD et repli dans le HTML).
-- `src/components/desk/` : le HUD, la fiche de l'objet tenu, la synthèse des sons, le grain, le repli, l'écran de chargement et le bouton de rangement.
+- `src/components/desk/` : la page du bureau côté navigateur (`DeskShell.tsx`), la synthèse des sons, le grain et le repli ; `hud/` le HUD (puces, indication, bouton de rangement, et `HudProbe`, la racine `#hud` qui expose l'état aux tests), `sheet/` la fiche de l'objet tenu (et celle de l'usine), `intro/` l'écran de chargement. Chaque composant a sa feuille de style ; les couleurs partagées sont des jetons de `globals.css`.
 - `src/lib/life-signs/` : les signes de vie de l'usine, lus par le serveur dans un JSON public (validé et arrondi à des chiffres globaux, avec repli sur des données d'exemple).
 - `src/app/api/` : les routes serveur, `contact` et `signes-de-vie` ; `src/lib/contact/` porte le traitement du formulaire (règles, limite de débit, envoi), `src/lib/env/` la lecture des variables du serveur, `src/components/contact/` le formulaire. Contrat : [docs/routes-serveur.md](docs/routes-serveur.md).
 - `src/scene/` : la scène React Three Fiber, chargée à part. `core/` (Canvas, horloge, store, constantes), `decor/` (pièce, lampe, clavier, décor perso, sonde du chargement), `items/` (écran et objets du CV, étiquettes, présentation), `physics/` (moteur Rapier, chargé à part), `gestures/` (hub des gestes, glisser), `rotation/` (rotation libre de l'objet tenu), `tidy/` (désordre, retour des objets tombés, rangement) et `stage/` (lumières, ciel, caméra, visite automatique, post-traitement). Architecture et contrat : [docs/scene-3d.md](docs/scene-3d.md).
 - `scripts/capture.mjs` : capture d'une page avec la 3D.
 - `src/app/[locale]/express/` : la page de la version express, ses métadonnées et son image de partage, générées au build pour chaque langue.
 - `src/app/` : `sitemap.ts`, `robots.ts` et l'icône du site.
-- `src/components/express/` : le CV en HTML (composant serveur réutilisable, il servira aussi de repli sans WebGL) et le bouton « Imprimer ».
+- `src/components/express/` : le CV en HTML (composant serveur réutilisable, aussi repli du bureau sans WebGL). `src/components/paper/` : la page de papier partagée par la version express et les mentions légales (lien d'évitement, en-tête, bascule de langue, bouton « Imprimer »). `src/components/hooks/` : `useHydrated`.
 - `src/lib/` : fonctions pures testées par Vitest (choix de la langue, dates, données structurées JSON-LD, métadonnées, adresse du site).
 - `src/proxy.ts` : choix de la langue à la racine, en un seul saut.
 - `next.config.ts` : en-têtes de sécurité (CSP, HSTS, anti-iframe).

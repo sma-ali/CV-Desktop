@@ -15,8 +15,8 @@ Hors périmètre (étape 4, voir [`docs/gestes.md`](gestes.md)) : retourner un o
 ```
 src/app/[locale]/page.tsx          serveur : lit le contenu, rend le HUD et le repli
 └─ components/desk/DeskShell.tsx   client : store, choix scène ou repli, Échap
-   ├─ Hud.tsx                      HUD (identité, commandes, puces, heure, ambiances, carton, indication)
-   ├─ <section> repli              ExpressCv (serveur), caché tant que la scène tourne
+   ├─ hud/Hud.tsx                  HUD (identité, commandes, puces, carton, indication, fiche)
+   ├─ Fallback.tsx                 repli : ExpressCv (serveur), caché tant que la scène tourne
    └─ scene/Scene.tsx              chargé à part (next/dynamic, ssr: false)
       └─ core/SceneCanvas.tsx      Canvas R3F + core/ClockDriver.tsx (horloge, frame)
          ├─ decor/Decor.tsx        partie « décor »

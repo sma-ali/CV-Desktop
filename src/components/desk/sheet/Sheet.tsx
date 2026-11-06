@@ -1,58 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { ContactForm } from '@/components/contact/ContactForm';
 import type { DeskHudTexts, DeskSheets } from '@/lib/desk';
-import { ITEM_STEP, neighborItem, type ItemId } from '@/scene/core/ids';
+import { neighborItem } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { FactoryPanel } from './FactoryPanel';
-import { factoryView } from './factoryView';
+import { UprightButton } from './UprightButton';
+import { useFactoryView } from './useFactoryView';
+import { useSheetFocus } from './useSheetFocus';
+import { useSheetKeys } from './useSheetKeys';
 import styles from './Sheet.module.css';
-import { UPRIGHT_KEY, UprightButton } from './UprightButton';
-import { rotateKey, rotationInput } from '@/scene/rotation/control';
 
-/** L'instant présent à la minute près, pour « dernière vidéo hier » (null côté serveur). */
-function useNowMinute(): number | null {
-  const minute = useSyncExternalStore(
-    (onChange) => {
-      const timer = window.setInterval(onChange, 20_000);
-      return () => window.clearInterval(timer);
-    },
-    () => Math.floor(Date.now() / 60_000),
-    () => null,
-  );
-  return minute === null ? null : minute * 60_000;
-}
-
-/**
- * Le visiteur se sert-il du clavier ? La dernière action (touche ou
- * pointeur) le dit : la fiche ouverte au clavier prend le focus, ouverte à
- * la souris ou au doigt, elle le laisse où il est.
- */
-function useKeyboardModality() {
-  const keyboard = useRef(false);
-  useEffect(() => {
-    const onKey = (event: KeyboardEvent) => {
-      if (!event.metaKey && !event.ctrlKey && !event.altKey) keyboard.current = true;
-    };
-    const onPointer = () => {
-      keyboard.current = false;
-    };
-    window.addEventListener('keydown', onKey, true);
-    window.addEventListener('pointerdown', onPointer, true);
-    return () => {
-      window.removeEventListener('keydown', onKey, true);
-      window.removeEventListener('pointerdown', onPointer, true);
-    };
-  }, []);
-  return keyboard;
-}
-
-/** Une touche tapée dans un champ ne pilote pas la fiche. */
-function isTyping(target: EventTarget | null): boolean {
-  if (!(target instanceof HTMLElement)) return false;
-  return target.isContentEditable || /^(INPUT|TEXTAREA|SELECT)$/.test(target.tagName);
-}
+type SheetContent = DeskSheets['items'][keyof DeskSheets['items']];
 
 export interface SheetProps {
   texts: DeskSheets;
@@ -61,113 +20,29 @@ export interface SheetProps {
   onAnnounce: (text: string) => void;
 }
 
-// La fiche de l'objet présenté : le bristol du prototype (papier ligné,
-// marge rouge, légère rotation). Sur-titre, étape, titre, méta, texte,
-// note, formulaire de contact (carte de visite), fiche de l'usine (chiffres
-// et genres), Retourner, appel au contact, dépôt public,
-// Remettre droit, Préc. / Reposer / Suiv. Elle s'ouvre avec l'objet présenté
-// (store.presented), quelle qu'en soit la source : puce, clic, étiquette,
-// visite. Flèches pour tourner l'objet, Début pour le remettre droit, Page
-// précédente et Page suivante pour l'objet voisin, R pour retourner ; Échap
-// repose (dans DeskShell).
-//
-// Le focus : ouverte au clavier, la fiche le prend (sur son titre) et le
-// rend à l'élément d'où il venait quand elle se ferme. Ouverte par la
-// visite automatique ou au pointeur, elle ne le prend pas. En portrait,
-// elle monte du bas sans dépasser SHEET.portrait.maxHeight (42 %) de la
-// hauteur, et défile ; en paysage, elle se pose à droite.
+// La fiche de l'objet présenté, un bristol ligné : sur-titre et étape,
+// titre, lignes de méta, texte, note, puis selon l'objet le formulaire de
+// contact (carte de visite) ou la fiche de l'usine, Remettre droit, le
+// dépôt public, et Préc. / Reposer / Suiv. Elle s'ouvre avec l'objet
+// présenté (store.presented), quelle qu'en soit la source : puce, clic,
+// étiquette, visite. Clavier : useSheetKeys ; focus et annonces :
+// useSheetFocus. En portrait, elle monte du bas et défile ; en paysage,
+// elle se pose à droite (Sheet.module.css).
 export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
   const store = useSceneStoreApi();
   const presented = useSceneStore((state) => state.presented);
   const presentedBy = useSceneStore((state) => state.presentedBy);
-  const lifeSigns = useSceneStore((state) => state.lifeSigns);
-  const now = useNowMinute();
-  const keyboard = useKeyboardModality();
-
-  const sheetRef = useRef<HTMLElement>(null);
-  const titleRef = useRef<HTMLHeadingElement>(null);
-  /** L'élément qui avait le focus avant que la fiche ne le prenne. */
-  const returnFocus = useRef<HTMLElement | null>(null);
-  /** Le focus est-il (ou était-il, avant de disparaître avec un bouton) dans la fiche ? */
-  const focusInside = useRef(false);
-  const previous = useRef<ItemId | null>(null);
-
   const sheet = presented ? texts.items[presented] : null;
   const { ui } = texts;
 
-  // Ouverture, changement d'objet, fermeture : focus et annonce.
-  useEffect(() => {
-    const before = previous.current;
-    previous.current = presented;
-    if (before === presented) return;
-    const byVisitor = presentedBy !== null && presentedBy !== 'auto';
-
-    if (presented && sheet) {
-      const active = document.activeElement;
-      const inside = active instanceof Node && !!sheetRef.current?.contains(active);
-      if (byVisitor && keyboard.current && !inside) {
-        // Ouverte au clavier depuis le HUD ou la scène : le focus vient sur le titre.
-        if (active instanceof HTMLElement && active !== document.body) {
-          returnFocus.current = active;
-        }
-        titleRef.current?.focus({ preventScroll: true });
-        focusInside.current = true;
-      } else if (byVisitor && presentedBy !== 'chip') {
-        // La puce s'annonce elle-même ; les autres sources, ici.
-        onAnnounce(`${sheet.title}. ${sheet.kicker}, ${sheet.step}.`);
-      }
-      return;
-    }
-
-    // Fermée : le focus revient d'où il venait, s'il était dans la fiche.
-    const active = document.activeElement;
-    if (focusInside.current && (active === null || active === document.body)) {
-      const back = returnFocus.current;
-      const step = before ? ITEM_STEP[before] : null;
-      const chip = step ? document.querySelector<HTMLElement>(`[data-step="${step}"]`) : null;
-      const target = back?.isConnected ? back : chip;
-      target?.focus({ preventScroll: true });
-    }
-    returnFocus.current = null;
-    focusInside.current = false;
-  }, [presented, presentedBy, sheet, keyboard, onAnnounce]);
-
-  // Tant que la fiche est ouverte (étape 6) : les flèches tournent l'objet
-  // présenté, Début le remet droit, Page précédente et Page suivante passent
-  // à l'objet voisin, R le retourne.
-  useEffect(() => {
-    if (!presented) return;
-    const flipKey = ui.flipKey.toLowerCase();
-    const onKeyDown = (event: KeyboardEvent) => {
-      if (event.defaultPrevented || event.altKey || event.ctrlKey || event.metaKey) return;
-      if (isTyping(event.target)) return;
-      const state = store.getState();
-      if (!state.presented) return;
-      const rotate = rotateKey(event.key);
-      if (event.key === 'PageDown' || event.key === 'PageUp') {
-        event.preventDefault();
-        state.present(neighborItem(state.presented, event.key === 'PageDown' ? 1 : -1), 'sheet');
-      } else if (rotate) {
-        if (state.presented === 'monitor') return;
-        event.preventDefault();
-        // La visite qui tenait l'objet le laisse au visiteur.
-        if (state.presentedBy === 'auto') store.setState({ presentedBy: 'keyboard' });
-        state.markUser();
-        rotationInput(store).nudge(rotate[0], rotate[1]);
-      } else if (event.key === UPRIGHT_KEY) {
-        if (state.presented === 'monitor') return;
-        event.preventDefault();
-        if (state.presentedBy === 'auto') store.setState({ presentedBy: 'keyboard' });
-        state.requestUpright();
-      } else if (event.key.toLowerCase() === flipKey && !event.repeat) {
-        if (state.presented === 'monitor') return;
-        event.preventDefault();
-        state.toggleFlip();
-      }
-    };
-    window.addEventListener('keydown', onKeyDown);
-    return () => window.removeEventListener('keydown', onKeyDown);
-  }, [presented, store, ui.flipKey]);
+  const factory = useFactoryView(presented === 'chest', ui.factory, locale);
+  const { sheetRef, titleRef, onFocus, onBlur } = useSheetFocus({
+    presented,
+    presentedBy,
+    announcement: sheet ? `${sheet.title}. ${sheet.kicker}, ${sheet.step}.` : null,
+    onAnnounce,
+  });
+  useSheetKeys(presented, ui.flipKey);
 
   const go = (direction: 1 | -1) => {
     const state = store.getState();
@@ -180,15 +55,8 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
     state.putBack();
   };
 
-  // L'horloge avance par pas : jamais avant l'instant de la mesure (une
-  // horloge de visiteur en retard ne lit pas « dernière vidéo » dans le futur).
-  const measuredAt = lifeSigns ? Date.parse(lifeSigns.measuredAt) : Number.NaN;
-  const clockNow = Number.isFinite(measuredAt) && now !== null ? Math.max(now, measuredAt) : now;
-  const factory =
-    presented === 'chest' && clockNow !== null
-      ? factoryView(lifeSigns, clockNow, ui.factory, locale)
-      : null;
-  const canFlip = presented !== null && presented !== 'monitor';
+  // L'écran ne se tourne pas : pas de « Remettre droit ».
+  const turnable = presented !== null && presented !== 'monitor';
 
   return (
     <aside
@@ -199,15 +67,8 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
       data-sheet={presented ?? ''}
       aria-labelledby={sheet ? 'sheet-title' : undefined}
       hidden={!sheet}
-      onFocus={() => {
-        focusInside.current = true;
-      }}
-      onBlur={(event) => {
-        const next = event.relatedTarget;
-        if (next instanceof Node && event.currentTarget.contains(next)) return;
-        // Le bouton qui disparaît avec la fiche ne compte pas comme une sortie.
-        if (next !== null) focusInside.current = false;
-      }}
+      onFocus={onFocus}
+      onBlur={onBlur}
     >
       {sheet && presented ? (
         <>
@@ -218,29 +79,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
           <h2 id="sheet-title" ref={titleRef} className={styles.title} tabIndex={-1}>
             {sheet.title}
           </h2>
-          {factory ? null : (
-            <dl className={styles.meta}>
-              {sheet.meta.map((row) => (
-                <div key={row.term}>
-                  <dt>{row.term}</dt>
-                  <dd>
-                    {row.href ? (
-                      <a
-                        href={row.href}
-                        {...(row.href.startsWith('https:')
-                          ? { target: '_blank', rel: 'noopener noreferrer' }
-                          : {})}
-                      >
-                        {row.value}
-                      </a>
-                    ) : (
-                      row.value
-                    )}
-                  </dd>
-                </div>
-              ))}
-            </dl>
-          )}
+          {factory ? null : <SheetMeta rows={sheet.meta} />}
           <p className={styles.body}>{sheet.body}</p>
           {factory ? <FactoryPanel view={factory} texts={ui.factory} /> : null}
           {sheet.note ? <p className={styles.note}>{sheet.note}</p> : null}
@@ -257,9 +96,9 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
           ) : null}
 
           <div className={styles.actions}>
-            {/* Ni « Retourner » ni « Me contacter » : on retourne l'objet d'un clic
+            {/* Pas de bouton « Retourner » : on retourne l'objet d'un clic
                 (ou R au clavier), et le contact est en bas à droite. */}
-            {canFlip ? <UprightButton label={ui.upright} /> : null}
+            {turnable ? <UprightButton label={ui.upright} /> : null}
             {sheet.repository ? (
               <a
                 href={sheet.repository.href}
@@ -299,5 +138,32 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
         </>
       ) : null}
     </aside>
+  );
+}
+
+/** Les lignes de méta de la fiche ; un lien https s'ouvre dans un nouvel onglet. */
+function SheetMeta({ rows }: { rows: SheetContent['meta'] }) {
+  return (
+    <dl className={styles.meta}>
+      {rows.map((row) => (
+        <div key={row.term}>
+          <dt>{row.term}</dt>
+          <dd>
+            {row.href ? (
+              <a
+                href={row.href}
+                {...(row.href.startsWith('https:')
+                  ? { target: '_blank', rel: 'noopener noreferrer' }
+                  : {})}
+              >
+                {row.value}
+              </a>
+            ) : (
+              row.value
+            )}
+          </dd>
+        </div>
+      ))}
+    </dl>
   );
 }

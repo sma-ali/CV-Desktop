@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import type { FactoryTexts, FactoryView } from './factoryView';
-import styles from './Desk.module.css';
+import styles from '../Desk.module.css';
 
 // La fiche de l'usine (projets perso) : le circuit en cinq étapes, la
 // validation humaine mise en avant, les chiffres globaux et leur graphique

@@ -7,7 +7,7 @@ import {
   LIFE_SIGNS_RETRY_MS,
   LIFE_SIGNS_STALE_MS,
   toLifeSigns,
-} from './lifeSignsRefresh';
+} from './refresh';
 
 // Le navigateur redemande les signes de vie à l'ouverture du coffret quand
 // leur mesure a plus de 70 minutes (10 minutes, plus l'heure que l'arrondi

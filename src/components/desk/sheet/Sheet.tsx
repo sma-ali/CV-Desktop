@@ -7,7 +7,7 @@ import { ITEM_STEP, neighborItem, type ItemId } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { FactoryPanel } from './FactoryPanel';
 import { factoryView } from './factoryView';
-import styles from './Desk.module.css';
+import styles from '../Desk.module.css';
 import { UPRIGHT_KEY, UprightButton } from './UprightButton';
 import { rotateKey, rotationInput } from '@/scene/rotation/control';
 

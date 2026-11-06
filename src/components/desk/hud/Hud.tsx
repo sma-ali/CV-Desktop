@@ -13,9 +13,9 @@ import type { DeskHudTexts, DeskStep } from '@/lib/desk';
 import { formatPlaces } from '@/scene/core/bodies';
 import { ITEM_STEP } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
-import { Sheet } from './Sheet';
+import { Sheet } from '../sheet/Sheet';
 import { TidyButton } from './TidyButton';
-import styles from './Desk.module.css';
+import styles from '../Desk.module.css';
 
 /** Au-delà, une puce touchée pendant le chargement mène à la version express. */
 const PENDING_MS = 6000;

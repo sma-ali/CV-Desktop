@@ -13,22 +13,22 @@ Aucune des deux routes n'envoie d'en-tête CORS.
 
 ## Fichiers
 
-| Fichier                                   | Rôle                                                                                     |
-| ----------------------------------------- | ---------------------------------------------------------------------------------------- |
-| `src/lib/contact/rules.ts`                | limites, nettoyage, codes d'erreur et états, partagés par le navigateur et le serveur    |
-| `src/lib/contact/schema.ts`               | schéma zod de la requête (serveur), bâti sur les fonctions de `rules.ts`                 |
-| `src/lib/contact/rate-limit.ts`           | interface `RateLimiter`, implémentation en mémoire, `clientKey()` (IP)                   |
-| `src/lib/contact/mailer.ts`               | interface `Mailer`, Mailjet par `fetch`, dry run                                         |
-| `src/lib/contact/handler.ts`              | le traitement d'un POST, sans dépendance à Next (testé en Vitest)                        |
-| `src/app/api/contact/route.ts`            | branche le traitement sur ses outils (limite, envoi, horloge, journal) ; 405 ailleurs    |
-| `src/lib/env/server.ts`                   | lecture centralisée et validée (zod) des variables du serveur                            |
-| `src/lib/env/shared-keys.ts`              | complète `process.env` par `~/.config/cles/*.env` en local                               |
-| `src/content/contact/`                    | textes du formulaire en FR et EN, validés par zod                                        |
-| `src/components/contact/`                 | le formulaire et son style                                                               |
-| `src/lib/life-signs/schema.ts`            | format du JSON public (zod, serveur seulement, non exporté par `index.ts`)               |
-| `src/lib/life-signs/source.ts`            | `readLifeSigns()` (résultat ou cause) et `getLifeSigns()` (avec repli), cache et en-tête |
-| `src/app/api/signes-de-vie/route.ts`      | GET et HEAD                                                                              |
-| `src/components/desk/lifeSignsRefresh.ts` | rafraîchissement à l'ouverture du coffret (pur, testé), appelé par `DeskShell`           |
+| Fichier                              | Rôle                                                                                     |
+| ------------------------------------ | ---------------------------------------------------------------------------------------- |
+| `src/lib/contact/rules.ts`           | limites, nettoyage, codes d'erreur et états, partagés par le navigateur et le serveur    |
+| `src/lib/contact/schema.ts`          | schéma zod de la requête (serveur), bâti sur les fonctions de `rules.ts`                 |
+| `src/lib/contact/rate-limit.ts`      | interface `RateLimiter`, implémentation en mémoire, `clientKey()` (IP)                   |
+| `src/lib/contact/mailer.ts`          | interface `Mailer`, Mailjet par `fetch`, dry run                                         |
+| `src/lib/contact/handler.ts`         | le traitement d'un POST, sans dépendance à Next (testé en Vitest)                        |
+| `src/app/api/contact/route.ts`       | branche le traitement sur ses outils (limite, envoi, horloge, journal) ; 405 ailleurs    |
+| `src/lib/env/server.ts`              | lecture centralisée et validée (zod) des variables du serveur                            |
+| `src/lib/env/shared-keys.ts`         | complète `process.env` par `~/.config/cles/*.env` en local                               |
+| `src/content/contact/`               | textes du formulaire en FR et EN, validés par zod                                        |
+| `src/components/contact/`            | le formulaire et son style                                                               |
+| `src/lib/life-signs/schema.ts`       | format du JSON public (zod, serveur seulement, non exporté par `index.ts`)               |
+| `src/lib/life-signs/source.ts`       | `readLifeSigns()` (résultat ou cause) et `getLifeSigns()` (avec repli), cache et en-tête |
+| `src/app/api/signes-de-vie/route.ts` | GET et HEAD                                                                              |
+| `src/lib/life-signs/refresh.ts`      | rafraîchissement à l'ouverture du coffret (pur, testé), appelé par `DeskShell`           |
 
 `src/lib/env/server.ts` et `src/lib/life-signs/source.ts` ne doivent jamais entrer dans le navigateur. Le paquet `server-only` n'est pas installé : `src/lib/env/server.ts` lève une erreur si `window` existe, et `source.ts` l'importe. La règle ESLint « ni zod ni module de contenu côté client » couvre aussi `src/components/contact/**` et `src/lib/contact/rules.ts`.
 
@@ -153,7 +153,7 @@ La page du bureau exporte `revalidate = 600` : le premier affichage porte des si
 }
 ```
 
-Tout autre champ est ignoré (`running`, `genres` ou des chiffres par genre d'un ancien format ne ressortent jamais) ; `sample` est posé par le serveur, `version` ne ressort pas. Le fichier doit être servi en https, sans redirection, et peser moins de 32 Kio. Il ne doit contenir aucun nom, aucun hôte, aucune adresse. Pour élargir le format plus tard : ajouter le champ dans `schema.ts` et dans `LifeSigns` (`types.ts`), puis dans `toLifeSigns()` (`lifeSignsRefresh.ts`).
+Tout autre champ est ignoré (`running`, `genres` ou des chiffres par genre d'un ancien format ne ressortent jamais) ; `sample` est posé par le serveur, `version` ne ressort pas. Le fichier doit être servi en https, sans redirection, et peser moins de 32 Kio. Il ne doit contenir aucun nom, aucun hôte, aucune adresse. Pour élargir le format plus tard : ajouter le champ dans `schema.ts` et dans `LifeSigns` (`types.ts`), puis dans `toLifeSigns()` (`src/lib/life-signs/refresh.ts`).
 
 ### Arrondi
 
@@ -198,7 +198,7 @@ En local, Next charge le `.env` du projet, puis `shared-keys.ts` complète `proc
 
 ## Vérifier
 
-- `npm run check` : Vitest couvre `src/lib/contact/{rules,rate-limit,mailer,handler}.test.ts` (limites, nettoyage, 429 et purge, origine, types de contenu, taille, piège, Mailjet avec `fetch` simulé : requête exacte, erreurs, délai, dry run, configuration manquante), `src/lib/env/env.test.ts`, `src/lib/life-signs/source.test.ts` (succès, liste blanche, chaque cause de repli, cache), `src/app/api/signes-de-vie/route.test.ts` et `src/components/desk/lifeSignsRefresh.test.ts`. Vitest fixe `CLES_DIR=/nonexistent`.
+- `npm run check` : Vitest couvre `src/lib/contact/{rules,rate-limit,mailer,handler}.test.ts` (limites, nettoyage, 429 et purge, origine, types de contenu, taille, piège, Mailjet avec `fetch` simulé : requête exacte, erreurs, délai, dry run, configuration manquante), `src/lib/env/env.test.ts`, `src/lib/life-signs/source.test.ts` (succès, liste blanche, chaque cause de repli, cache), `src/app/api/signes-de-vie/route.test.ts` et `src/lib/life-signs/refresh.test.ts`. Vitest fixe `CLES_DIR=/nonexistent`.
 - `npm run test:e2e` : le serveur de test tourne en `CONTACT_DRY_RUN=1`, avec `CLES_DIR=/nonexistent` et `CONTACT_RATE_LIMIT_MAX=1000` (`webServer.env` de `playwright.config.ts`, que Playwright ajoute à `process.env`), sans `LIFE_SIGNS_URL`.
   - `contact.spec.ts` : version express FR et EN (les envois réussis attendent 3 s et vérifient `X-Contact-Dry-Run` : le message est passé par l'envoi), erreurs 400, 429 et 503 simulées (`page.route`), état d'envoi, piège, axe en clair et en sombre, envoi sans JavaScript, fiche de la carte FR et EN.
   - `contact-api.spec.ts` (ordinateur seulement) : 405, 415, 403, 413, 400, 303, piège (texte et non textuel), JSON sans durée, succès passé par l'envoi (`X-Contact-Dry-Run`).

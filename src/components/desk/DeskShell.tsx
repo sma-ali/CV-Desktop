@@ -11,9 +11,9 @@ import { createSceneStore, settingsFromParams, type SceneStore } from '@/scene/c
 import { SceneStoreProvider } from '@/scene/core/store-context';
 import type { SceneTexts } from '@/scene/core/texts';
 import { Grain } from './Grain';
-import { Hud } from './Hud';
-import { Intro } from './Intro';
-import { createLifeSignsRefresher } from './lifeSignsRefresh';
+import { Hud } from './hud/Hud';
+import { Intro } from './intro/Intro';
+import { createLifeSignsRefresher } from '@/lib/life-signs/refresh';
 import { SceneBoundary } from './SceneBoundary';
 import { createWebAudioSound } from './sound';
 import styles from './Desk.module.css';

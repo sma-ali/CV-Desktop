@@ -2,7 +2,7 @@
 
 import { useEffect, useRef } from 'react';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
-import styles from './Desk.module.css';
+import styles from '../Desk.module.css';
 
 /** La touche du clavier qui remet l'objet présenté droit (Sheet). */
 export const UPRIGHT_KEY = 'Home';

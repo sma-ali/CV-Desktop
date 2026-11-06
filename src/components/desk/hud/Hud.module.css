@@ -88,7 +88,7 @@
   margin-right: -0.5em;
   font-family: var(--mono);
   font-weight: 500;
-  font-size: clamp(10px, 1.05vw, 13px);
+  font-size: clamp(0.75rem, 1.05vw, 0.8125rem);
   letter-spacing: 0.5em;
   text-transform: uppercase;
   color: var(--amber);
@@ -103,7 +103,7 @@
   font-family: var(--serif);
   font-weight: 600;
   font-variation-settings: 'opsz' 144;
-  font-size: clamp(64px, 10vw, 150px);
+  font-size: clamp(4rem, 10vw, 9.375rem);
   line-height: 0.9;
   letter-spacing: -0.03em;
   color: var(--pale);
@@ -114,7 +114,7 @@
   font-family: var(--serif);
   font-style: normal;
   font-weight: 400;
-  font-size: clamp(18px, 2.2vw, 30px);
+  font-size: clamp(1.125rem, 2.2vw, 1.875rem);
   color: #efe2c8;
 }
 
@@ -170,7 +170,7 @@
   font-family: var(--serif);
   font-weight: 600;
   font-variation-settings: 'opsz' 144;
-  font-size: 46px;
+  font-size: 2.875rem;
   line-height: 1;
   letter-spacing: -0.025em;
   color: var(--pale);
@@ -178,7 +178,7 @@
 
 .role {
   margin: 6px 0 0;
-  font-size: 11px;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.28em;
   text-transform: uppercase;
@@ -191,7 +191,7 @@
   align-items: center;
   gap: 8px;
   margin: 10px 0 0;
-  font-size: 11px;
+  font-size: 0.75rem;
   letter-spacing: 0.06em;
   color: rgb(243 233 212 / 0.86);
 }
@@ -237,7 +237,7 @@
     0 1px 2px #000;
   font-family: var(--mono);
   font-weight: 600;
-  font-size: 13px;
+  font-size: 0.8125rem;
   line-height: 1;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -266,7 +266,7 @@
   margin: 0;
   padding: 7px 14px 6px;
   color: rgb(243 233 212 / 0.9);
-  font-size: 10.5px;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.2em;
   text-transform: uppercase;
@@ -387,7 +387,7 @@
   font-family: var(--serif);
   font-style: normal;
   font-weight: 500;
-  font-size: 19px;
+  font-size: 1.1875rem;
   line-height: 1;
   color: var(--amber);
 }
@@ -412,7 +412,7 @@
 }
 
 .chipDetail {
-  font-size: 10px;
+  font-size: 0.75rem;
   font-weight: 600;
   letter-spacing: 0.14em;
   text-transform: uppercase;
@@ -475,7 +475,7 @@
 
   .steps {
     display: grid;
-    grid-template-columns: repeat(7, minmax(0, 1fr));
+    grid-template-columns: repeat(7, minmax(min-content, 1fr));
     gap: 8px 14px;
   }
 
@@ -500,17 +500,17 @@
 
 @media (max-width: 760px) {
   .name {
-    font-size: 36px;
+    font-size: 2.25rem;
   }
 
   .role {
-    font-size: 10px;
+    font-size: 0.75rem;
     letter-spacing: 0.22em;
   }
 
   .status {
     margin-top: 8px;
-    font-size: 10.5px;
+    font-size: 0.75rem;
   }
 
   .controls {
@@ -521,7 +521,7 @@
 
   .button {
     padding: 8px 9px 7px;
-    font-size: 9.5px;
+    font-size: 0.75rem;
     letter-spacing: 0.16em;
   }
 
@@ -539,10 +539,12 @@
     display: none;
   }
 
+  /* Une colonne ne descend pas sous son plus long mot (« Netherbrain ») :
+     les autres se partagent le reste. */
   .steps {
     display: grid;
-    grid-template-columns: repeat(4, minmax(0, 1fr));
-    gap: 8px 14px;
+    grid-template-columns: repeat(4, minmax(min-content, 1fr));
+    gap: 8px 10px;
   }
 
   /* Quatre puces par ligne ; le CV écrit et le contact finissent en bas à droite. */
@@ -556,26 +558,26 @@
 
   .chip {
     gap: 3px;
-    padding: 7px 8px 7px 9px;
+    padding: 7px 5px 7px 6px;
   }
 
   .chipTitle {
-    font-size: 16px;
+    font-size: 1rem;
   }
 
   .chipDetail {
-    font-size: 8.5px;
+    font-size: 0.75rem;
     line-height: 1.25;
-    letter-spacing: 0.06em;
+    letter-spacing: 0.02em;
     white-space: normal;
   }
 
   /* Une phrase par ligne : la variante tactile ne tient pas sur une seule. */
   .hint {
     max-width: calc(100vw - 32px);
-    font-size: 9px;
+    font-size: 0.75rem;
     line-height: 1.45;
-    letter-spacing: 0.14em;
+    letter-spacing: 0.06em;
     white-space: normal;
     text-align: center;
   }
@@ -594,7 +596,7 @@
    laisser le bureau visible entre le haut et le bas de page. */
 @media (max-height: 500px) and (orientation: landscape) {
   .name {
-    font-size: 30px;
+    font-size: 1.875rem;
   }
 
   .role {
@@ -610,7 +612,7 @@
   }
 
   .chipTitle {
-    font-size: 15px;
+    font-size: 0.9375rem;
   }
 
   .chipDetail {

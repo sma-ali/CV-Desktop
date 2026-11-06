@@ -7,7 +7,8 @@ import { isItemId } from '../core/ids';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import { gestureHub } from '../gestures/hub';
 import { PHYSICS_PRIORITY } from '../gestures/priorities';
-import { DeskPhysics, FIXED_STEP, GRAVITY, type RapierModule } from './world';
+import type { RapierModule } from './colliders';
+import { DeskPhysics, FIXED_STEP, GRAVITY } from './world';
 
 // Le moteur physique dans la scène (chargé à part, PhysicsGate). Rapier par
 // @react-three/rapier : <Physics> charge le WebAssembly (Suspense), crée le

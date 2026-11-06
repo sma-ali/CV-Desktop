@@ -5,7 +5,7 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import type { BloomEffect } from 'postprocessing';
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import { useSceneStoreApi } from '../core/store-context';
-import { GradeEffect } from './GradeEffect';
+import { GradeEffect } from './gradeEffect';
 import { focusPoint, isPortrait } from './framing';
 import { bloomStrength, dimLevel, fadeLevel } from './lighting';
 import { RENDER_PRIORITY, STAGE_PRIORITY } from './priorities';

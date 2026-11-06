@@ -14,7 +14,7 @@ import { createClock, type Clock } from './clock';
 import { ARRIVAL, SETTLE, TYPING_END_DEFAULT } from './constants';
 import type { BodyId, ItemId, MoodId } from './ids';
 import { clamp } from './math';
-import { moodValues, type MoodValues } from './mood-values';
+import { moodValues, type MoodValues } from './moodValues';
 import type { TestDrag, TestParams, TestTurn } from './params';
 import { createSilentSound, type SoundPlayer } from './sound';
 

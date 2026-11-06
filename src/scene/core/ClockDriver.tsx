@@ -7,7 +7,7 @@ import { MOOD_TRANSITION } from './constants';
 import { PORTRAIT_MAX_ASPECT } from './views';
 import { clockHold } from './loading';
 import type { MoodId } from './ids';
-import { blendMoodValues, copyMoodValues, moodValues, type MoodValues } from './mood-values';
+import { blendMoodValues, copyMoodValues, moodValues, type MoodValues } from './moodValues';
 import { useSceneStoreApi } from './store-context';
 import { updateFrame } from './frame';
 

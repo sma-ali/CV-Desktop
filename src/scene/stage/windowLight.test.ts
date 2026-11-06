@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { DESK, MOODS, WIN } from '../core/constants';
 import { MOOD_IDS } from '../core/ids';
-import { moodValues } from '../core/mood-values';
+import { moodValues } from '../core/moodValues';
 import {
   PATCH_INDEX,
   PATCH_Y,

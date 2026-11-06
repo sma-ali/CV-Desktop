@@ -6,7 +6,7 @@ import {
   type Side,
   type Texture,
 } from 'three';
-import type { Rgb } from './mood-values';
+import type { Rgb } from './moodValues';
 
 // Cache de matériaux, comme M() dans le prototype : une couleur et des
 // réglages donnent toujours le même matériau. Un matériau du cache est

@@ -27,12 +27,17 @@ test.describe('la route des signes de vie', () => {
 
     const body = (await response.json()) as Record<string, unknown>;
     expect(Object.keys(body).sort()).toEqual(
-      ['activity', 'factory', 'lastActivityAt', 'measuredAt', 'running', 'sample', 'since'].sort(),
+      ['activity', 'factory', 'lastActivityAt', 'measuredAt', 'sample', 'since'].sort(),
     );
     expect(body.sample).toBe(true);
     expect(body.activity).toHaveLength(14);
+    // Des chiffres globaux seulement, et une mesure à l'heure pleine.
+    expect(Object.keys(body.factory as object).sort()).toEqual(
+      ['channels', 'likes', 'perDay', 'videos', 'views'].sort(),
+    );
     const measured = Date.parse(String(body.measuredAt));
-    expect(Math.abs(Date.now() - measured)).toBeLessThan(5 * MINUTE);
+    expect(measured % (60 * MINUTE)).toBe(0);
+    expect(Math.abs(Date.now() - measured)).toBeLessThan(65 * MINUTE);
   });
 
   test('répond à HEAD sans corps', async ({ request }) => {
@@ -54,29 +59,29 @@ test.describe('la route des signes de vie', () => {
 test.describe('le rafraîchissement à l’ouverture du coffret', () => {
   const SETTLED = 't=11000&fige&auto=0&heure=14&prendre=chest';
   const hud = (page: Page) => page.locator('#hud');
-  const live = (page: Page) => page.locator('#sheet [data-live]');
+  const factory = (page: Page) => page.locator('#sheet [data-factory]');
 
   /**
-   * L'horloge du navigateur avance d'une heure : la mesure de la page (faite
-   * au build) a donc plus de 10 minutes, et l'ouverture du coffret la
-   * redemande. Les minuteries tournent normalement.
+   * L'horloge du navigateur avance de deux heures : la mesure de la page
+   * (faite au build, à l'heure pleine) a donc plus de 70 minutes, et
+   * l'ouverture de l'usine la redemande. Les minuteries tournent normalement.
    */
   async function openChestLater(page: Page): Promise<number> {
-    const later = Date.now() + 60 * MINUTE;
+    const later = Date.now() + 120 * MINUTE;
     await page.clock.setFixedTime(later);
     return later;
   }
 
   test('montre la nouvelle mesure quand la route répond', async ({ page }) => {
-    const { live: texts } = getContent('fr').sheets.ui;
+    const { factory: texts } = getContent('fr').sheets.ui;
     const later = await openChestLater(page);
     const fresh = {
-      running: 7,
-      lastActivityAt: new Date(later - 25 * MINUTE).toISOString(),
+      lastActivityAt: new Date(later - 24 * 60 * MINUTE).toISOString(),
       since: new Date(later - 10 * 24 * 60 * MINUTE).toISOString(),
       activity: [1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4],
       measuredAt: new Date(later - MINUTE).toISOString(),
       sample: false,
+      factory: { channels: 7, videos: 90, perDay: 3, views: 41_000, likes: 1200 },
     };
     let calls = 0;
     await page.route(`**${ENDPOINT}`, async (route) => {
@@ -85,12 +90,12 @@ test.describe('le rafraîchissement à l’ouverture du coffret', () => {
     });
     await page.goto(`/fr?${SETTLED}`);
     await expect(hud(page)).toHaveAttribute('data-ready', 'true', { timeout: 45_000 });
-    await expect(live(page).locator('[data-live-running]')).toHaveText('7');
-    await expect(live(page)).not.toContainText(texts.sample);
-    const last = (await live(page).locator('[data-live-last]').innerText()).replace(/\s+/g, ' ');
-    // L'horloge de la fiche avance par pas de 20 s : 24 ou 25 minutes.
-    expect(last).toMatch(/^il y a 2[45] min$/);
-    await expect(live(page).getByRole('img')).toHaveAttribute(
+    await expect(factory(page).locator('[data-factory-status]')).toHaveText(
+      'En marche | dernière vidéo hier',
+    );
+    await expect(factory(page)).not.toContainText(texts.sample);
+    await expect(factory(page).locator('dd').first()).toHaveText('7');
+    await expect(factory(page).getByRole('img')).toHaveAttribute(
       'aria-label',
       /1, 2, 3, 4, 5, 6, 7, 8, 9, 8, 7, 6, 5, 4/,
     );
@@ -98,7 +103,7 @@ test.describe('le rafraîchissement à l’ouverture du coffret', () => {
   });
 
   test('garde ce qu’elle a quand la route échoue', async ({ page }) => {
-    const { live: texts } = getContent('fr').sheets.ui;
+    const { factory: texts } = getContent('fr').sheets.ui;
     await openChestLater(page);
     const requested = page.waitForRequest(`**${ENDPOINT}`);
     await page.route(`**${ENDPOINT}`, (route) => route.fulfill({ status: 503, body: '' }));
@@ -106,8 +111,7 @@ test.describe('le rafraîchissement à l’ouverture du coffret', () => {
     await expect(hud(page)).toHaveAttribute('data-ready', 'true', { timeout: 45_000 });
     await requested;
     // Elle garde l'exemple : la fiche de l'usine et sa mention.
-    const factory = page.locator('#sheet [data-factory]');
-    await expect(factory).toBeVisible();
-    await expect(factory).toContainText(texts.sample);
+    await expect(factory(page)).toBeVisible();
+    await expect(factory(page)).toContainText(texts.sample);
   });
 });

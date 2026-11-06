@@ -10,7 +10,7 @@ export const PATCH_Y = 0.006;
 export const SHAFT_FOOT_Y = 0.01;
 
 /** Les coins de la vitre, un peu en retrait du cadre : haut gauche, haut droit, bas droit, bas gauche. */
-export const WINDOW_CORNERS = new Float32Array([
+const WINDOW_CORNERS = new Float32Array([
   WIN.x0 + 0.1,
   WIN.y1 - 0.05,
   WIN.z,

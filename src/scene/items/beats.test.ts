@@ -3,12 +3,12 @@ import { activityPulse, type LifeSigns } from '@/lib/life-signs/types';
 import { breath, heartbeat } from './beats';
 
 const signs = (activity: number[]): LifeSigns => ({
-  running: 3,
-  lastActivityAt: '2026-10-28T10:00:00.000Z',
-  since: '2026-09-11T10:00:00.000Z',
+  lastActivityAt: '2026-10-28T00:00:00.000Z',
+  since: '2026-09-01T00:00:00.000Z',
   activity,
   measuredAt: '2026-10-28T12:00:00.000Z',
   sample: true,
+  factory: { channels: 6, videos: 200, perDay: 8, views: 120_000, likes: 5000 },
 });
 
 /** Les instants où le cœur bat (montée au-dessus de la moitié de sa force). */

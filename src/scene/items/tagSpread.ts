@@ -1,9 +1,11 @@
-// Les étiquettes ne se chevauchent pas (étape 4, relecture) : sur
+// Les étiquettes ne se chevauchent pas : sur
 // téléphone, le bureau est petit et deux étiquettes voisines se couvraient
 // (Homelab et DEFI-METIERS, Netherbrain et Compétences). Chaque étiquette
 // part de son point d'accroche ; celles qui se touchent s'écartent du moins
 // qu'il faut, le plus souvent en hauteur (elles sont larges et basses). Pur
 // et déterministe, sans allocation : appelé à chaque image.
+
+import { clamp } from '../core/math';
 
 /** Une étiquette à l'écran, en pixels : x au centre, y en bas (son point d'accroche). */
 export interface TagBox {
@@ -14,14 +16,14 @@ export interface TagBox {
 }
 
 /** Écart gardé entre deux étiquettes, et marge au bord de la fenêtre (pixels). */
-export const TAG_GAP = 4;
+const TAG_GAP = 4;
 export const TAG_EDGE = 6;
 const ITERATIONS = 40;
 
 /** Garde une étiquette dans la largeur de la fenêtre. */
 function clampX(box: TagBox, width: number): void {
   const half = box.w / 2 + TAG_EDGE;
-  box.x = Math.min(Math.max(box.x, half), Math.max(half, width - half));
+  box.x = clamp(box.x, half, Math.max(half, width - half));
 }
 
 /**

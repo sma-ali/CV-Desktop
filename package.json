@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "description": "Le CV d'Ali Smaani en bureau 3D low poly, avec une version express en HTML",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sma-ali/CV-Desktop.git"
+  },
+  "homepage": "https://alismaani.fr",
   "engines": {
     "node": ">=22.12.0"
   },
@@ -10,20 +16,21 @@
     "dev": "next dev",
     "build": "next build",
     "start": "next start",
-    "lint": "eslint .",
+    "lint": "eslint . --max-warnings=0",
     "format": "prettier --write .",
     "format:check": "prettier --check .",
     "typecheck": "next typegen && tsc --noEmit",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:e2e": "next build && playwright test",
-    "check": "npm run lint && npm run format:check && npm run typecheck && npm test"
+    "check": "npm run lint && npm run format:check && npm run typecheck && npm run knip && npm test",
+    "knip": "knip --no-progress",
+    "capture": "node scripts/capture.mjs"
   },
   "dependencies": {
     "@dimforge/rapier3d-compat": "0.19.2",
     "@fontsource/fraunces": "^5.3.0",
     "@fontsource/ibm-plex-mono": "^5.3.0",
-    "@react-three/drei": "^10.7.9",
     "@react-three/fiber": "^9.8.2",
     "@react-three/postprocessing": "^3.2.2",
     "@react-three/rapier": "2.2.0",
@@ -45,6 +52,7 @@
     "eslint": "^10.13.0",
     "eslint-config-next": "16.4.3",
     "eslint-config-prettier": "^10.1.8",
+    "knip": "^6.44.1",
     "prettier": "^3.9.10",
     "typescript": "~6.0.3",
     "vitest": "^5.0.5"

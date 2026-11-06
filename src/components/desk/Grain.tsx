@@ -1,12 +1,12 @@
 'use client';
 
-import { useSyncExternalStore } from 'react';
+import { useHydrated } from '@/components/hooks/useHydrated';
 
 const SIZE = 160;
 let cached: string | null = null;
 
 // Grain de pellicule généré une fois dans le navigateur (image data:, permise
-// par la CSP), comme dans le prototype.
+// par la CSP) ; le HTML du serveur n'en a pas.
 function grainUrl(): string {
   if (cached) return cached;
   const canvas = document.createElement('canvas');
@@ -27,10 +27,8 @@ function grainUrl(): string {
   return cached;
 }
 
-const noSubscribe = () => () => {};
-
 export function Grain({ className }: { className?: string }) {
-  const url = useSyncExternalStore(noSubscribe, grainUrl, () => '');
+  const url = useHydrated() ? grainUrl() : '';
   return (
     <div
       className={className}

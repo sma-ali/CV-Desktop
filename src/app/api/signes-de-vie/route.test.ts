@@ -14,11 +14,12 @@ vi.mock('next/cache', () => ({ unstable_cache: <T>(fn: () => Promise<T>) => fn }
 const NOW = Date.UTC(2026, 10, 2, 12, 0);
 const iso = (minutesAgo: number) => new Date(NOW - minutesAgo * 60_000).toISOString();
 const publicJson = {
-  running: 2,
+  version: 2,
   lastActivityAt: iso(45),
   since: iso(60 * 24 * 30),
   activity: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 0, 1, 2, 3],
   measuredAt: iso(2),
+  factory: { channels: 5, videos: 2345, perDay: 4.4, views: 87_654, likes: 3210 },
   secret: 'ne sort pas',
 };
 
@@ -49,9 +50,15 @@ describe('/api/signes-de-vie', () => {
     expect(cache).toContain('stale-while-revalidate');
     expect(cache).toBe(LIFE_SIGNS_CACHE_CONTROL);
     expect(response.headers.get('access-control-allow-origin')).toBeNull();
-    const expected: Partial<typeof publicJson> = { ...publicJson };
-    delete expected.secret;
-    expect(await response.json()).toEqual({ ...expected, sample: false });
+    // Filtré et arrondi : ni la version, ni le champ inconnu, rien de précis.
+    expect(await response.json()).toEqual({
+      lastActivityAt: '2026-11-02T00:00:00.000Z',
+      since: '2026-10-01T00:00:00.000Z',
+      activity: publicJson.activity,
+      measuredAt: '2026-11-02T11:00:00.000Z',
+      factory: { channels: 5, videos: 2300, perDay: 4, views: 87_000, likes: 3200 },
+      sample: false,
+    });
   });
 
   it('retombe sur l’exemple, toujours en 200, quand la source échoue', async () => {

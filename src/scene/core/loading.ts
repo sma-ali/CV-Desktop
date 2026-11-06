@@ -1,4 +1,6 @@
-// L'avancement du chargement de la scène (étape 6), montré par l'écran de
+import { clamp } from './math';
+
+// L'avancement du chargement de la scène, montré par l'écran de
 // chargement : la barre façon jeu vidéo sous le nom, son pourcentage et
 // l'étape en cours. Des étapes
 // réelles, chacune de 0 à 1, écrites dans le store (setLoad) :
@@ -8,7 +10,7 @@
 // - shaders : la compilation des matériaux (première image, ou gl.compile) ;
 // - frame : la première image dessinée (markReady).
 //
-// Aucune dépendance : ce module part dans le JavaScript initial.
+// Sans three ni React (seulement math.ts) : ce module part dans le JavaScript initial.
 
 export const LOAD_STEPS = ['code', 'assets', 'shaders', 'frame'] as const;
 
@@ -24,7 +26,7 @@ export const LOAD_WEIGHTS: LoadProgress = { code: 0.45, assets: 0.2, shaders: 0.
 /** L'avancement global, de 0 à 1. */
 export function loadProgress(load: LoadProgress): number {
   let total = 0;
-  for (const step of LOAD_STEPS) total += LOAD_WEIGHTS[step] * Math.min(1, Math.max(0, load[step]));
+  for (const step of LOAD_STEPS) total += LOAD_WEIGHTS[step] * clamp(load[step], 0, 1);
   return Math.min(1, total);
 }
 

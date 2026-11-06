@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from 'vitest';
 import { sampleLifeSigns } from './sample';
-import { LIFE_SIGNS_FUTURE_MARGIN_MS, parsePublicLifeSigns } from './schema';
+import { floorSignificant, LIFE_SIGNS_FUTURE_MARGIN_MS, parsePublicLifeSigns } from './schema';
 import {
   getLifeSigns,
   LIFE_SIGNS_MAX_BYTES,
@@ -42,12 +42,24 @@ const MINUTE = 60_000;
 const URL_ = 'https://example.test/signes/vie.json';
 const iso = (minutesAgo: number) => new Date(NOW - minutesAgo * MINUTE).toISOString();
 
+/** Un JSON public au format 2, déjà arrondi : il ressort tel quel. */
 const valid = {
-  running: 4,
-  lastActivityAt: iso(30),
-  since: iso(60 * 24 * 90),
+  version: 2,
+  measuredAt: '2026-11-02T11:00:00.000Z',
+  lastActivityAt: '2026-11-02T00:00:00.000Z',
+  since: '2026-08-01T00:00:00.000Z',
   activity: [1, 0, 2, 3, 0, 0, 5, 4, 2, 1, 0, 6, 3, 2],
-  measuredAt: iso(5),
+  factory: { channels: 4, videos: 180, perDay: 3, views: 52_000, likes: 2100 },
+};
+
+/** Ce que le serveur en rend : sans la version, avec sample à false. */
+const expected = {
+  measuredAt: valid.measuredAt,
+  lastActivityAt: valid.lastActivityAt,
+  since: valid.since,
+  activity: valid.activity,
+  factory: valid.factory,
+  sample: false,
 };
 
 function jsonResponse(body: unknown, init: ResponseInit = {}): Response {
@@ -70,7 +82,7 @@ function setup(response: Response | (() => Promise<Response>)) {
 describe('la lecture du JSON public', () => {
   it('rend les vrais signes de vie, sans la mention d’exemple', async () => {
     const { options, log } = setup(jsonResponse(valid));
-    expect(await getLifeSigns(NOW, options)).toEqual({ ...valid, sample: false });
+    expect(await getLifeSigns(NOW, options)).toEqual(expected);
     expect(log).not.toHaveBeenCalled();
   });
 
@@ -93,22 +105,25 @@ describe('la lecture du JSON public', () => {
       ...valid,
       sample: true,
       projects: ['secret'],
+      genres: { quiz: { views: 1234, activity: [1] } },
+      running: 3,
       host: 'machine.interne',
       nested: { token: 'x' },
     };
     const { options } = setup(jsonResponse(extra));
     const signs = await getLifeSigns(NOW, options);
     expect(Object.keys(signs).sort()).toEqual(
-      ['activity', 'lastActivityAt', 'measuredAt', 'running', 'sample', 'since'].sort(),
+      ['activity', 'factory', 'lastActivityAt', 'measuredAt', 'sample', 'since'].sort(),
     );
     expect(signs.sample).toBe(false);
-    expect(JSON.stringify(signs)).not.toMatch(/secret|machine|token/);
+    expect(JSON.stringify(signs)).not.toMatch(/secret|machine|token|genres|running|1234/);
   });
 
   it('ramène les dates en UTC', async () => {
     const { options } = setup(jsonResponse({ ...valid, measuredAt: '2026-11-02T12:55:00+01:00' }));
     const signs = await getLifeSigns(NOW, options);
-    expect(signs.measuredAt).toBe('2026-11-02T11:55:00.000Z');
+    // En UTC, puis à l'heure pleine.
+    expect(signs.measuredAt).toBe('2026-11-02T11:00:00.000Z');
   });
 
   it('lit l’adresse dans LIFE_SIGNS_URL par défaut', async () => {
@@ -147,7 +162,7 @@ describe('le repli sur les données d’exemple', () => {
     {
       name: 'sur un JSON illisible',
       reason: 'invalid_json',
-      response: jsonResponse('{"running": 3,'),
+      response: jsonResponse('{"version": 2,'),
     },
     {
       name: 'sur un corps annoncé trop gros',
@@ -164,7 +179,7 @@ describe('le repli sur les données d’exemple', () => {
     {
       name: 'sur un format faux',
       reason: 'invalid_format',
-      response: jsonResponse({ ...valid, running: -1 }),
+      response: jsonResponse({ ...valid, version: 1 }),
     },
   ];
 
@@ -201,10 +216,11 @@ describe('le repli sur les données d’exemple', () => {
   });
 
   it('dit quels champs sont faux, jamais leurs valeurs', async () => {
-    const { options, log } = setup(jsonResponse({ ...valid, running: 'secret' }));
+    const factory = { ...valid.factory, views: 'secret' };
+    const { options, log } = setup(jsonResponse({ ...valid, factory }));
     await getLifeSigns(NOW, options);
     const message = log.mock.calls[0]![0];
-    expect(message).toContain('running');
+    expect(message).toContain('factory.views');
     expect(message).not.toContain('secret');
   });
 });
@@ -232,8 +248,8 @@ describe('le cache des signes de vie validés', () => {
 
   it('garde le résultat validé 10 minutes, sous une clé sans l’adresse', async () => {
     const { fetchMock, log } = source([() => jsonResponse(valid), () => jsonResponse(valid)]);
-    expect(await getLifeSigns(NOW, { log })).toEqual({ ...valid, sample: false });
-    expect(await getLifeSigns(NOW, { log })).toEqual({ ...valid, sample: false });
+    expect(await getLifeSigns(NOW, { log })).toEqual(expected);
+    expect(await getLifeSigns(NOW, { log })).toEqual(expected);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(nextCache.calls).toHaveLength(1);
     const { keyParts, options } = nextCache.calls[0]!;
@@ -251,7 +267,7 @@ describe('le cache des signes de vie validés', () => {
     expect(await getLifeSigns(NOW, { log })).toEqual(sampleLifeSigns(NOW));
     expect(log.mock.calls[0]![0]).toContain('http_error');
     expect(log.mock.calls[0]![0]).not.toContain('example.test');
-    expect(await getLifeSigns(NOW, { log })).toEqual({ ...valid, sample: false });
+    expect(await getLifeSigns(NOW, { log })).toEqual(expected);
     expect(fetchMock).toHaveBeenCalledTimes(2);
   });
 
@@ -271,19 +287,29 @@ describe('le schéma du JSON public', () => {
     return result.ok ? [] : result.issues;
   };
 
+  const factory = (patch: Record<string, unknown>) => ({
+    ...valid,
+    factory: { ...valid.factory, ...patch },
+  });
+
   it('accepte le format attendu', () => {
-    expect(parse(valid)).toEqual({ ok: true, signs: { ...valid, sample: false } });
+    expect(parse(valid)).toEqual({ ok: true, signs: expected });
+  });
+
+  it('veut la version 2 et les chiffres de l’usine', () => {
+    expect(issues({ ...valid, version: undefined })).toEqual(['version']);
+    expect(issues({ ...valid, version: 1 })).toEqual(['version']);
+    expect(issues({ ...valid, factory: undefined })).toEqual(['factory']);
   });
 
   it('refuse des nombres négatifs, décimaux ou absents', () => {
-    expect(issues({ ...valid, running: -1 })).toEqual(['running']);
-    expect(issues({ ...valid, running: 1.5 })).toEqual(['running']);
+    expect(issues(factory({ channels: -1 }))).toEqual(['factory.channels']);
+    expect(issues(factory({ channels: 1.5 }))).toEqual(['factory.channels']);
+    expect(issues(factory({ views: undefined }))).toEqual(['factory.views']);
+    expect(issues(factory({ perDay: -0.5 }))).toEqual(['factory.perDay']);
     expect(issues({ ...valid, activity: [...valid.activity.slice(1), -2] })).toEqual([
       'activity.13',
     ]);
-    const withoutRunning: Partial<typeof valid> = { ...valid };
-    delete withoutRunning.running;
-    expect(issues(withoutRunning)).toEqual(['running']);
   });
 
   it('veut exactement 14 jours d’activité', () => {
@@ -312,5 +338,87 @@ describe('le schéma du JSON public', () => {
   it('refuse ce qui n’est pas un objet', () => {
     expect(issues(null)).toEqual(['(racine)']);
     expect(issues([valid])).toEqual(['(racine)']);
+  });
+});
+
+describe('l’arrondi des signes de vie', () => {
+  const parse = (data: unknown) => {
+    const result = parsePublicLifeSigns(data, NOW);
+    if (!result.ok) throw new Error(result.issues.join(', '));
+    return result.signs;
+  };
+
+  it('ramène un JSON très précis à des chiffres globaux arrondis', () => {
+    const precise = {
+      version: 2,
+      measuredAt: '2026-11-02T11:47:12.345Z',
+      lastActivityAt: '2026-11-01T22:13:09.000Z',
+      since: '2026-10-17T08:41:00.000Z',
+      activity: valid.activity,
+      factory: { channels: 9, videos: 353, perDay: 15.6, views: 303_174, likes: 17_289 },
+    };
+    expect(parse(precise)).toEqual({
+      measuredAt: '2026-11-02T11:00:00.000Z',
+      lastActivityAt: '2026-11-01T00:00:00.000Z',
+      since: '2026-10-01T00:00:00.000Z',
+      activity: valid.activity,
+      factory: { channels: 9, videos: 350, perDay: 16, views: 300_000, likes: 17_000 },
+      sample: false,
+    });
+  });
+
+  it('ne laisse sortir aucun chiffre par genre', () => {
+    const old = {
+      ...valid,
+      running: 3,
+      genres: { quiz: { views: 402_917, activity: valid.activity } },
+      factory: { ...valid.factory, genres: { marbles: { views: 1_048_123, retention: 63 } } },
+    };
+    const signs = parse(old);
+    expect(Object.keys(signs).sort()).toEqual(
+      ['activity', 'factory', 'lastActivityAt', 'measuredAt', 'sample', 'since'].sort(),
+    );
+    expect(Object.keys(signs.factory).sort()).toEqual(
+      ['channels', 'likes', 'perDay', 'videos', 'views'].sort(),
+    );
+    expect(JSON.stringify(signs)).not.toMatch(/genres|running|quiz|marbles|402|1048|retention/);
+  });
+
+  it('ne refuse jamais un JSON valide à cause de l’arrondi', () => {
+    // Trois instants dans la même heure, à la seconde près.
+    const tight = {
+      ...valid,
+      since: '2026-11-02T11:42:17.000Z',
+      lastActivityAt: '2026-11-02T11:42:17.000Z',
+      measuredAt: '2026-11-02T11:42:17.000Z',
+    };
+    const signs = parse(tight);
+    expect(signs.since).toBe('2026-11-01T00:00:00.000Z');
+    expect(signs.lastActivityAt).toBe('2026-11-02T00:00:00.000Z');
+    expect(signs.measuredAt).toBe('2026-11-02T11:00:00.000Z');
+    // Une mesure dans la marge du futur reste acceptée.
+    const soon = new Date(NOW + LIFE_SIGNS_FUTURE_MARGIN_MS - MINUTE).toISOString();
+    expect(parse({ ...valid, measuredAt: soon }).measuredAt).toBe('2026-11-02T12:00:00.000Z');
+  });
+});
+
+describe('floorSignificant', () => {
+  it('garde deux chiffres significatifs, vers le bas', () => {
+    expect(floorSignificant(303_174, 2)).toBe(300_000);
+    expect(floorSignificant(17_289, 2)).toBe(17_000);
+    expect(floorSignificant(353, 2)).toBe(350);
+    expect(floorSignificant(999_999, 2)).toBe(990_000);
+    expect(floorSignificant(100, 2)).toBe(100);
+    expect(floorSignificant(87, 2)).toBe(87);
+    expect(floorSignificant(7, 2)).toBe(7);
+    expect(floorSignificant(12.9, 2)).toBe(12);
+    expect(floorSignificant(1_234_567, 3)).toBe(1_230_000);
+  });
+
+  it('tient bon face à un nombre faux', () => {
+    expect(floorSignificant(0, 2)).toBe(0);
+    expect(floorSignificant(-5, 2)).toBe(0);
+    expect(floorSignificant(Number.NaN, 2)).toBe(0);
+    expect(floorSignificant(Number.POSITIVE_INFINITY, 2)).toBe(0);
   });
 });

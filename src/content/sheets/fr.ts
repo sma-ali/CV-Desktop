@@ -15,24 +15,6 @@ export const sheetsFr = {
     upright: 'Remettre droit',
     contact: 'Me contacter',
     repository: 'Voir le dépôt',
-    live: {
-      title: 'Signes de vie',
-      sample: "Données d'exemple",
-      running: 'Projets en marche',
-      last: 'Dernière activité',
-      since: 'En route depuis',
-      chart: "Activité des {days} derniers jours, du plus ancien à aujourd'hui : {values}",
-      axisStart: 'Il y a {days} jours',
-      axisEnd: "Aujourd'hui",
-      ago: {
-        now: "à l'instant",
-        minutes: 'il y a {n} min',
-        hours: 'il y a {h} h',
-        hoursMinutes: 'il y a {h} h {mm}',
-        days: { one: 'il y a {n} jour', other: 'il y a {n} jours' },
-      },
-      age: { one: '{n} jour', other: '{n} jours' },
-    },
     factory: {
       circuitLabel: 'Le circuit',
       circuit: [
@@ -43,8 +25,15 @@ export const sheetsFr = {
         'Statistiques',
       ],
       status: 'En marche',
+      sample: "Données d'exemple",
       last: 'dernière vidéo {ago}',
+      ago: {
+        today: "aujourd'hui",
+        yesterday: 'hier',
+        days: { one: 'il y a {n} jour', other: 'il y a {n} jours' },
+      },
       more: 'plus de {n}',
+      since: 'depuis {date}',
       figures: {
         channels: { one: 'chaîne', other: 'chaînes' },
         videos: { one: 'vidéo', other: 'vidéos' },
@@ -53,17 +42,10 @@ export const sheetsFr = {
         likes: "j'aime",
       },
       tabsLabel: 'Exemples',
-      stats: {
-        views: 'Vues',
-        retention: 'Rétention',
-        retentionValue: '{n} % en moyenne',
-        rejected: 'Refusées',
-        rejectedValue: '{n} % avant publication',
-        production: 'Production',
-        productionValue: '{n} min par vidéo',
-      },
-      chart: "Vidéos produites ces {days} derniers jours, du plus ancien à aujourd'hui : {values}",
-      legend: 'Vidéos produites, {days} derniers jours',
+      chart:
+        "Vidéos publiées ces {days} derniers jours, toutes chaînes, du plus ancien à aujourd'hui : {values}",
+      axisStart: 'Il y a {days} jours',
+      axisEnd: "Aujourd'hui",
       genres: {
         fantasy: {
           tab: 'Récits',

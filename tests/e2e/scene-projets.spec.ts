@@ -251,10 +251,12 @@ test.describe('le cadrage', () => {
     await waitForScene(page);
     // Pas de bande vide entre le bureau et le bas de page : l'étiquette la
     // plus basse (le badge n'en a pas : la carte) est dans le tiers du bas
-    // de la zone libre.
+    // de la zone libre. L'étiquette se pose au-dessus de la carte : depuis
+    // les objets agrandis du téléphone (06/11), la carte occupe environ
+    // 60 px de cet écart à elle seule (avant : 48 px), d'où 135 au lieu de 120.
     const footer = await page.locator('#hud footer').boundingBox();
     const card = await tag(page, 'card').boundingBox();
     expect(footer && card).toBeTruthy();
-    expect(footer!.y - (card!.y + card!.height)).toBeLessThan(120);
+    expect(footer!.y - (card!.y + card!.height)).toBeLessThan(135);
   });
 });

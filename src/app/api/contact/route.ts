@@ -1,6 +1,7 @@
 import { handleContactPost, methodNotAllowed, type MailerResolution } from '@/lib/contact/handler';
 import { createDryRunMailer, createMailjetMailer, type Mailer } from '@/lib/contact/mailer';
 import {
+  attemptWindows,
   createMemoryRateLimiter,
   defaultWindows,
   type RateLimiter,
@@ -15,11 +16,15 @@ const logger = console;
 
 // Une limite par instance du serveur (voir rate-limit.ts) : créée au premier
 // envoi, puis gardée tant que l'instance vit.
-let limiter: RateLimiter | null = null;
-function getLimiter(): RateLimiter {
+let limiters: { sends: RateLimiter; attempts: RateLimiter } | null = null;
+function getLimiters() {
   // Les plafonds suivent un maximum par IP relevé (tests de bout en bout).
-  limiter ??= createMemoryRateLimiter(defaultWindows(readRateLimitMax()));
-  return limiter;
+  const max = readRateLimitMax();
+  limiters ??= {
+    sends: createMemoryRateLimiter(defaultWindows(max)),
+    attempts: createMemoryRateLimiter(attemptWindows(max)),
+  };
+  return limiters;
 }
 
 function resolveMailer(): MailerResolution {
@@ -38,8 +43,10 @@ function resolveMailer(): MailerResolution {
 }
 
 export async function POST(request: Request): Promise<Response> {
+  const { sends, attempts } = getLimiters();
   return handleContactPost(request, {
-    limiter: getLimiter(),
+    limiter: sends,
+    attemptLimiter: attempts,
     resolveMailer,
     now: Date.now,
     logger,

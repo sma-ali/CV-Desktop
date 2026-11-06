@@ -1,5 +1,5 @@
 import type { ContactFormContent, Content, SheetContent, SheetsContent } from '@/content';
-import { localeNames, type Locale } from '@/content/locales';
+import { localeNames, otherLocale, type Locale } from '@/content/locales';
 import { SHEET_ORDER, STEP_ITEM, type ItemId, type StepId } from '@/scene/core/ids';
 import type { LoadStep } from '@/scene/core/loading';
 import type { SceneTexts } from '@/scene/core/texts';
@@ -27,7 +27,7 @@ export interface DeskStep {
 }
 
 /** Une fiche telle que le HUD l'affiche : celle du contenu, plus le lien du dépôt s'il est public. */
-export interface DeskSheet extends SheetContent {
+interface DeskSheet extends SheetContent {
   /** Le dépôt GitHub du projet, seulement s'il est public (repository.public). */
   repository: { label: string; href: string } | null;
 }
@@ -77,9 +77,9 @@ export interface DeskHudTexts {
     contextLost: string;
     expressLink: string;
   };
-  /** Étape 6 : le bouton de rangement (partie B) et ses annonces. */
+  /** Le bouton de rangement et ses annonces. */
   tidy: { offer: string; tidying: string; done: string };
-  /** Étape 6 : l'écran de chargement (partie C) et le repli s'il tarde. */
+  /** L'écran de chargement et le repli s'il tarde. */
   intro: {
     preparing: string;
     slow: string;
@@ -87,8 +87,6 @@ export interface DeskHudTexts {
     done: string;
   };
 }
-
-const otherLocale: Record<Locale, Locale> = { fr: 'en', en: 'fr' };
 
 /** Année de début d'une expérience, d'après sa période (« 2020-09 » donne « 2020 »). */
 function experienceStep(content: Content, id: 'defi-metiers' | 'dares', locale: Locale): DeskStep {

@@ -6,7 +6,8 @@ import { homePlace, homePose } from './bodies';
 import { createSilentSound } from './sound';
 import { DROP } from './constants';
 import { dropStart, DROP_END, DROP_ORDER } from './drop';
-import { createSceneStore, REDUCED_START, settingsFromParams, updateFrame } from './store';
+import { updateFrame } from './frame';
+import { createSceneStore, REDUCED_START, settingsFromParams } from './store';
 
 function started(search = '', reduced = false) {
   const store = createSceneStore();
@@ -128,7 +129,7 @@ describe('le store de la scène', () => {
   });
 });
 
-describe('les gestes dans le store (étape 4)', () => {
+describe('les gestes dans le store', () => {
   function withSound(search = '') {
     const sound = createSilentSound();
     const store = createSceneStore('afternoon', { sound });
@@ -136,7 +137,7 @@ describe('les gestes dans le store (étape 4)', () => {
     return { store, sound };
   }
 
-  it('présente un objet retourné, comme le prototype, sauf avec ?recto', () => {
+  it('présente un objet retourné, sauf avec ?recto', () => {
     const store = started('?prendre=card');
     expect(store.getState().flipped).toBe(true);
     expect(started('?prendre=card&recto').getState().flipped).toBe(false);

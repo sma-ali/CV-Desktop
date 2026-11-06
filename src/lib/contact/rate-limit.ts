@@ -12,7 +12,7 @@
 // L'interface RateLimiter permet de brancher plus tard un stockage partagé
 // sans toucher à la route.
 
-export type RateLimitResult = { ok: true } | { ok: false; retryAfterSeconds: number };
+type RateLimitResult = { ok: true } | { ok: false; retryAfterSeconds: number };
 
 export interface RateLimiter {
   /** Compte une tentative pour cette clé (l'IP) ; refuse si une limite est atteinte. */
@@ -44,7 +44,24 @@ export const DEFAULT_PER_KEY: Window = { max: 5, windowMs: 10 * MINUTE };
 export const DEFAULT_PER_KEY_HOURLY: Window = { max: 10, windowMs: HOUR };
 export const DEFAULT_GLOBAL: Window = { max: 30, windowMs: HOUR };
 export const DEFAULT_GLOBAL_DAILY: Window = { max: 100, windowMs: 24 * HOUR };
-export const DEFAULT_MAX_KEYS = 10_000;
+const DEFAULT_MAX_KEYS = 10_000;
+
+// Les tentatives, comptées avant toute lecture du corps : valides ou non,
+// piège rempli ou saisie trop rapide. Par IP seulement, jamais pour toute
+// l'instance : un robot qui martèle la route se freine lui-même sans couper
+// le formulaire des autres visiteurs.
+const DEFAULT_ATTEMPTS: Window = { max: 20, windowMs: 10 * MINUTE };
+
+/** La fenêtre des tentatives, relevée avec le maximum par IP (tests de bout en bout). */
+export function attemptWindows(perKeyMax: number = DEFAULT_PER_KEY.max): {
+  perKey: Window[];
+  global: Window[];
+} {
+  return {
+    perKey: [{ ...DEFAULT_ATTEMPTS, max: Math.max(DEFAULT_ATTEMPTS.max, perKeyMax * 4) }],
+    global: [],
+  };
+}
 
 /**
  * Les fenêtres par défaut, avec un maximum par IP éventuellement relevé

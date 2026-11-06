@@ -6,7 +6,7 @@ import type { SceneStore } from '../core/store';
 // est dans le premier chargement, la scène non.
 
 /** Les touches qui tournent l'objet présenté : [axe y (lacet), axe x (tangage)] en pas. */
-export const ROTATE_KEYS: Readonly<Record<string, readonly [number, number]>> = {
+const ROTATE_KEYS: Readonly<Record<string, readonly [number, number]>> = {
   ArrowLeft: [-1, 0],
   ArrowRight: [1, 0],
   ArrowUp: [0, -1],

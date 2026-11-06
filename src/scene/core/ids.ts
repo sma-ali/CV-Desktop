@@ -3,7 +3,7 @@
 
 // Les objets du CV posés sur le bureau. L'écran (monitor) se regarde de près
 // sans quitter le bureau : la caméra s'en approche au lieu de le soulever.
-// Netherbrain et Homelab (étape 4) : le bocal au cerveau et la mini baie.
+// Netherbrain et Homelab : le bocal au cerveau et la mini baie.
 export const ITEM_IDS = [
   'book',
   'badge',
@@ -23,16 +23,7 @@ export type ItemId = (typeof ITEM_IDS)[number];
 // portent l'id de l'expérience dans le contenu, les deux suivantes celui du
 // projet. Une étape par objet : Netherbrain, Homelab et l'usine sont à égalité.
 // Le contact est posé à part, en bas à droite.
-export const STEP_IDS = [
-  'defi-metiers',
-  'dares',
-  'netherbrain',
-  'homelab',
-  'perso',
-  'contact',
-] as const;
-
-export type StepId = (typeof STEP_IDS)[number];
+export type StepId = 'defi-metiers' | 'dares' | 'netherbrain' | 'homelab' | 'perso' | 'contact';
 
 // L'étape que chaque objet raconte.
 export const ITEM_STEP = {
@@ -88,7 +79,7 @@ export function neighborItem(item: ItemId, direction: 1 | -1): ItemId {
   return order[index < 0 ? 0 : next] ?? 'book';
 }
 
-// Les corps du bureau vivant (étape 6, moteur physique) : tout ce qui se
+// Les corps du moteur physique : tout ce qui se
 // déplace, se lance, se renverse et tombe. Les objets du CV posés sur le
 // plateau, le casque (pendu à son support, il tombe si on le heurte), et
 // tout le décor posé. Restent fixes : l'écran (son gros plan et le post-it
@@ -110,10 +101,10 @@ export type ItemBodyId = (typeof ITEM_BODY_IDS)[number];
 /**
  * Les morceaux du décor qui sont des corps. Leurs enfants sont dessinés à
  * leur place en paysage (repère du monde) ; l'origine du corps est l'ancre
- * du morceau (DECOR_ANCHORS, decor/layout.ts), sauf la tasse et la manette,
+ * du morceau (DECOR_ANCHORS, core/decorPlaces.ts), sauf la tasse et la manette,
  * dessinées dans leur propre repère.
  */
-export const DECOR_BODY_IDS = [
+const DECOR_BODY_IDS = [
   'mug',
   'pad',
   'keyboard',
@@ -133,9 +124,6 @@ export type DecorBodyId = (typeof DECOR_BODY_IDS)[number];
 export const BODY_IDS = [...ITEM_BODY_IDS, ...DECOR_BODY_IDS] as const;
 
 export type BodyId = (typeof BODY_IDS)[number];
-
-/** Un objet du CV qui glisse (alias de l'étape 4). */
-export type DraggableItemId = ItemBodyId;
 
 // Les ambiances de lumière, de l'aube à la nuit.
 export const MOOD_IDS = ['morning', 'afternoon', 'evening', 'night'] as const;

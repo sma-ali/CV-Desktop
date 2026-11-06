@@ -1,6 +1,6 @@
 import { isBodyId, isItemId, isMoodId, type BodyId, type ItemId, type MoodId } from './ids';
 
-// Paramètres de test lus dans l'adresse, comme ceux du prototype. Ils servent
+// Paramètres de test lus dans l'adresse. Ils servent
 // aux captures et aux tests de bout en bout ; un visiteur ne les voit jamais.
 export interface TestParams {
   /** ?t=11000 : saute à 11 s de l'arrivée (en ms dans l'adresse, en secondes ici). */
@@ -22,15 +22,26 @@ export interface TestParams {
   /**
    * ?glisse=laptop:-0.3,2.15 : glisse un objet vers une place du plateau dès
    * le départ, comme un visiteur (collisions comprises), puis le lâche.
-   * ?glisse seul : le portable vers la carte, comme le prototype.
+   * ?glisse seul : le portable vers la carte.
    */
   drag: TestDrag | null;
   /** ?noshadow : sans ombres portées. */
   noShadow: boolean;
   /** ?nopost : sans post-traitement. */
   noPost: boolean;
-  /** ?desordre : tout le bureau dispersé dès que le moteur physique est prêt (étape 6, partie B). */
+  /** ?desordre : tout le bureau dispersé dès que le moteur physique est prêt. */
   scatter: boolean;
+  /** ?tourne=0.5,-1.2 (avec ?prendre=) : une orientation donnée d'office à l'objet présenté. */
+  turn: TestTurn | null;
+}
+
+/**
+ * Les angles de ?tourne=x,y (radians) : x autour de l'axe horizontal de la
+ * vue, puis y autour de son axe vertical (rotation/trackball.ts, turnRotation).
+ */
+export interface TestTurn {
+  x: number;
+  y: number;
 }
 
 /** Un glisser demandé par l'adresse : quel corps, et vers quelle place (x, z). */
@@ -50,6 +61,13 @@ function parseDrag(value: string | null): TestDrag | null {
   if (!match) return null;
   const [, item = '', x = '', z = ''] = match;
   return isBodyId(item) ? { item, x: Number(x), z: Number(z) } : null;
+}
+
+function parseTurn(value: string | null): TestTurn | null {
+  if (value === null) return null;
+  const match = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.exec(value);
+  if (!match) return null;
+  return { x: Number(match[1]), y: Number(match[2]) };
 }
 
 function finite(value: string | null): number | null {
@@ -77,5 +95,6 @@ export function parseTestParams(search: string | URLSearchParams): TestParams {
     noShadow: query.has('noshadow'),
     noPost: query.has('nopost'),
     scatter: query.has('desordre'),
+    turn: parseTurn(query.get('tourne')),
   };
 }

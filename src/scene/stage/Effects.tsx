@@ -5,7 +5,7 @@ import { Bloom, EffectComposer } from '@react-three/postprocessing';
 import type { BloomEffect } from 'postprocessing';
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import { useSceneStoreApi } from '../core/store-context';
-import { GradeEffect } from './GradeEffect';
+import { GradeEffect } from './gradeEffect';
 import { focusPoint, isPortrait } from './framing';
 import { bloomStrength, dimLevel, fadeLevel } from './lighting';
 import { RENDER_PRIORITY, STAGE_PRIORITY } from './priorities';
@@ -20,10 +20,10 @@ const BLOOM_THRESHOLD = 0.82;
 const MULTISAMPLING = 4;
 const DENSE_DPR = 1.5;
 
-// Le post-traitement : bloom sur les émissifs (son intensité suit la lampe,
-// comme dans le prototype), puis l'étalonnage chaud (GradeEffect : courbe,
-// vignette, assombrissement autour de l'objet présenté, fondu de l'arrivée).
-// Le grain est un calque CSS du socle. bloom à false : la qualité
+// Le post-traitement : bloom sur les émissifs (son intensité suit la lampe),
+// puis l'étalonnage chaud (GradeEffect : courbe, vignette, assombrissement
+// autour de l'objet présenté, fondu de l'arrivée). Le grain est un calque
+// CSS de la page. bloom à false : la qualité
 // adaptative l'a coupé.
 export function Effects({
   sharedRef,

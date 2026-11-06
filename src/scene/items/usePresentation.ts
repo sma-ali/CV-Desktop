@@ -3,7 +3,7 @@
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { createContext, useContext, useMemo, useRef } from 'react';
 import { Quaternion, Vector3, type Group, type Material, type PerspectiveCamera } from 'three';
-import { ease, easeOut, lerp } from '../core/arrival';
+import { ease, easeOut, lerp } from '../core/math';
 import { ITEM_POSES } from '../core/constants';
 import { isBodyId, type ItemId } from '../core/ids';
 import type { FrameState } from '../core/store';
@@ -28,13 +28,13 @@ import {
 // devant la caméra et pose de l'étiquette (TagLayer). Chaque objet appelle ce
 // hook et pose `ref` et `handlers` sur son groupe racine.
 //
-// Étape 6 : un objet qui est un corps (BODY_IDS) repose à sa pose du
+// Un objet qui est un corps (BODY_IDS) repose à sa pose du
 // plateau, store.desk[id] (position et orientation complètes, écrites par le
 // moteur physique : il peut être renversé, ou tombé). Un appui le désigne
 // au glisser (claimBody) ; un glisser n'arrive jamais jusqu'au clic
 // (Gestures avale le clic qui le termine). Le geste de présentation suit
 // store.flipped ; tenu, l'objet suit un peu le pointeur (lissé par les
-// gestes) et prend la rotation libre du visiteur (store.heldSpin, partie A).
+// gestes) et prend la rotation libre du visiteur (store.heldSpin).
 
 /** Avancement de la présentation de chaque objet, lu par CvItems pour frame.presentLevel. */
 export class PresentProgress {
@@ -58,7 +58,13 @@ export class PresentProgress {
 
 export const ProgressContext = createContext<PresentProgress | null>(null);
 
-/** Avant cet instant de l'arrivée, un clic sur un objet ne fait rien (comme le prototype). */
+/** Hauteur (unités du bureau) du sommet de l'arc que décrit un objet soulevé, avant le facteur arc. */
+const ARC_HEIGHT = 1.2;
+
+/** L'objet finit de tourner un peu avant d'arriver (à 1 / TURN_LEAD de son trajet). */
+const TURN_LEAD = 1.15;
+
+/** Avant cet instant de l'arrivée, un clic sur un objet ne fait rien. */
 const CLICK_AFTER = GESTURES_AFTER;
 
 /** Un matériau qui luit au survol et pendant la présentation. */
@@ -177,14 +183,14 @@ export function usePresentation({
           heldPosition,
           heldQuaternion,
         );
-        // La rotation libre du visiteur (partie A), par-dessus la pose tenue.
+        // La rotation libre du visiteur, par-dessus la pose tenue.
         if (spin.w !== 1) heldQuaternion.premultiply(spin);
         const k = ease(current.p);
         group.position.lerpVectors(restPosition, heldPosition, k);
-        group.position.y += Math.sin(Math.PI * k) * 1.2 * arc;
+        group.position.y += Math.sin(Math.PI * k) * ARC_HEIGHT * arc;
         group.quaternion
           .copy(restQuaternion)
-          .slerp(heldQuaternion, easeOut(Math.min(1, current.p * 1.15)));
+          .slerp(heldQuaternion, easeOut(Math.min(1, current.p * TURN_LEAD)));
         group.scale.setScalar(lerp(1, scale, k));
       }
     }
@@ -215,7 +221,7 @@ export function usePresentation({
       },
       onPointerDown(event: ThreeEvent<PointerEvent>) {
         const scene = store.getState();
-        // L'objet présenté : l'appui lui est réservé (rotation libre, partie A).
+        // L'objet présenté : l'appui lui est réservé (rotation libre).
         if (scene.presented === id && id !== 'monitor') {
           claimHeld(store, event);
           return;

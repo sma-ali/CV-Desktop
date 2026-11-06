@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -13,7 +15,7 @@ concurrency:
 
 jobs:
   qualite:
-    name: Lint, types et tests unitaires
+    name: Lint, types, code mort et tests unitaires
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -26,17 +28,17 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
+      - run: npm run knip
       - run: npm test
+        env:
+          PRIVATE_TERMS: ${{ secrets.PRIVATE_TERMS }}
 
   e2e:
     name: Tests de bout en bout (${{ matrix.projet }}, ${{ matrix.part }}/3)
     runs-on: ubuntu-latest
-    # La 3D tourne par SwiftShader, sur le processeur : chaque profil se
-    # découpe en trois parts, en parallèle, pour tenir dans le temps imparti.
-    # Étape 4 : 10.7 min (ordinateur) et 9.0 min (téléphone) en local sur 16
-    # cœurs et 4 pages ; un profil entier sur 4 cœurs et 2 pages, comme un
-    # exécuteur de GitHub, dépasse 30 min (36.6 min) ; la part la plus lourde
-    # y prend 16 min de tests.
+    # La 3D tourne par SwiftShader, sur le processeur : un profil entier
+    # dépasse 30 min sur un exécuteur GitHub, il se découpe donc en trois
+    # parts lancées en parallèle.
     timeout-minutes: 30
     strategy:
       fail-fast: false
@@ -55,6 +57,7 @@ jobs:
       - run: npm run test:e2e -- --project=${{ matrix.projet }} --shard=${{ matrix.part }}/3
         env:
           E2E_PORT: 3100
+          PRIVATE_TERMS: ${{ secrets.PRIVATE_TERMS }}
       - uses: actions/upload-artifact@v7
         if: ${{ !cancelled() }}
         with:

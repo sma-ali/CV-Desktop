@@ -1,4 +1,4 @@
-import { clamp, lerp, seg, smooth } from '../core/arrival';
+import { clamp, lerp, seg, smooth } from '../core/math';
 import { legacyIntensity, legacyPointIntensity } from '../core/constants';
 import type { MoodId } from '../core/ids';
 
@@ -23,10 +23,10 @@ import type { MoodId } from '../core/ids';
 export const POINT_LIGHT_DISTANCE = 9;
 
 /** Exposant qui fait passer une montée d'affichage (prototype) en linéaire. */
-export const DISPLAY_GAMMA = 2.2;
+const DISPLAY_GAMMA = 2.2;
 
 /** Facteurs de calage par rapport au prototype (1 : la valeur du prototype, multipliée par π). */
-export const CALIBRATION = {
+const CALIBRATION = {
   hemi: 0.62,
   sun: 0.7,
   spot: 2.0,
@@ -48,7 +48,7 @@ export const CALIBRATION = {
  * la puissance 2.2 pour garder cet écart : sans cela, le soir et la nuit
  * restaient presque aussi clairs que l'après-midi.
  */
-export const MOOD_REFERENCE = { hemi: 0.42, sun: 0.42 } as const;
+const MOOD_REFERENCE = { hemi: 0.42, sun: 0.42 } as const;
 
 const relative = (value: number, reference: number) =>
   reference * Math.pow(value / reference, DISPLAY_GAMMA);
@@ -72,7 +72,7 @@ export function sunIntensity(window: number, moodSun: number): number {
  * Surcroît de la lampe tant que la fenêtre n'éclaire pas (0.55 dans le
  * prototype) : en linéaire, la tache saturait, d'où une valeur plus basse.
  */
-export const SPOT_BOOST = 0.3;
+const SPOT_BOOST = 0.3;
 
 /**
  * Le projecteur de la lampe : plus fort tant que la fenêtre n'éclaire pas
@@ -97,7 +97,7 @@ export function bloomStrength(lamp: number, flash: number, window: number): numb
 }
 
 /** Le niveau de l'image pendant la chute, avant la lampe. */
-export const NIGHT_FADE = 0.62;
+const NIGHT_FADE = 0.62;
 
 /**
  * Le fondu depuis le noir de l'arrivée (1 : image pleine). La lampe et la

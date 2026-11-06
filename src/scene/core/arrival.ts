@@ -1,18 +1,10 @@
 import { ARRIVAL, SETTLE } from './constants';
+import { ease, seg, smooth } from './math';
 
 // Les niveaux de l'arrivée, fonctions pures du temps T (secondes depuis
 // l'ouverture de la page). Toutes les parties de la scène les lisent ici (ou
 // dans frame, voir store.ts), pour que la lampe, l'écran et la fenêtre restent
 // synchrones.
-
-export const clamp = (value: number, min: number, max: number) =>
-  Math.min(max, Math.max(min, value));
-export const lerp = (a: number, b: number, t: number) => a + (b - a) * t;
-/** Avancement de t entre a et b, borné à [0, 1]. */
-export const seg = (t: number, a: number, b: number) => clamp((t - a) / (b - a), 0, 1);
-export const ease = (t: number) => (t < 0.5 ? 4 * t * t * t : 1 - Math.pow(-2 * t + 2, 3) / 2);
-export const easeOut = (t: number) => 1 - Math.pow(1 - t, 3);
-export const smooth = (t: number) => t * t * (3 - 2 * t);
 
 /** Les grandes étapes de l'arrivée, exposées au HUD et aux tests. */
 export type ArrivalPhase = 'dark' | 'lamp' | 'screen' | 'window' | 'settled';
@@ -110,7 +102,7 @@ export function windowLevel(t: number): number {
 }
 
 /** La lumière d'ambiance pendant la chute des objets, avant la lampe (0 à 1). */
-export const DUSK_AMBIENT = 0.4;
+const DUSK_AMBIENT = 0.4;
 
 /**
  * La lumière d'ambiance (hémisphère), de 0 à 1 : une pénombre dès le début,

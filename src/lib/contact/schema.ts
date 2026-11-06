@@ -10,7 +10,6 @@ import {
   CONTACT_FIELDS,
   CONTACT_SOURCES,
   HONEYPOT_FIELD,
-  type ContactField,
   type FieldErrorCode,
 } from './rules';
 
@@ -60,8 +59,6 @@ export const contactRequestSchema = z.object({
   ),
 });
 
-export type ContactRequest = z.infer<typeof contactRequestSchema>;
-
 /** Les erreurs de champ d'un échec zod, en codes stables (« name »: « too_long »). */
 export function fieldErrors(error: z.ZodError): Partial<Record<string, FieldErrorCode>> {
   const fields: Partial<Record<string, FieldErrorCode>> = {};
@@ -76,5 +73,3 @@ export function fieldErrors(error: z.ZodError): Partial<Record<string, FieldErro
   }
   return fields;
 }
-
-export type { ContactField };

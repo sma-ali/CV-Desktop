@@ -3,7 +3,7 @@
 import { Component, lazy, Suspense, useEffect, type ReactNode } from 'react';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 
-// Le moteur physique (étape 6) arrive à part, après l'arrivée : ni Rapier ni
+// Le moteur physique arrive à part, après l'arrivée : ni Rapier ni
 // son WebAssembly dans le fichier de la scène. Il se charge quand l'arrivée
 // est finie (phase settled), ou plus tôt au premier appui sur un corps
 // (claimBody). En cas d'échec (WebAssembly refusé, réseau), le bureau reste

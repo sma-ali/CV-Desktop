@@ -7,7 +7,7 @@ import {
   type ContactDeps,
 } from './handler';
 import { MailerError, type Mailer } from './mailer';
-import { createMemoryRateLimiter } from './rate-limit';
+import { attemptWindows, createMemoryRateLimiter } from './rate-limit';
 import { MAX_BODY_BYTES } from './rules';
 
 const URL_ = 'http://localhost:3000/api/contact';
@@ -26,6 +26,7 @@ function setup(overrides: Partial<ContactDeps> & { mailer?: Mailer } = {}) {
   const logger = { info: vi.fn(), warn: vi.fn(), error: vi.fn() };
   const deps: ContactDeps = {
     limiter: overrides.limiter ?? createMemoryRateLimiter(),
+    attemptLimiter: overrides.attemptLimiter ?? createMemoryRateLimiter(attemptWindows()),
     resolveMailer: overrides.resolveMailer ?? (() => ({ ok: true, mailer })),
     now: overrides.now ?? (() => 1_000_000),
     logger,
@@ -238,6 +239,22 @@ describe('POST /api/contact en JSON', () => {
     });
     for (let i = 0; i < 3; i++) await handleContactPost(post({ ...valid, email: 'x' }), deps);
     expect((await handleContactPost(post(valid), deps)).status).toBe(200);
+  });
+
+  it('freine les tentatives répétées, même invalides ou piégées, IP par IP', async () => {
+    const { deps, send } = setup({
+      attemptLimiter: createMemoryRateLimiter({ perKey: { max: 3, windowMs: 60_000 }, global: [] }),
+    });
+    await handleContactPost(post({ ...valid, email: 'x' }), deps);
+    await handleContactPost(post({ ...valid, website: 'robot' }), deps);
+    await handleContactPost(post(valid), deps);
+    const blocked = await handleContactPost(post(valid), deps);
+    expect(blocked.status).toBe(429);
+    expect(blocked.headers.get('retry-after')).toBe('60');
+    expect(send).toHaveBeenCalledTimes(1);
+    // Une autre IP n'est pas touchée : aucun plafond commun aux tentatives.
+    const other = await handleContactPost(post(valid, { 'x-forwarded-for': '198.51.100.2' }), deps);
+    expect(other.status).toBe(200);
   });
 
   it('répond 503 quand l’envoi n’est pas configuré, en nommant les variables', async () => {

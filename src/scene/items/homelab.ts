@@ -38,7 +38,7 @@ export const UNITS: readonly RackUnit[] = [
 ];
 
 /** idle : la LED d'un port sans câble, éteinte. */
-export type LedKind = 'power' | 'link' | 'activity' | 'idle';
+type LedKind = 'power' | 'link' | 'activity' | 'idle';
 export type LedColor = 'green' | 'amber' | 'blue';
 
 export interface LedSpec {
@@ -68,17 +68,17 @@ export const LED_RGB: Record<LedColor, readonly [number, number, number]> = {
 export const HOMELAB_SEED = 1012;
 
 /** Le milieu vertical d'un équipement. */
-export function unitCenter(id: UnitId): number {
+function unitCenter(id: UnitId): number {
   const unit = UNITS.find((candidate) => candidate.id === id);
   if (!unit) throw new Error(`équipement inconnu : ${id}`);
   return (unit.y0 + unit.y1) / 2;
 }
 
 /** Les ports RJ45 du switch (huit) et du pare-feu (quatre) : x des prises. */
-export const SWITCH_PORTS = Array.from({ length: 8 }, (_, i) => -0.04 + i * 0.056);
-export const FIREWALL_PORTS = Array.from({ length: 4 }, (_, i) => 0.06 + i * 0.075);
+const SWITCH_PORTS = Array.from({ length: 8 }, (_, i) => -0.04 + i * 0.056);
+const FIREWALL_PORTS = Array.from({ length: 4 }, (_, i) => 0.06 + i * 0.075);
 /** Les douze prises numérotées du panneau de brassage : x des prises. */
-export const PATCH_PORTS = Array.from({ length: 12 }, (_, i) => -0.328 + i * 0.05775);
+const PATCH_PORTS = Array.from({ length: 12 }, (_, i) => -0.328 + i * 0.05775);
 
 export type PortUnit = 'switch' | 'firewall' | 'patch';
 

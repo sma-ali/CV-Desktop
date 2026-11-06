@@ -15,6 +15,7 @@ import {
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ARRIVAL, ITEM_POSES } from '../core/constants';
 import { standardMaterial } from '../core/materials';
+import { clamp } from '../core/math';
 import { useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
 import { breath } from './beats';
@@ -43,6 +44,9 @@ const LID = { radius: 0.3, height: 0.1 } as const;
 /** Haut du verre (épaule comprise) et du couvercle. */
 const GLASS_TOP = JAR.base + JAR.height + 0.08;
 const LID_TOP = GLASS_TOP + LID.height;
+
+/** Durée (s) de l'allumage du cerveau, qui s'allume avec la lampe. */
+const BRAIN_FADE_IN = 1.2;
 
 /** Le cerveau : centre et demi-tailles (x, y, z), pris dans le verre. */
 const BRAIN = { y: 0.5, size: [0.25, 0.2, 0.3] as const } as const;
@@ -90,7 +94,7 @@ function glassGeometry(): BufferGeometry {
  * Chaque sommet se déplace d'après sa seule position : les faces restent
  * jointives (géométrie non indexée).
  */
-export function brainGeometry(): BufferGeometry {
+function brainGeometry(): BufferGeometry {
   const geometry = new IcosahedronGeometry(1, 2);
   const position = geometry.attributes.position;
   if (position) {
@@ -207,7 +211,7 @@ export function Netherbrain({ texts }: { texts: SceneTexts }) {
   useFrame(() => {
     const { frame, settings } = store.getState();
     // Le cerveau s'allume avec la lampe, puis respire (pas en mouvement réduit).
-    const on = Math.min(1, Math.max(0, (frame.t - ARRIVAL.lampOn) / 1.2));
+    const on = clamp((frame.t - ARRIVAL.lampOn) / BRAIN_FADE_IN, 0, 1);
     const level = settings.reducedMotion ? 0.5 : breath(frame.t);
     setBrainGlow(materials.brain, materials.halo, on * level, on);
   }, ITEMS_PRIORITY);

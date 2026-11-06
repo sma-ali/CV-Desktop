@@ -8,7 +8,7 @@ import { KIMONO } from './layout';
 import type { Part } from './merge';
 import { MergedParts } from './shared';
 
-// Le kimono de grappling plié, bleu marine, et sa ceinture blanche nouée
+// Le kimono plié, bleu marine, et sa ceinture blanche nouée
 // posée dessus : aucune marque, aucun écusson (pièces dans kimono.ts). Un
 // morceau du décor comme les autres : il se glisse, se lance, se renverse.
 

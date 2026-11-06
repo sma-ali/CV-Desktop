@@ -2,18 +2,6 @@ import { describe, expect, it } from 'vitest';
 import { Group, Vector3 } from 'three';
 import { ARRIVAL, BOUNDS_PORTRAIT, DESK, DESK_PORTRAIT_Z1, WALL_Z, WIN } from '../core/constants';
 import {
-  DECOR_ANCHORS,
-  DECOR_OBSTACLES,
-  DECOR_OBSTACLES_PORTRAIT,
-  DECOR_PIECE_IDS,
-  decorExtentPortrait,
-  decorObstacles,
-  decorPieceTransform,
-  decorPlacement,
-  obstaclePiece,
-  obstacleTurn,
-  placeDecorPoint,
-  PORTRAIT_DECOR,
   FIGURES,
   KEY_COLORS,
   KEY_COUNT,
@@ -43,6 +31,22 @@ import {
   sway,
   type SteamPuff,
 } from './layout';
+import {
+  DECOR_OBSTACLES,
+  DECOR_OBSTACLES_PORTRAIT,
+  decorExtentPortrait,
+  decorObstacles,
+  obstaclePiece,
+  obstacleTurn,
+} from './obstacles';
+import {
+  DECOR_ANCHORS,
+  DECOR_PIECE_IDS,
+  decorPieceTransform,
+  decorPlacement,
+  placeDecorPoint,
+  PORTRAIT_DECOR,
+} from '../core/decorPlaces';
 import { SPINE_ATLAS, spineRowV } from './paint';
 
 /** Un instant après l'arrivée. */
@@ -307,6 +311,6 @@ describe('le décor du bureau resserré (portrait)', () => {
 
   it('ne cache que du décor qui ne trouve pas sa place, jamais la lampe ni la plante', () => {
     const hidden = DECOR_PIECE_IDS.filter((id) => decorPlacement(id, true).hidden);
-    expect(hidden).toEqual(['rope', 'wraps', 'fox', 'wanderer']);
+    expect(hidden).toEqual(['rope', 'wraps', 'manga', 'fox', 'wanderer']);
   });
 });

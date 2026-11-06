@@ -3,7 +3,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import type { PerspectiveCamera } from 'three';
-import { lerp } from '../core/arrival';
+import { damp, lerp } from '../core/math';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import {
   arrivalPose,
@@ -21,8 +21,10 @@ import type { StageShared } from './shared';
 /** Vitesse du lissage de la caméra et du gros plan sur l'écran (part restante après une seconde). */
 const CAMERA_SMOOTHING = 0.02;
 const SCREEN_SMOOTHING = 0.03;
-/** Plan du fond de la caméra au plus près (celui du Canvas du socle). */
+/** Plan du fond de la caméra au plus près (celui de SceneCanvas). */
 const MIN_FAR = 90;
+/** Le plan du fond, en multiple de la distance de la vue de repos (le mur reste dans le champ). */
+const FAR_PER_DISTANCE = 2.2;
 
 // La caméra : montée de l'arrivée (de START vers la vue de repos), cadrage
 // recalculé au redimensionnement (portrait sur téléphone), léger mouvement
@@ -74,7 +76,7 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
     const wantScreen = presented === 'monitor' ? 1 : 0;
     shared.screenFocus = exact
       ? wantScreen
-      : lerp(shared.screenFocus, wantScreen, 1 - Math.pow(SCREEN_SMOOTHING, frame.dt));
+      : lerp(shared.screenFocus, wantScreen, damp(SCREEN_SMOOTHING, frame.dt));
     if (shared.screenFocus > 0.001) blendPose(pose, screen, shared.screenFocus);
 
     const { smoothed } = rig;
@@ -83,7 +85,7 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
       smoothed.target.copy(pose.target);
       rig.ready = true;
     } else {
-      const a = 1 - Math.pow(CAMERA_SMOOTHING, frame.dt);
+      const a = damp(CAMERA_SMOOTHING, frame.dt);
       smoothed.position.lerp(pose.position, a);
       smoothed.target.lerp(pose.target, a);
     }
@@ -91,7 +93,7 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
     camera.lookAt(smoothed.target);
     // En portrait, la caméra recule loin pour faire tenir tout le bureau :
     // le plan du fond suit, pour garder le mur et la fenêtre.
-    const far = Math.max(MIN_FAR, rest.dist * 2.2);
+    const far = Math.max(MIN_FAR, rest.dist * FAR_PER_DISTANCE);
     if (Math.abs(camera.fov - pose.fov) > 1e-4 || camera.far !== far) {
       camera.fov = pose.fov;
       camera.far = far;

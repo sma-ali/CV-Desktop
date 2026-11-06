@@ -1,0 +1,94 @@
+/* L'écran de chargement du bureau : rendu par le serveur, il couvre tout le
+   bureau (scène et HUD) tant que la scène se prépare. Un écran noir, le nom,
+   et dessous Ali derrière son ordinateur (introArt.ts), la barre sous
+   l'ordinateur. Intro.tsx redessine le SVG quand il change. */
+
+.intro {
+  position: fixed;
+  inset: 0;
+  z-index: 20;
+  display: grid;
+  place-items: center;
+  padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
+  background: #000;
+  color: var(--cream);
+  font-family: var(--mono);
+  transition:
+    opacity 0.6s ease 0.9s,
+    visibility 0s linear 1.5s;
+}
+
+/* La scène est prête : « ting ! » (0,9 s, TING_MS dans core/loading.ts),
+   puis tout s'efface. */
+.intro[data-done] {
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+}
+
+/* JavaScript ne démarre pas (fichiers bloqués, erreur) : l'écran s'efface de
+   lui-même et laisse le HUD du serveur, dont les liens mènent à la version
+   express. Une fois la page hydratée, c'est DeskShell qui décide (délai,
+   repli). */
+.intro:not([data-js]) {
+  animation: give-up 0.6s ease 12s forwards;
+}
+
+@keyframes give-up {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+
+.center {
+  display: grid;
+  justify-items: center;
+  text-align: center;
+}
+
+.name {
+  margin: 0;
+  font-family: var(--serif);
+  font-weight: 600;
+  font-variation-settings: 'opsz' 144;
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
+  line-height: 1;
+  letter-spacing: -0.02em;
+  color: var(--pale);
+}
+
+/* Le dessin : large sur ordinateur, à la largeur de l'écran sur téléphone. */
+.stage {
+  width: min(460px, 88vw);
+  margin-top: 18px;
+}
+
+.art {
+  display: block;
+  width: 100%;
+  height: auto;
+  overflow: visible;
+}
+
+/* Mouvement réduit : le dessin reste immobile (Intro.tsx), seule la barre
+   avance, et l'écran part en simple fondu, sans « ting ». */
+@media (prefers-reduced-motion: reduce) {
+  .intro {
+    transition:
+      opacity 0.4s ease,
+      visibility 0s linear 0.4s;
+  }
+}
+
+/* Sans JavaScript : la version express s'affiche (Desk.module.css), pas d'écran de chargement. */
+@media (scripting: none) {
+  .intro {
+    display: none;
+  }
+}
+
+/* Le repli s'affiche : l'écran part tout de suite, la version express est dessous. */
+.intro[data-state='fallback'] {
+  display: none;
+}

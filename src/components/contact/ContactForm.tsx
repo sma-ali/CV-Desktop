@@ -1,11 +1,20 @@
 'use client';
 
-import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import {
+  useEffect,
+  useId,
+  useRef,
+  useState,
+  type ChangeEvent,
+  type FormEvent,
+  type KeyboardEvent,
+  type ReactNode,
+} from 'react';
+import { useHydrated } from '@/components/hooks/useHydrated';
 import type { ContactFormContent } from '@/content';
 import type { Locale } from '@/content/locales';
 import {
   checkContactFields,
-  CONTACT_ERROR_CODES,
   CONTACT_FIELDS,
   CONTACT_LIMITS,
   CONTACT_REDIRECT_STATES,
@@ -13,12 +22,12 @@ import {
   messageLength,
   type ContactErrorCode,
   type ContactField,
-  type ContactResponse,
   type ContactSource,
   type ContactValues,
   type FieldErrorCode,
 } from '@/lib/contact/rules';
 import styles from './ContactForm.module.css';
+import { postContact, type FieldErrors } from './postContact';
 
 export interface ContactFormProps {
   texts: ContactFormContent;
@@ -27,8 +36,8 @@ export interface ContactFormProps {
   from: ContactSource;
   /** L'adresse proposée quand l'envoi échoue. */
   email: string;
-  /** « page » : aux couleurs du thème ; « bristol » : sur le papier clair de la fiche. */
-  variant: 'page' | 'bristol';
+  /** « page » : aux couleurs du thème ; « sheet » : sur le papier clair de la fiche du bureau. */
+  variant: 'page' | 'sheet';
   /**
    * Prépare les messages d'état d'un envoi sans JavaScript, affichés par
    * :target (#contact-envoye...). Une seule fois par page : la version express.
@@ -44,8 +53,6 @@ type Status =
   | { kind: 'sent' }
   | { kind: 'error'; code: ContactErrorCode | 'network' };
 
-type FieldErrors = Partial<Record<ContactField, FieldErrorCode>>;
-
 const EMPTY: ContactValues = { name: '', email: '', message: '' };
 
 /** Remplace {min}, {max} et {n} dans un texte du contenu. */
@@ -53,21 +60,6 @@ function fill(template: string, values: Record<string, number>): string {
   return template.replace(/\{(\w+)\}/g, (match, key: string) =>
     key in values ? String(values[key]) : match,
   );
-}
-
-function isErrorCode(value: unknown): value is ContactErrorCode {
-  return (CONTACT_ERROR_CODES as readonly unknown[]).includes(value);
-}
-
-/** Le code d'une réponse sans corps lisible, d'après son statut. */
-function codeOfStatus(status: number): ContactErrorCode {
-  if (status === 400) return 'validation';
-  if (status === 403) return 'origin';
-  if (status === 413) return 'too_large';
-  if (status === 415 || status === 405) return 'unsupported';
-  if (status === 429) return 'rate_limited';
-  if (status === 503) return 'unavailable';
-  return 'send_failed';
 }
 
 // Le formulaire de contact, dans la version express et dans la fiche de la
@@ -89,12 +81,7 @@ export function ContactForm({
   const [values, setValues] = useState<ContactValues>(EMPTY);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
-  const [hydrated, setHydrated] = useState(false);
-  const fields = useRef<Record<ContactField, HTMLInputElement | HTMLTextAreaElement | null>>({
-    name: null,
-    email: null,
-    message: null,
-  });
+  const hydrated = useHydrated();
   const honeypot = useRef<HTMLInputElement>(null);
   const details = useRef<HTMLDetailsElement>(null);
   /**
@@ -104,16 +91,20 @@ export function ContactForm({
    */
   const shownAt = useRef<number | null>(null);
 
-  // Hydraté : le formulaire valide lui-même (noValidate) et envoie par fetch.
+  // Hydraté, le formulaire valide lui-même (noValidate) et envoie par fetch.
   useEffect(() => {
     shownAt.current = Date.now();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHydrated(true);
   }, []);
 
-  // Arrivé par le lien du contact (#contact), le formulaire replié s'ouvre.
+  // Arrivé par le lien du contact (#contact), à l'ouverture de la page ou
+  // plus tard (ancre suivie dans la page), le formulaire replié s'ouvre.
   useEffect(() => {
-    if (details.current && window.location.hash === '#contact') details.current.open = true;
+    const openOnContact = () => {
+      if (details.current && window.location.hash === '#contact') details.current.open = true;
+    };
+    openOnContact();
+    window.addEventListener('hashchange', openOnContact);
+    return () => window.removeEventListener('hashchange', openOnContact);
   }, []);
 
   const fieldId = (field: ContactField) => `${id}-${field}`;
@@ -131,7 +122,7 @@ export function ContactForm({
 
   const focusFirst = (found: FieldErrors) => {
     const first = CONTACT_FIELDS.find((field) => found[field]);
-    if (first) fields.current[first]?.focus();
+    if (first) document.getElementById(fieldId(first))?.focus();
   };
 
   const onChange = (field: ContactField, value: string) => {
@@ -154,54 +145,23 @@ export function ContactForm({
 
     setErrors({});
     setStatus({ kind: 'sending' });
-    const body = {
+    const result = await postContact({
       ...values,
       locale,
       from,
       [HONEYPOT_FIELD]: honeypot.current?.value ?? '',
       typingMs: Date.now() - (shownAt.current ?? Date.now()),
-    };
+    });
 
-    let response: Response;
-    try {
-      response = await fetch('/api/contact', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json', Accept: 'application/json' },
-        body: JSON.stringify(body),
-      });
-    } catch {
-      setStatus({ kind: 'error', code: 'network' });
-      return;
-    }
-
-    let result: ContactResponse | null = null;
-    try {
-      result = (await response.json()) as ContactResponse;
-    } catch {
-      result = null;
-    }
-
-    if (response.ok && result?.ok) {
+    if (result.ok) {
       setValues(EMPTY);
       shownAt.current = Date.now();
       setStatus({ kind: 'sent' });
       return;
     }
-
-    const code =
-      result && !result.ok && isErrorCode(result.error)
-        ? result.error
-        : codeOfStatus(response.status);
-    const returned: FieldErrors = {};
-    if (result && !result.ok && result.fields) {
-      for (const field of CONTACT_FIELDS) {
-        const fieldCode = result.fields[field];
-        if (fieldCode) returned[field] = fieldCode;
-      }
-    }
-    setErrors(returned);
-    setStatus({ kind: 'error', code });
-    focusFirst(returned);
+    setErrors(result.fields);
+    setStatus({ kind: 'error', code: result.code });
+    focusFirst(result.fields);
   };
 
   // Échap dans un champ rempli ne ferme pas la fiche (et ne perd pas la saisie).
@@ -234,6 +194,24 @@ export function ContactForm({
       .filter(Boolean)
       .join(' ') || undefined;
 
+  /** Ce que les trois champs ont en commun : nom, limite, valeur, erreur. */
+  const control = (field: ContactField, hint: boolean) => ({
+    id: fieldId(field),
+    name: field,
+    required: true,
+    maxLength: CONTACT_LIMITS[field].max,
+    value: values[field],
+    onChange: (event: ChangeEvent<HTMLInputElement | HTMLTextAreaElement>) =>
+      onChange(field, event.target.value),
+    'aria-invalid': errors[field] ? true : undefined,
+    'aria-describedby': describedBy(field, hint),
+  });
+
+  const fieldError = (field: ContactField) => {
+    const code = errors[field];
+    return code ? { id: errorId(field), text: errorText(field, code) } : null;
+  };
+
   const form = (
     <form
       className={styles.form}
@@ -249,76 +227,29 @@ export function ContactForm({
       <input type="hidden" name="locale" value={locale} />
       <input type="hidden" name="from" value={from} />
 
-      <div className={styles.field}>
-        <label htmlFor={fieldId('name')}>{texts.name.label}</label>
-        <input
-          ref={(element) => {
-            fields.current.name = element;
-          }}
-          id={fieldId('name')}
-          name="name"
-          type="text"
-          autoComplete="name"
-          required
-          maxLength={CONTACT_LIMITS.name.max}
-          value={values.name}
-          onChange={(event) => onChange('name', event.target.value)}
-          aria-invalid={errors.name ? true : undefined}
-          aria-describedby={describedBy('name', false)}
-        />
-        {errors.name ? (
-          <p id={errorId('name')} className={styles.error}>
-            {errorText('name', errors.name)}
-          </p>
-        ) : null}
-      </div>
+      <Field label={texts.name.label} controlId={fieldId('name')} error={fieldError('name')}>
+        <input {...control('name', false)} type="text" autoComplete="name" />
+      </Field>
 
-      <div className={styles.field}>
-        <label htmlFor={fieldId('email')}>{texts.email.label}</label>
+      <Field label={texts.email.label} controlId={fieldId('email')} error={fieldError('email')}>
         <input
-          ref={(element) => {
-            fields.current.email = element;
-          }}
-          id={fieldId('email')}
-          name="email"
+          {...control('email', true)}
           type="email"
           autoComplete="email"
           inputMode="email"
           spellCheck={false}
-          required
-          maxLength={CONTACT_LIMITS.email.max}
-          value={values.email}
-          onChange={(event) => onChange('email', event.target.value)}
-          aria-invalid={errors.email ? true : undefined}
-          aria-describedby={describedBy('email', true)}
         />
         <p id={hintId('email')} className={styles.hint}>
           {texts.email.hint}
         </p>
-        {errors.email ? (
-          <p id={errorId('email')} className={styles.error}>
-            {errorText('email', errors.email)}
-          </p>
-        ) : null}
-      </div>
+      </Field>
 
-      <div className={styles.field}>
-        <label htmlFor={fieldId('message')}>{texts.message.label}</label>
-        <textarea
-          ref={(element) => {
-            fields.current.message = element;
-          }}
-          id={fieldId('message')}
-          name="message"
-          rows={6}
-          required
-          minLength={CONTACT_LIMITS.message.min}
-          maxLength={CONTACT_LIMITS.message.max}
-          value={values.message}
-          onChange={(event) => onChange('message', event.target.value)}
-          aria-invalid={errors.message ? true : undefined}
-          aria-describedby={describedBy('message', true)}
-        />
+      <Field
+        label={texts.message.label}
+        controlId={fieldId('message')}
+        error={fieldError('message')}
+      >
+        <textarea {...control('message', true)} rows={6} minLength={CONTACT_LIMITS.message.min} />
         <p className={styles.hintRow}>
           <span id={hintId('message')} className={styles.hint}>
             {fill(texts.message.hint, CONTACT_LIMITS.message)}
@@ -333,12 +264,7 @@ export function ContactForm({
             </span>
           ) : null}
         </p>
-        {errors.message ? (
-          <p id={errorId('message')} className={styles.error}>
-            {errorText('message', errors.message)}
-          </p>
-        ) : null}
-      </div>
+      </Field>
 
       {/* Le piège à robots : hors de l'écran, hors de l'ordre de tabulation,
           caché aux lecteurs d'écran. Un humain ne le remplit jamais. */}
@@ -380,7 +306,7 @@ export function ContactForm({
   );
 
   return (
-    <div className={`${styles.root} ${variant === 'bristol' ? styles.bristol : ''}`}>
+    <div className={`${styles.root} ${variant === 'sheet' ? styles.onSheet : ''}`}>
       {noScriptStatus ? <NoScriptStatus texts={texts} email={email} /> : null}
       {collapsible ? (
         <details ref={details} className={styles.details}>
@@ -390,6 +316,31 @@ export function ContactForm({
       ) : (
         form
       )}
+    </div>
+  );
+}
+
+/** Un champ du formulaire : son libellé, le champ et ses aides, son erreur. */
+function Field({
+  label,
+  controlId,
+  error,
+  children,
+}: {
+  label: string;
+  controlId: string;
+  error: { id: string; text: string } | null;
+  children: ReactNode;
+}) {
+  return (
+    <div className={styles.field}>
+      <label htmlFor={controlId}>{label}</label>
+      {children}
+      {error ? (
+        <p id={error.id} className={styles.error}>
+          {error.text}
+        </p>
+      ) : null}
     </div>
   );
 }

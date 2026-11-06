@@ -5,14 +5,15 @@ import { useEffect, useRef } from 'react';
 import { Plane, Raycaster, Vector2, Vector3, type Camera } from 'three';
 import type { DeskBodies } from '../core/bodies';
 import type { BodyId } from '../core/ids';
-import type { PhysicsControl } from '../physics/world';
+import { damp } from '../core/math';
+import type { PhysicsControl } from '../core/physicsControl';
 import type { SceneStore } from '../core/store';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import { DRAG_THRESHOLD, gestureHub } from './hub';
 import { GESTURES_AFTER } from './pointer';
 import { GESTURES_PRIORITY } from './priorities';
 
-// Les gestes du visiteur sur le plateau (étape 6 : sur le moteur physique) :
+// Les gestes du visiteur sur le plateau, sur le moteur physique :
 // glisser n'importe quel corps (BODY_IDS) à la souris ou au doigt ; il suit
 // le pointeur au-dessus de ce qu'il survole, pousse ce qu'il heurte, et
 // part avec l'élan du geste au lâcher (sauf en mouvement réduit). ?glisse=
@@ -21,7 +22,7 @@ import { GESTURES_PRIORITY } from './priorities';
 // Le chemin d'un appui :
 // 1. pointerdown sur le canvas : l'appui commence (hub.down) ; l'objet sous
 //    le pointeur s'y désigne s'il glisse (claimBody, dans son onPointerDown),
-//    ou s'il est l'objet présenté (claimHeld : la partie A le fait tourner) ;
+//    ou s'il est l'objet présenté (claimHeld : HeldRotation le fait tourner) ;
 // 2. pointermove : au-delà de DRAG_THRESHOLD pixels sur un corps, le glisser
 //    commence (capture du pointeur, physics.grab, startDrag) ; le corps vise
 //    ensuite le point du plateau (plan y = 0) sous le pointeur ;
@@ -37,6 +38,8 @@ import { GESTURES_PRIORITY } from './priorities';
 const KEEP_TOUR_OFF = 1;
 /** ?glisse : le corps est lâché arrivé, bloqué depuis 0.4 s, ou au bout de 3 s (sous &fige : playFrozen). */
 const PLAYBACK = { close: 0.02, stuck: 0.4, timeout: 3 };
+/** Lissage du pointeur que l'objet tenu suit : part de l'écart qui reste après une seconde (voir damp). */
+const POINTER_SMOOTHING = 0.004;
 
 const plane = new Plane(new Vector3(0, 1, 0), 0);
 const raycaster = new Raycaster();
@@ -225,7 +228,7 @@ export function Gestures() {
 
     // Le pointeur que l'objet tenu suit, lissé (immobile en mouvement réduit).
     const pointer = hub.pointer;
-    const k = reduced ? 1 : 1 - Math.pow(0.004, frame.dt);
+    const k = reduced ? 1 : damp(POINTER_SMOOTHING, frame.dt);
     pointer.x += ((reduced ? 0 : pointer.targetX) - pointer.x) * k;
     pointer.y += ((reduced ? 0 : pointer.targetY) - pointer.y) * k;
 
@@ -240,7 +243,7 @@ export function Gestures() {
         physics.aim(request.x, request.z);
         scene.startDrag(request.item);
         run.startedAt = frame.t;
-        run.lastMoveAt = performance.now() / 1000;
+        run.lastMoveAt = frame.t;
         run.x = body.x;
         run.z = body.z;
         if (settings.frozen) {
@@ -270,16 +273,17 @@ export function Gestures() {
       three.gl.domElement.style.cursor = 'grabbing';
     } else if (request?.item === grabbed) {
       // Fin d'un ?glisse : arrivé, bloqué, ou trop long.
+      // Sur l'horloge de la scène, comme le reste : un onglet caché suspend
+      // la lecture au lieu de la croire bloquée.
       const body = desk[grabbed];
-      const now = performance.now() / 1000;
       if (Math.hypot(body.x - run.x, body.z - run.z) > 1e-3) {
-        run.lastMoveAt = now;
+        run.lastMoveAt = frame.t;
         run.x = body.x;
         run.z = body.z;
       }
       const close = Math.hypot(request.x - body.x, request.z - body.z) < PLAYBACK.close;
       const late =
-        frame.t - run.startedAt > PLAYBACK.timeout || now - run.lastMoveAt > PLAYBACK.stuck;
+        frame.t - run.startedAt > PLAYBACK.timeout || frame.t - run.lastMoveAt > PLAYBACK.stuck;
       if (close || late) letGo(store, false);
     }
 

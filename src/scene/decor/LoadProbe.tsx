@@ -5,8 +5,8 @@ import { useEffect, useRef } from 'react';
 import { loadSceneFonts } from '../core/fonts';
 import { useSceneStoreApi } from '../core/store-context';
 
-// L'avancement réel du chargement, vu de l'intérieur de la scène (étape 6,
-// écran de chargement : core/loading.ts). Le code de la scène est signalé
+// L'avancement réel du chargement, vu de l'intérieur de la scène (écran de
+// chargement : core/loading.ts). Le code de la scène est signalé
 // par DeskShell à l'arrivée du module, la dernière étape par markReady.
 // Ici :
 //
@@ -16,9 +16,6 @@ import { useSceneStoreApi } from '../core/store-context';
 // - shaders : à la deuxième image demandée, la première a compilé tous les
 //   matériaux (three compile au premier rendu) ;
 // - frame : la moitié à la première image demandée.
-//
-// Monté dans le décor, qui appartient à la partie C de l'étape 6 : Scene.tsx
-// (socle) ne change pas.
 export function LoadProbe() {
   const store = useSceneStoreApi();
   const frames = useRef(0);

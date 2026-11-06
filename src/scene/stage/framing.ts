@@ -1,5 +1,5 @@
 import { PerspectiveCamera, Vector3 } from 'three';
-import { ease, lerp, seg, smooth } from '../core/arrival';
+import { ease, lerp, seg, smooth } from '../core/math';
 import {
   bodyObb,
   FOOTPRINT_IDS,
@@ -10,12 +10,15 @@ import {
 } from '../core/bodies';
 import {
   ARRIVAL,
-  HEADSET_PORTRAIT,
+  headsetPose,
   HEADSET_STAND,
-  HELD,
   ITEM_POSES,
   LAMP,
   MONITOR,
+  type Vec3,
+} from '../core/constants';
+import {
+  HELD,
   PORTRAIT_HUD,
   PORTRAIT_MAX_ASPECT,
   REST,
@@ -23,10 +26,11 @@ import {
   SCREEN_FOCUS,
   START_L,
   START_P,
-  type Vec3,
   type View,
-} from '../core/constants';
-import { decorExtentPortrait, decorPlacement, placeDecorPoint, ROPE_EXTENT } from '../decor/layout';
+} from '../core/views';
+import { decorPlacement, placeDecorPoint } from '../core/decorPlaces';
+import { ROPE_EXTENT } from '../decor/layout';
+import { decorExtentPortrait } from '../decor/obstacles';
 
 // Le cadrage de la caméra, en fonctions pures (testées) : la vue de repos
 // calculée d'après le format de la fenêtre (layout() du prototype), la montée
@@ -160,7 +164,7 @@ export function screenShare(
 
 /**
  * Les points fixes du format : en portrait, la lampe est à
- * leur place du bureau resserré (decor/layout.ts, PORTRAIT_DECOR), et un
+ * leur place du bureau resserré (core/decorPlaces.ts, PORTRAIT_DECOR), et un
  * morceau caché n'a plus de points.
  */
 export function fixedExtent(
@@ -172,9 +176,24 @@ export function fixedExtent(
 const placed = (id: 'lamp', points: readonly Vec3[]): Vec3[] =>
   decorPlacement(id, true).hidden ? [] : points.map((point) => placeDecorPoint(id, true, point));
 
+/**
+ * Le casque en portrait : le haut de l'arceau et ses deux écouteurs (à 0.7
+ * du centre, haut de l'écouteur). Au bord droit du bureau resserré, un
+ * écouteur sortait du cadre alors que le centre y tenait.
+ */
+const headsetPortraitExtent = (): Vec3[] => {
+  const { x, y, z, ry } = headsetPose(true);
+  const cups = [-0.7, 0.7].map((lx): Vec3 => [
+    x + lx * Math.cos(ry),
+    y + 0.17,
+    z - lx * Math.sin(ry),
+  ]);
+  return [[x, y + 0.9, z], ...cups];
+};
+
 const FIXED_EXTENT_PORTRAIT = {
   monitor: FIXED_EXTENT.monitor,
-  headset: [[HEADSET_PORTRAIT.x, ITEM_POSES.headset.y + 0.9, HEADSET_PORTRAIT.z]],
+  headset: headsetPortraitExtent(),
   edge: [],
   lamp: placed('lamp', FIXED_EXTENT.lamp),
 } as const;
@@ -198,7 +217,7 @@ export function deskExtent(portrait: boolean): Vec3[] {
 }
 
 /** Ce que demande un cadrage : une vue de départ, des points, des limites, un alignement. */
-export interface FitRequest {
+interface FitRequest {
   view: View;
   points: readonly Vec3[];
   limits: FitLimits;
@@ -217,7 +236,7 @@ const FIT_ITERATIONS = 24;
  * La plus petite distance qui fait tenir les points dans leurs limites, en
  * recentrant le point visé (layout() du prototype).
  */
-export function fitView({ view, points, limits, align }: FitRequest, aspect: number): View {
+function fitView({ view, points, limits, align }: FitRequest, aspect: number): View {
   const camera = new PerspectiveCamera(view.fov, aspect, 0.1, 90);
   camera.updateProjectionMatrix();
   const target = new Vector3();

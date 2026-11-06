@@ -1,7 +1,5 @@
 import type { ItemId, MoodId } from './ids';
 
-export * from './framing';
-
 // Constantes du prototype (prototype/bureau-plateau.html), portées telles
 // quelles. Repère : le plateau du bureau est en y = 0, x va de -6.6 (gauche)
 // à 6.6 (droite), z de -3.55 (mur du fond) à 3.4 (bord avant, côté visiteur).
@@ -98,10 +96,10 @@ export interface ItemPose {
 }
 
 /**
- * Poses des objets du CV, reprises du prototype. Le post-it est collé au
+ * Poses des objets du CV. Le post-it est collé au
  * cadre de l'écran (voir POSTIT_ON_MONITOR) : sa position ici n'est qu'un
  * repli. Le coffret change de place en portrait (PORTRAIT_PLACES). Netherbrain
- * et Homelab (étape 4) prennent deux places libres : le bocal devant le
+ * et Homelab prennent deux places libres : le bocal devant le
  * clavier, à droite de la lanière du badge ; la baie à l'avant gauche, entre
  * la corde, le coffret et le livre (bodies.test.ts vérifie qu'aucun
  * encombrement ne se chevauche).
@@ -208,24 +206,16 @@ export const POSTIT_ON_MONITOR = {
   rotation: [Math.PI / 2, -0.1, 0] as Vec3,
 } as const;
 
-/**
- * Places de repos de la tasse et de la manette (dessinées dans leur propre
- * repère, contrairement aux autres morceaux du décor).
- */
-export const DECOR_BODY_HOMES = {
-  mug: { x: 4.55, z: -0.62, ry: 0 },
-  pad: { x: 5.1, z: 1.95, ry: 0.45 },
-} as const;
-
 /** Le support du casque, sur lequel le casque est posé. */
 export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
 
 /**
  * Le casque et son support en portrait (bureau resserré) : à droite de
- * l'écran, tourné vers le centre. À gauche, la lampe passe juste devant lui
- * et le cachait.
+ * l'écran (à gauche, la lampe passe juste devant lui et le cachait), tourné
+ * de profil, un écouteur devant l'autre. De face, ses écouteurs élargissaient
+ * le bureau et le premier entrait dans la dalle de l'écran.
  */
-export const HEADSET_PORTRAIT = { x: 3.5, z: -2.4, ry: -0.25 } as const;
+const HEADSET_PORTRAIT = { x: 3.2, z: -2.15, ry: 1.25 } as const;
 
 /** Le pied du support du casque, selon le format. */
 export const headsetStand = (portrait: boolean): Vec3 =>
@@ -237,8 +227,7 @@ export const headsetPose = (portrait: boolean): Pick<ItemPose, 'x' | 'y' | 'z' |
 
 /**
  * Limites du plateau pour poser ou glisser un objet : aucun rectangle
- * d'encombrement (voir bodies.ts) n'en sort. Celles du prototype, qui
- * bornait le centre des objets.
+ * d'encombrement (voir bodies.ts) n'en sort.
  */
 export const BOUNDS = { x0: -6.15, x1: 6.2, z0: -3.2, z1: 3.05 } as const;
 
@@ -251,30 +240,17 @@ export interface DeskBounds {
 }
 
 /**
- * Le bureau resserré du téléphone en portrait (décision d'Ali du 29/10) :
+ * Le bureau resserré du téléphone en portrait :
  * les objets et le décor se rangent sur une zone plus étroite et plus
  * profonde, pour que le bureau grandisse à l'écran. Le plateau s'allonge
  * vers le visiteur (DESK_PORTRAIT_Z1, ses côtés sortent du cadre) et les
  * objets restent dans BOUNDS_PORTRAIT. Le paysage ne change pas.
  */
-export const DESK_PORTRAIT_Z1 = 4.65;
-export const BOUNDS_PORTRAIT = { x0: -3.75, x1: 3.95, z0: -3.2, z1: 4.3 } as const;
+export const DESK_PORTRAIT_Z1 = 5.25;
+export const BOUNDS_PORTRAIT = { x0: -2.75, x1: 3.35, z0: -3.2, z1: 4.9 } as const;
 
 /** Les limites du plateau du format. */
 export const deskBounds = (portrait: boolean): DeskBounds => (portrait ? BOUNDS_PORTRAIT : BOUNDS);
-
-/**
- * La fiche (le bristol) à l'écran, pour que l'objet tenu reste visible :
- * en portrait, une feuille qui monte du bas, jamais plus haute que
- * portrait.maxHeight de la hauteur de la fenêtre (le cadrage pose l'objet
- * tenu au-dessus) ; en paysage, à droite, jamais plus large que
- * landscape.maxWidth pixels ni que landscape.maxFraction de la largeur
- * (l'objet tenu est à gauche du centre, HELD.landscape).
- */
-export const SHEET = {
-  portrait: { maxHeight: 0.42 },
-  landscape: { maxWidth: 400, maxFraction: 0.36 },
-} as const;
 
 // ------------------------------------------------------------------
 // Le temps : arrivée, mode auto
@@ -407,7 +383,7 @@ export const MOOD_TRANSITION = 1.4;
 /**
  * Les quatre ambiances du prototype. Couleurs en hexadécimal sRGB,
  * intensités telles qu'écrites pour three r128 (sans gestion des couleurs ni
- * lumières physiques) : la mise en scène les recalibre (voir docs/scene-3d.md).
+ * lumières physiques) : la mise en scène les recalibre (stage/lighting.ts).
  */
 export interface MoodSettings {
   /** Couleur et intensité du soleil (lumière directionnelle). */

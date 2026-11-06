@@ -10,7 +10,7 @@ import { TIDY_PRIORITY } from '../gestures/priorities';
 import { TidyDirector, type TidyContext } from './director';
 import { disorderScore } from './disorder';
 
-// Partie B de l'étape 6 : le désordre du bureau, le retour en douceur d'un
+// Le désordre du bureau, le retour en douceur d'un
 // corps tombé, et le rangement demandé par le bouton du HUD (TidyButton).
 // La logique est dans TidyDirector (director.ts, testé en Node avec le vrai
 // moteur) ; ce composant le branche sur la scène :
@@ -41,7 +41,7 @@ export function Tidy() {
   /** ?desordre : les places restent à recopier quand le bureau dispersé se sera posé. */
   const scatterPending = useRef(false);
 
-  // Rejouer : tout est rangé par le socle, on oublie les trajets en cours.
+  // Rejouer : le store remet tout en place, on oublie les trajets en cours.
   useEffect(() => {
     director.reset();
     served.current = store.getState().tidyRequests;

@@ -1,15 +1,11 @@
 import { Euler, Quaternion, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
 import { bodyObb, homePlace, obbPenetration } from '../core/bodies';
-import { DECOR_BODY_SPECS } from './colliders';
+import { DECOR_BODY_SPECS } from '../physics/decorShapes';
 import { BELT, KIMONO_COLORS, KIMONO_SIZE, KIMONO_TOP, kimonoBlocks } from './kimono';
-import {
-  DECOR_OBSTACLES,
-  DECOR_OBSTACLES_PORTRAIT,
-  KIMONO,
-  KIMONO_FOOTPRINT,
-  PORTRAIT_DECOR,
-} from './layout';
+import { KIMONO, KIMONO_FOOTPRINT } from './layout';
+import { DECOR_OBSTACLES, DECOR_OBSTACLES_PORTRAIT } from './obstacles';
+import { PORTRAIT_DECOR } from '../core/decorPlaces';
 
 /** Les huit coins d'une pièce, dans le repère du kimono (avant sa rotation). */
 function corners(block: ReturnType<typeof kimonoBlocks>[number]): Vector3[] {

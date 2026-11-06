@@ -154,6 +154,8 @@ describe('le monde physique du bureau', () => {
 
   it('pose le bureau resserré du portrait sans interpénétration', () => {
     const { physics, desk } = setup(true);
+    // Comme PhysicsLayer à chaque image : le décor caché en portrait sort du monde.
+    physics.syncPresence(desk, () => false);
     physics.stepMany(desk, 1);
     expect(physics.maxPenetration()).toBeLessThan(0.05);
   });

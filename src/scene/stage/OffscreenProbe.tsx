@@ -8,7 +8,7 @@ import { FOOTPRINT_IDS } from '../core/bodies';
 import { useSceneStoreApi } from '../core/store-context';
 import { bodyExtent, fixedExtent, restLimits, screenShare } from './framing';
 
-// Ce qui sort du cadre au repos (partie « objets », cadrage sur téléphone) :
+// Ce qui sort du cadre au repos (cadrage sur téléphone) :
 // toutes les quelques images, une fois l'arrivée finie et rien de présenté
 // ni de tenu, projette l'encombrement de chaque corps du plateau (les huit
 // coins de son rectangle, au ras du plateau et à sa hauteur, à sa place du
@@ -27,7 +27,7 @@ import { bodyExtent, fixedExtent, restLimits, screenShare } from './framing';
 const EVERY = 12;
 
 /** Priorité : après les gestes (-12) et la caméra, avant le rendu. */
-export const OFFSCREEN_PRIORITY = -8;
+const OFFSCREEN_PRIORITY = -8;
 
 /** Tolérance en coordonnées normalisées : un coin posé sur le bord compte comme dedans. */
 const EDGE = 1.002;

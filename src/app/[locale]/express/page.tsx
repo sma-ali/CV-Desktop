@@ -2,15 +2,13 @@ import type { Metadata } from 'next';
 import Link from 'next/link';
 import { notFound } from 'next/navigation';
 import { ExpressCv } from '@/components/express/ExpressCv';
-import { PrintButton } from '@/components/express/PrintButton';
-import { getContent, isLocale, localeNames, type Locale } from '@/content';
+import { PaperPage } from '@/components/paper/PaperPage';
+import { getContent, isLocale } from '@/content';
 import { buildProfilePageJsonLd, serializeJsonLd } from '@/lib/json-ld';
 import { buildExpressMetadata } from '@/lib/metadata';
 import { deskPath, expressPath, legalPath } from '@/lib/site';
 import { displayUrl } from '@/lib/urls';
 import styles from './page.module.css';
-
-const otherLocale: Record<Locale, Locale> = { fr: 'en', en: 'fr' };
 
 export async function generateMetadata({
   params,
@@ -26,58 +24,47 @@ export default async function ExpressPage({ params }: PageProps<'/[locale]/expre
   if (!isLocale(locale)) notFound();
   const content = getContent(locale);
   const { profile, contact, ui } = content;
-  const other = otherLocale[locale];
 
   return (
-    <div className={styles.page}>
+    <>
       <script
         type="application/ld+json"
         dangerouslySetInnerHTML={{
           __html: serializeJsonLd(buildProfilePageJsonLd(content, locale)),
         }}
       />
-      <a href="#contenu" className={styles.skip}>
-        {ui.skipToContent}
-      </a>
-      <div className={styles.sheet}>
-        {/* Cible du lien « Haut de page » : le focus revient avant les outils. */}
-        <header id="haut" tabIndex={-1} className={styles.bar}>
-          <p className={styles.kicker}>
+      <PaperPage
+        locale={locale}
+        kicker={
+          <>
             {ui.kicker}
             <span className={styles.kickerSeparator}> | </span>
             <span className={styles.kickerDetail}>{ui.kickerDetail}</span>
-          </p>
-          <div className={styles.tools}>
-            <Link href={deskPath(locale)} className={styles.tool}>
-              {ui.backToDesk}
-            </Link>
-            <nav aria-label={ui.languageNav}>
-              <Link href={expressPath(other)} hrefLang={other} lang={other} className={styles.tool}>
-                {localeNames[other]}
+          </>
+        }
+        links={[{ href: deskPath(locale), label: ui.backToDesk }]}
+        pathFor={expressPath}
+        print
+        // Cible du lien « Haut de page » : le focus revient avant les outils.
+        barId="haut"
+        footer={
+          <>
+            <p className={styles.footerText}>
+              {profile.name} | <a href={contact.website}>{displayUrl(contact.website)}</a>
+            </p>
+            <span className={styles.footerLinks}>
+              <Link href={legalPath(locale)} className={styles.footerLink}>
+                {ui.legalLink}
               </Link>
-            </nav>
-            <PrintButton label={ui.print} className={`${styles.tool} ${styles.toolStrong}`} />
-          </div>
-        </header>
-
-        <main id="contenu" tabIndex={-1} className={styles.main}>
-          <ExpressCv locale={locale} />
-        </main>
-
-        <footer className={styles.footer}>
-          <p className={styles.footerText}>
-            {profile.name} | <a href={contact.website}>{displayUrl(contact.website)}</a>
-          </p>
-          <span className={styles.footerLinks}>
-            <Link href={legalPath(locale)} className={styles.footerLink}>
-              {ui.legalLink}
-            </Link>
-            <a href="#haut" className={styles.footerLink}>
-              {ui.backToTop}
-            </a>
-          </span>
-        </footer>
-      </div>
-    </div>
+              <a href="#haut" className={styles.footerLink}>
+                {ui.backToTop}
+              </a>
+            </span>
+          </>
+        }
+      >
+        <ExpressCv locale={locale} />
+      </PaperPage>
+    </>
   );
 }

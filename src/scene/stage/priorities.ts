@@ -1,4 +1,4 @@
-// Priorités des useFrame de la mise en scène. Le socle passe d'abord (-100,
+// Priorités des useFrame de la mise en scène. L'horloge passe d'abord (-100,
 // CLOCK_PRIORITY), puis la visite automatique et la caméra, avant les objets
 // (priorité 0 ou plus haute) : l'objet présenté se place d'après la caméra
 // déjà posée pour cette image. Le post-traitement rend en dernier (1).

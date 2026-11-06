@@ -11,7 +11,6 @@ import {
   fromRotationVector,
   heldBall,
   keyRotation,
-  parseTurn,
   rotationAngle,
   sphereVector,
   SPIN,
@@ -192,18 +191,6 @@ describe('les pas du clavier', () => {
 });
 
 describe('?tourne', () => {
-  it('lit deux angles en radians', () => {
-    expect(parseTurn('?t=11000&tourne=0.5,-1.2')).toEqual({ x: 0.5, y: -1.2 });
-    expect(parseTurn('?tourne=2,3')).toEqual({ x: 2, y: 3 });
-  });
-
-  it('ignore une valeur absente ou illisible', () => {
-    expect(parseTurn('?t=11000')).toBeNull();
-    expect(parseTurn('?tourne')).toBeNull();
-    expect(parseTurn('?tourne=a,b')).toBeNull();
-    expect(parseTurn('?tourne=1')).toBeNull();
-  });
-
   it('applique x puis y', () => {
     const q = turnRotation({ x: 0, y: Math.PI / 2 }, new Quaternion());
     close(front(q).x, 1);

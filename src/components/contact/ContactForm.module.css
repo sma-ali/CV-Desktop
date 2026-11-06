@@ -1,6 +1,6 @@
 /* Le formulaire de contact. Ses couleurs viennent de jetons locaux : ceux du
-   thème dans la version express, ceux du papier clair dans la fiche (le
-   bristol reste clair en thème sombre). Contraste AA sur chaque fond. */
+   thème dans la version express, ceux du papier clair dans la fiche du
+   bureau (claire aussi en thème sombre). Contraste AA sur chaque fond. */
 
 .root {
   --cf-ink: var(--ink);
@@ -15,12 +15,12 @@
   color: var(--cf-ink);
 }
 
-.bristol {
-  --cf-ink: #1f1710;
-  --cf-soft: #2c2116;
-  --cf-muted: #5e4e3c;
-  --cf-accent: #8d2a20;
-  --cf-on-accent: #f3e9d4;
+.onSheet {
+  --cf-ink: var(--sheet-ink);
+  --cf-soft: var(--sheet-soft);
+  --cf-muted: var(--sheet-faint);
+  --cf-accent: var(--brick);
+  --cf-on-accent: var(--sheet-paper);
   --cf-field: #fbf6ea;
   --cf-border: rgb(31 23 16 / 0.6);
 

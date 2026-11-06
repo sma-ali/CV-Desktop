@@ -1,19 +1,12 @@
-import { decorPlacement } from '../decor/layout';
-import {
-  DECOR_BODY_HOMES,
-  headsetPose,
-  headsetStand,
-  HEADSET_STAND,
-  ITEM_POSES,
-  MONITOR,
-} from './constants';
-import { PORTRAIT_PLACES } from './framing';
+import { headsetPose, headsetStand, HEADSET_STAND, ITEM_POSES, MONITOR } from './constants';
+import { DECOR_BODY_HOMES, decorPlacement } from './decorPlaces';
+import { PORTRAIT_PLACES } from './views';
 import { BODY_IDS, isDecorBodyId, type BodyId } from './ids';
 
 // Les corps du bureau, vus de dessus et en 3D : où ils reposent (leur place
 // d'origine, selon le format), ce qu'ils occupent au repos (un rectangle
 // orienté, OBB, pour le cadrage et les tests de disposition), et leur pose
-// mutable, écrite à chaque image par le moteur physique (étape 6). Données
+// mutable, écrite à chaque image par le moteur physique. Données
 // pures, sans three. Repère du prototype : x vers la droite, z vers le
 // visiteur, y vers le haut, ry autour de l'axe vertical (sens de three : un
 // point local (lx, lz) va en x = lx cos ry + lz sin ry,
@@ -53,8 +46,8 @@ export interface DeskObstacle extends Obb {
 
 /**
  * Les corps dont l'encombrement au repos compte pour le cadrage et pour les
- * tests de disposition : ceux de l'étape 4. Le décor a ses propres
- * rectangles (DECOR_OBSTACLES, decor/layout.ts), le casque pend à son
+ * tests de disposition. Le décor a ses propres
+ * rectangles (DECOR_OBSTACLES, decor/obstacles.ts), le casque pend à son
  * support (FIXED_ITEM_OBSTACLES).
  */
 export const FOOTPRINT_IDS = [
@@ -91,14 +84,12 @@ export const BODY_FOOTPRINTS = {
 } as const satisfies Record<FootprintId, Footprint>;
 
 /** Places de repos de la tasse et de la manette (le décor les pose là). */
-export { DECOR_BODY_HOMES };
-
 /**
  * Les objets du CV qui ne glissent pas mais occupent le plateau : le pied de
  * l'écran et le support du casque. Le décor ajoute les siens
- * (DECOR_OBSTACLES dans src/scene/decor/layout.ts).
+ * (DECOR_OBSTACLES dans src/scene/decor/obstacles.ts).
  */
-export const FIXED_ITEM_OBSTACLES: readonly DeskObstacle[] = [
+const FIXED_ITEM_OBSTACLES: readonly DeskObstacle[] = [
   {
     id: 'monitor-stand',
     x: MONITOR.position[0],
@@ -111,7 +102,7 @@ export const FIXED_ITEM_OBSTACLES: readonly DeskObstacle[] = [
 ];
 
 /** Les mêmes en portrait : le support du casque passe à droite de l'écran (HEADSET_PORTRAIT). */
-export const FIXED_ITEM_OBSTACLES_PORTRAIT: readonly DeskObstacle[] = FIXED_ITEM_OBSTACLES.map(
+const FIXED_ITEM_OBSTACLES_PORTRAIT: readonly DeskObstacle[] = FIXED_ITEM_OBSTACLES.map(
   (obstacle) => {
     if (obstacle.id !== 'headset-stand') return obstacle;
     const [x, , z] = headsetStand(true);
@@ -301,7 +292,7 @@ export function yawOf(qx: number, qy: number, qz: number, qw: number): number {
 }
 
 /** L'angle (radians) entre l'orientation d'un corps et sa pose d'origine. */
-export function angleFromHome(body: DeskBodyState, home: DeskPose): number {
+function angleFromHome(body: DeskBodyState, home: DeskPose): number {
   const hy = Math.sin(home.ry / 2);
   const hw = Math.cos(home.ry / 2);
   const dot = Math.abs(body.qy * hy + body.qw * hw);
@@ -347,8 +338,8 @@ export function resetDeskBodies(desk: DeskBodies, portrait = false): DeskBodies 
 
 /**
  * Cale les corps que personne n'a déplacés sur leur place d'origine du
- * format courant (le bureau se resserre en portrait). Appelé par le socle à
- * chaque image, avant le moteur physique.
+ * format courant (le bureau se resserre en portrait). Appelé par ClockDriver
+ * à chaque image, avant le moteur physique.
  */
 export function syncDeskBodies(desk: DeskBodies, portrait: boolean): void {
   for (const id of BODY_IDS) {

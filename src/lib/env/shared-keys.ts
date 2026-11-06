@@ -16,7 +16,7 @@ import { join } from 'node:path';
 // cause de ces lectures, qui visent un dossier hors du dépôt.
 
 /** Les variables que ce dossier peut fournir au site. */
-export const SHARED_KEY_NAMES = [
+const SHARED_KEY_NAMES = [
   'CONTACT_TO',
   'CONTACT_FROM',
   'MAILJET_API_KEY',

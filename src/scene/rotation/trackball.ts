@@ -1,8 +1,9 @@
 import { Quaternion, Vector3 } from 'three';
-import { HELD } from '../core/framing';
+import { HELD } from '../core/views';
 import type { HeldSpin } from '../core/store';
+import type { TestTurn } from '../core/params';
 
-// La rotation libre de l'objet présenté (partie A de l'étape 6), sans React :
+// La rotation libre de l'objet présenté, sans React :
 // une boule virtuelle (trackball) sous le pointeur, l'inertie au lâcher, les
 // pas du clavier et le retour à l'endroit. Tout se calcule dans le repère de
 // la caméra (x à droite, y en haut, z vers le visiteur), puis passe dans
@@ -224,21 +225,8 @@ export function keyRotation(yaw: number, pitch: number, out: Quaternion): Quater
   return out.setFromAxisAngle(axis.divideScalar(steps), steps * SPIN.keyStep);
 }
 
-/**
- * ?tourne=x,y : angles (radians) appliqués à l'objet présenté, x autour de
- * l'axe horizontal de la vue, puis y autour de son axe vertical. Null si
- * absent ou illisible.
- */
-export function parseTurn(search: string): { x: number; y: number } | null {
-  const value = new URLSearchParams(search).get('tourne');
-  if (value === null) return null;
-  const match = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.exec(value);
-  if (!match) return null;
-  return { x: Number(match[1]), y: Number(match[2]) };
-}
-
-/** La rotation de ?tourne (repère de la caméra). */
-export function turnRotation(turn: { x: number; y: number }, out: Quaternion): Quaternion {
+/** La rotation de ?tourne (repère de la caméra) : x autour de l'axe horizontal de la vue, puis y. */
+export function turnRotation(turn: TestTurn, out: Quaternion): Quaternion {
   const pitch = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), turn.x);
   const yaw = new Quaternion().setFromAxisAngle(new Vector3(0, 1, 0), turn.y);
   return out.copy(yaw).multiply(pitch);

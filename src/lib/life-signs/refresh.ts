@@ -1,0 +1,121 @@
+import type { FactoryStats, LifeSigns } from '@/lib/life-signs';
+
+// Le rafraîchissement des signes de vie à l'ouverture de la fiche de l'usine.
+// La page est régénérée au plus toutes les 10 minutes, mais un visiteur peut
+// la garder ouverte longtemps : si la mesure est trop vieille, le navigateur
+// redemande /api/signes-de-vie, sans bloquer la fiche. En cas d'échec, il
+// garde ce qu'il a. Ni zod ni contenu ici (JavaScript initial) : le serveur
+// a déjà validé et arrondi le JSON, on vérifie seulement sa forme.
+
+/** La route qui sert les signes de vie. */
+export const LIFE_SIGNS_ENDPOINT = '/api/signes-de-vie';
+/**
+ * Au-delà de cet âge, la mesure est redemandée : 10 minutes, plus l'heure
+ * que l'arrondi de measuredAt (à l'heure pleine, vers le bas) peut ajouter.
+ */
+export const LIFE_SIGNS_STALE_MS = 70 * 60_000;
+/** Après un essai, échoué ou non, pas de nouvel essai avant ce délai. */
+export const LIFE_SIGNS_RETRY_MS = 60_000;
+/** Délai maximal de la requête du navigateur. */
+const LIFE_SIGNS_CLIENT_TIMEOUT_MS = 5000;
+
+const isInstant = (value: unknown): value is string =>
+  typeof value === 'string' && Number.isFinite(Date.parse(value));
+
+const isCount = (value: unknown): value is number =>
+  typeof value === 'number' && Number.isInteger(value) && value >= 0;
+
+/** Les chiffres de l'usine, ou null si leur forme est fausse (champ par champ, rien de plus). */
+function toFactory(value: unknown): FactoryStats | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const { channels, videos, perDay, views, likes } = value as Record<string, unknown>;
+  if (!isCount(channels) || !isCount(videos) || !isCount(perDay)) return null;
+  if (!isCount(views) || !isCount(likes)) return null;
+  return { channels, videos, perDay, views, likes };
+}
+
+/**
+ * Les signes de vie reçus de la route, ou null si leur forme est fausse.
+ * Seuls les champs connus sont gardés.
+ */
+export function toLifeSigns(value: unknown): LifeSigns | null {
+  if (typeof value !== 'object' || value === null) return null;
+  const data = value as Record<string, unknown>;
+  const { lastActivityAt, since, activity, measuredAt, sample } = data;
+  if (!Array.isArray(activity) || !activity.every(isCount)) return null;
+  if (!isInstant(lastActivityAt) || !isInstant(since) || !isInstant(measuredAt)) return null;
+  if (typeof sample !== 'boolean') return null;
+  const factory = toFactory(data.factory);
+  if (!factory) return null;
+  return { lastActivityAt, since, activity: [...activity], measuredAt, sample, factory };
+}
+
+/** La mesure a-t-elle plus de LIFE_SIGNS_STALE_MS à l'instant now ? Illisible ou absente : oui. */
+export function isStale(signs: LifeSigns | null, now: number): boolean {
+  if (!signs) return true;
+  const measured = Date.parse(signs.measuredAt);
+  return !Number.isFinite(measured) || now - measured >= LIFE_SIGNS_STALE_MS;
+}
+
+export interface LifeSignsRefresher {
+  /**
+   * Redemande les signes de vie s'ils sont trop vieux. Renvoie ceux à
+   * montrer (tels que reçus, avant recalage), ou null s'il n'y a rien à
+   * changer : mesure récente, essai trop proche, déjà en cours, échec.
+   */
+  refresh(): Promise<LifeSigns | null>;
+}
+
+export interface LifeSignsRefresherDeps {
+  fetch: typeof fetch;
+  now: () => number;
+  timeoutMs?: number;
+}
+
+/**
+ * initial : les signes de vie de la page, tels que le serveur les a mesurés
+ * (pas ceux recalés sur l'heure du visiteur, qui paraîtraient toujours
+ * récents).
+ */
+export function createLifeSignsRefresher(
+  initial: LifeSigns | null,
+  deps: LifeSignsRefresherDeps,
+): LifeSignsRefresher {
+  let current = initial;
+  let lastAttempt = Number.NEGATIVE_INFINITY;
+  let pending = false;
+
+  async function load(): Promise<LifeSigns | null> {
+    try {
+      const response = await deps.fetch(LIFE_SIGNS_ENDPOINT, {
+        headers: { Accept: 'application/json' },
+        signal: AbortSignal.timeout(deps.timeoutMs ?? LIFE_SIGNS_CLIENT_TIMEOUT_MS),
+      });
+      if (!response.ok) return null;
+      return toLifeSigns(await response.json());
+    } catch {
+      return null;
+    }
+  }
+
+  return {
+    async refresh() {
+      const now = deps.now();
+      if (pending || now - lastAttempt < LIFE_SIGNS_RETRY_MS || !isStale(current, now)) {
+        return null;
+      }
+      pending = true;
+      lastAttempt = now;
+      try {
+        const fresh = await load();
+        if (!fresh) return null;
+        // De vraies données, même un peu vieilles, valent mieux que l'exemple.
+        if (fresh.sample && current && !current.sample) return null;
+        current = fresh;
+        return fresh;
+      } finally {
+        pending = false;
+      }
+    },
+  };
+}

@@ -53,6 +53,9 @@ export function MergedParts({
 // Briques de géométrie pour les pièces (créées puis fusionnées)
 // ------------------------------------------------------------------
 
+/** Le bois brun des poignées de la corde et du chapeau du voyageur. */
+export const WOOD = 0x6e4a2e;
+
 export const box = (w: number, h: number, d: number): BufferGeometry => new BoxGeometry(w, h, d);
 export const cyl = (top: number, bottom: number, height: number, segments = 8): BufferGeometry =>
   new CylinderGeometry(top, bottom, height, segments);

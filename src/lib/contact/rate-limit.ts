@@ -50,7 +50,7 @@ const DEFAULT_MAX_KEYS = 10_000;
 // piège rempli ou saisie trop rapide. Par IP seulement, jamais pour toute
 // l'instance : un robot qui martèle la route se freine lui-même sans couper
 // le formulaire des autres visiteurs.
-export const DEFAULT_ATTEMPTS: Window = { max: 20, windowMs: 10 * MINUTE };
+const DEFAULT_ATTEMPTS: Window = { max: 20, windowMs: 10 * MINUTE };
 
 /** La fenêtre des tentatives, relevée avec le maximum par IP (tests de bout en bout). */
 export function attemptWindows(perKeyMax: number = DEFAULT_PER_KEY.max): {

@@ -39,3 +39,5 @@ Suite Playwright des parcours : clic sur un objet, retournement, glisser, formul
 ## 8. Mise en ligne
 
 Dépôt public, projet Vercel, variables d'environnement, bascule d'alismaani.fr avec son accord, mentions légales.
+
+Fait le 06/11/2026 : dépôt public sma-ali/CV-Desktop, projet Vercel `cv-desktop` (production sur `main`), domaine alismaani.fr validé chez Mailjet (SPF et DKIM posés chez OVH), variables d'envoi sur Vercel, premier e-mail réel reçu. Restent : DMARC, règle du pare-feu Vercel sur `/api/contact`, bascule du domaine, mentions légales, JSON public des signes de vie.

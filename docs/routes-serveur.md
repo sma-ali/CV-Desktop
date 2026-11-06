@@ -186,14 +186,19 @@ En local, Next charge le `.env` du projet, puis `shared-keys.ts` complète `proc
   - `contact-api.spec.ts` (ordinateur seulement) : 405, 415, 403, 413, 400, 303, piège (texte et non textuel), JSON sans durée, succès passé par l'envoi (`X-Contact-Dry-Run`).
   - `signes.spec.ts` : la route et ses en-têtes (ordinateur seulement), rafraîchissement à l'ouverture du coffret, horloge avancée d'une heure, en succès et en 503.
 
-## Ce qui reste à faire à la mise en ligne (étape 7)
+## Mise en ligne
 
-- Créer le compte Mailjet en offre gratuite, sans carte ni moyen de paiement.
-- Valider l'adresse expéditrice (`CONTACT_FROM`) chez Mailjet, sur un domaine qu'Ali contrôle, et poser chez OVH les enregistrements DNS demandés (SPF, DKIM).
-- Choisir `CONTACT_TO`.
-- Poser les variables sur le projet Vercel (`CONTACT_TO`, `CONTACT_FROM`, `MAILJET_API_KEY`, `MAILJET_API_SECRET`, `LIFE_SIGNS_URL`), jamais `CONTACT_DRY_RUN` en production.
+Fait le 06/11/2026 :
+
+- Compte Mailjet en offre gratuite, sans moyen de paiement.
+- Domaine alismaani.fr validé chez Mailjet (enregistrement TXT de propriété), SPF complété (`include:spf.mailjet.com`, à côté de `include:mx.ovh.com`) et DKIM (`mailjet._domainkey`) posés chez OVH. Expéditeur : une adresse sur alismaani.fr.
+- Variables `CONTACT_TO`, `CONTACT_FROM`, `MAILJET_API_KEY` et `MAILJET_API_SECRET` sur le projet Vercel (les deux clés en Sensitive), sans `CONTACT_DRY_RUN`. Premier envoi réel reçu.
+
+Reste à faire :
+
+- Poser un enregistrement DMARC.
 - Poser une règle de limite de débit du pare-feu Vercel sur `/api/contact` (seuil à choisir).
-- Choisir où vit le JSON public des signes de vie, et ce qu'il mesure.
+- Choisir où vit le JSON public des signes de vie, et ce qu'il mesure, puis poser `LIFE_SIGNS_URL`.
 
 ## À valider avec Ali
 

@@ -23,7 +23,7 @@ export interface SceneCanvasProps {
 //
 // - gestion des couleurs active (défaut de three) : textures de canvas en
 //   sRGB, sortie en sRGB. r128 n'en avait pas : les intensités du prototype
-//   se recalibrent (voir docs/scene-3d.md) ;
+//   se recalibrent (stage/lighting.ts) ;
 // - pas de tone mapping (flat) : l'étalonnage du prototype se fait en
 //   post-traitement (mise en scène) ;
 // - ombres PCF ;

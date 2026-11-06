@@ -2,6 +2,8 @@ name: CI
 
 on:
   push:
+    branches: [main]
+  pull_request:
   workflow_dispatch:
 
 permissions:
@@ -34,12 +36,9 @@ jobs:
   e2e:
     name: Tests de bout en bout (${{ matrix.projet }}, ${{ matrix.part }}/3)
     runs-on: ubuntu-latest
-    # La 3D tourne par SwiftShader, sur le processeur : chaque profil se
-    # découpe en trois parts, en parallèle, pour tenir dans le temps imparti.
-    # Étape 4 : 10.7 min (ordinateur) et 9.0 min (téléphone) en local sur 16
-    # cœurs et 4 pages ; un profil entier sur 4 cœurs et 2 pages, comme un
-    # exécuteur de GitHub, dépasse 30 min (36.6 min) ; la part la plus lourde
-    # y prend 16 min de tests.
+    # La 3D tourne par SwiftShader, sur le processeur : un profil entier
+    # dépasse 30 min sur un exécuteur GitHub, il se découpe donc en trois
+    # parts lancées en parallèle.
     timeout-minutes: 30
     strategy:
       fail-fast: false

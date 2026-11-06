@@ -19,7 +19,7 @@ export interface SceneProps {
 
 // La scène du bureau, chargée à part (next/dynamic, sans rendu serveur) après
 // le premier affichage de la page. Elle compose les parties, chacune dans son
-// dossier (voir docs/scene-3d.md) : le décor, les objets du CV, la mise en
+// dossier (voir docs/architecture.md) : le décor, les objets du CV, la mise en
 // scène et les gestes, puis le moteur physique, chargé à part (PhysicsGate),
 // la rotation libre de l'objet présenté et le rangement du bureau.
 export default function Scene({ texts, className, onReady, onContextLost }: SceneProps) {

@@ -1,5 +1,5 @@
 // Priorités des useFrame des gestes et du moteur physique. L'horloge est à -100,
-// la visite à -95, la caméra à -90, les lumières à -80 (docs/scene-3d.md).
+// la visite à -95, la caméra à -90, les lumières à -80 (stage/priorities.ts).
 // Ensuite, dans l'ordre de chaque image :
 
 /** Les gestes : le pointeur vise un point du plateau, ?glisse se joue. */

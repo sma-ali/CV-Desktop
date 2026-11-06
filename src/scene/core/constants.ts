@@ -382,7 +382,7 @@ export const MOOD_TRANSITION = 1.4;
 /**
  * Les quatre ambiances du prototype. Couleurs en hexadécimal sRGB,
  * intensités telles qu'écrites pour three r128 (sans gestion des couleurs ni
- * lumières physiques) : la mise en scène les recalibre (voir docs/scene-3d.md).
+ * lumières physiques) : la mise en scène les recalibre (stage/lighting.ts).
  */
 export interface MoodSettings {
   /** Couleur et intensité du soleil (lumière directionnelle). */

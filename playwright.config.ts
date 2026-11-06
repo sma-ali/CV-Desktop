@@ -1,8 +1,7 @@
 import { defineConfig, devices } from '@playwright/test';
 
 // Port dédié aux tests, pour ne pas tomber sur un `npm run dev` déjà lancé.
-// E2E_PORT le change, pour que plusieurs worktrees testent en même temps
-// (ports réservés : docs/scene-3d.md).
+// E2E_PORT en choisit un autre.
 const port = Number(process.env.E2E_PORT ?? 3100);
 const baseURL = `http://localhost:${port}`;
 const isCI = Boolean(process.env.CI);

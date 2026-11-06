@@ -820,22 +820,6 @@
   color: var(--accent);
 }
 
-.sheet {
-  max-width: 68rem;
-  margin: 0 auto;
-  padding: 1rem 1rem 1.5rem;
-  background: var(--paper);
-  color: var(--ink);
-}
-
-@media (min-width: 40rem) {
-  .sheet {
-    padding: clamp(1.5rem, 4vw, 3rem);
-    border-radius: 3px;
-    box-shadow: var(--shadow);
-  }
-}
-
 /* ------------------------------------------------------------------
    La fiche de l'objet présenté : le bristol du prototype
    Papier ligné, marge rouge, légère rotation. À droite en paysage (au plus

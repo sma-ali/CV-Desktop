@@ -1,0 +1,29 @@
+/* La feuille de papier : pleine largeur sur téléphone, posée avec une ombre
+   au-delà. */
+
+.paper {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: 1rem 1rem 1.5rem;
+  background: var(--paper);
+  color: var(--ink);
+}
+
+@media (min-width: 40rem) {
+  .paper {
+    padding: clamp(1.5rem, 4vw, 3rem);
+    border-radius: 3px;
+    box-shadow: var(--shadow);
+  }
+}
+
+/* Sur papier : la feuille seule, sans fond ni ombre. */
+@media print {
+  .paper {
+    max-width: none;
+    margin: 0;
+    padding: 0;
+    background: none;
+    box-shadow: none;
+  }
+}

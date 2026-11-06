@@ -10,6 +10,7 @@ import { parseTestParams } from '@/scene/core/params';
 import { createSceneStore, settingsFromParams, type SceneStore } from '@/scene/core/store';
 import { SceneStoreProvider } from '@/scene/core/store-context';
 import type { SceneTexts } from '@/scene/core/texts';
+import { Paper } from '@/components/paper/Paper';
 import { Grain } from './Grain';
 import { Hud } from './hud/Hud';
 import { Intro } from './intro/Intro';
@@ -216,7 +217,7 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
               {hud.fallback.expressLink}
             </a>
           </p>
-          <div className={styles.sheet}>{children}</div>
+          <Paper>{children}</Paper>
         </section>
       </div>
     </SceneStoreProvider>

@@ -1,9 +1,9 @@
 'use client';
 
-import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import { useCallback, useRef, type ReactNode } from 'react';
-import type { Group } from 'three';
+import type { ThreeEvent } from '@react-three/fiber';
+import { useCallback, type ReactNode } from 'react';
 import { useSceneStoreApi } from '../core/store-context';
+import { useBodyPose } from '../core/useBodyPose';
 import { claimBody } from '../gestures/pointer';
 
 // Un objet du décor dessiné dans son propre repère (la tasse, la manette) :
@@ -13,16 +13,7 @@ import { claimBody } from '../gestures/pointer';
 // (claimBody) ; un glisser n'est pas un clic.
 export function DeskBody({ id, children }: { id: 'mug' | 'pad'; children: ReactNode }) {
   const store = useSceneStoreApi();
-  const ref = useRef<Group>(null);
-
-  useFrame(() => {
-    const group = ref.current;
-    if (!group) return;
-    const body = store.getState().desk[id];
-    group.position.set(body.x, body.y, body.z);
-    group.quaternion.set(body.qx, body.qy, body.qz, body.qw);
-    group.visible = !body.waiting;
-  });
+  const ref = useBodyPose(id);
 
   const onPointerDown = useCallback(
     (event: ThreeEvent<PointerEvent>) => claimBody(store, event, id),

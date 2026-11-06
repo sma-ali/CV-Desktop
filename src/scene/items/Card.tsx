@@ -1,13 +1,13 @@
 'use client';
 
-import { useFrame, type ThreeEvent } from '@react-three/fiber';
-import { useCallback, useEffect, useMemo, useRef } from 'react';
-import type { Group } from 'three';
+import type { ThreeEvent } from '@react-three/fiber';
+import { useCallback, useEffect, useMemo } from 'react';
 import { ITEM_POSES } from '../core/constants';
 import { Box, flatPlaneGeometry } from '../core/geometry';
 import { standardMaterial } from '../core/materials';
 import { useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
+import { useBodyPose } from '../core/useBodyPose';
 import { claimBody } from '../gestures/pointer';
 import { TagAnchor } from './TagLayer';
 import { CARD_PILE, CARD_SIZE } from './cardPile';
@@ -32,15 +32,8 @@ const D = CARD_SIZE.d;
  */
 function CardPile() {
   const store = useSceneStoreApi();
-  const ref = useRef<Group>(null);
-
-  useFrame(() => {
-    const group = ref.current;
-    if (!group) return;
-    const body = store.getState().desk.card;
-    group.position.set(body.x, body.y, body.z);
-    group.quaternion.set(body.qx, body.qy, body.qz, body.qw);
-  });
+  // Toujours visible : la pile est déjà posée quand la carte tombe dessus.
+  const ref = useBodyPose('card', false);
 
   // Prendre la pile, c'est prendre la carte, sauf quand elle est tenue.
   const onPointerDown = useCallback(

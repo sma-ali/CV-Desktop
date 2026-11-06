@@ -136,6 +136,8 @@ Gain, au repos : la distance de la caméra passe de 27.37 à 21.68 en 360x780 et
 
 La bande de mur au-dessus de l'écran rétrécit : l'objet tenu se présente au même endroit (`HELD.portrait`), devant le haut du bureau. Le paysage ne change pas.
 
+Tests adaptés : les places revues dans `bodies.test.ts` et `layout.test.ts` (mangas cachés) ; `world.test.ts` fait sortir du monde le décor caché avant de mesurer l'interpénétration du portrait, comme `PhysicsLayer` à chaque image (les mangas cachés restaient à leur place de paysage, contre le casque). En E2E, « pose le bord avant du bureau juste au-dessus du HUD du bas » admet 135 px au lieu de 120 entre l'étiquette de la carte et le bas de page (la carte agrandie occupe à elle seule environ 60 px de cet écart, 48 avant), et « coupent la visite automatique » glisse le portable en portrait (la baie, passée au milieu, est sur le chemin du livre qui revient).
+
 ## Le son (`src/scene/core/sound.ts`)
 
 ```ts

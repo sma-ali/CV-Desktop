@@ -55,10 +55,10 @@ export const REST_FIT = {
   // (stage/framing.ts, restPoints).
   portrait: {
     points: [
-      [-3.75, 0, 4.3],
-      [3.95, 0, 4.3],
-      [-3.75, 0, -3.2],
-      [3.95, 0, -3.2],
+      [-2.75, 0, 4.9],
+      [3.35, 0, 4.9],
+      [-2.75, 0, -3.2],
+      [3.35, 0, -3.2],
       [0.3, 3.8, -3.0],
     ] as Vec3[],
     limits: { x: 0.98, yBottom: -0.5, yTop: 0.7 },
@@ -103,25 +103,28 @@ export const SCREEN_FOCUS = {
 
 /**
  * Places de repos en portrait : le bureau resserré du téléphone. Les
- * objets se rangent sur une zone plus étroite et plus
- * profonde (BOUNDS_PORTRAIT), autour de l'écran et du clavier qui ne
- * bougent pas : à gauche, le coffret à côté du clavier, puis le livre et la
- * manette vers l'avant ; au milieu, le bocal et le badge devant le clavier,
- * la carte au bord avant ; à droite, la tasse devant le casque, la baie,
- * puis le portable. Un objet déplacé par le visiteur garde sa place quand
+ * objets se rangent sur une zone plus étroite et plus profonde
+ * (BOUNDS_PORTRAIT, à peine plus large que l'écran : c'est la largeur qui
+ * fixe l'échelle), autour de l'écran et du clavier : derrière le clavier, à
+ * gauche, le coffret ; devant lui, le bocal, la baie et la manette ; puis
+ * le livre à gauche, le badge au milieu, le portable à droite ; au bord
+ * avant, la carte et la tasse. Juste derrière un objet étiqueté (là où
+ * son étiquette se pose à l'écran), seulement du décor : la plante derrière
+ * le livre, la manette derrière le portable, le clavier derrière le bocal
+ * et la baie. Un objet déplacé par le visiteur garde sa place quand
  * le format change (le solveur l'écarte s'il le faut, et en dernier
  * recours le renvoie à sa place : gestures/drag.ts, reframe). bodies.test.ts
  * vérifie qu'au repos rien ne se chevauche et que tout tient dans le
  * plateau du format.
  */
 export const PORTRAIT_PLACES: Partial<Record<BodyId, { x: number; z: number; ry?: number }>> = {
-  book: { x: -2.6, z: 2.05, ry: 0.12 },
-  badge: { x: -0.75, z: 1.75 },
-  laptop: { x: 2.45, z: 2.55 },
-  card: { x: -0.3, z: 3.6 },
-  chest: { x: -2.8, z: -0.45, ry: 0.1 },
-  netherbrain: { x: 0.35, z: 1.2 },
-  homelab: { x: 3.3, z: 0.75, ry: -0.2 },
-  mug: { x: 3.45, z: -1.35 },
-  pad: { x: -2.75, z: 3.82, ry: 0 },
+  book: { x: -1.72, z: 2.85, ry: 0.06 },
+  badge: { x: -0.13, z: 2.3, ry: 0 },
+  laptop: { x: 1.88, z: 2.45 },
+  card: { x: 0.3, z: 4.25 },
+  chest: { x: -1.75, z: -1.62, ry: 0 },
+  netherbrain: { x: -1.0, z: 0.85 },
+  homelab: { x: 0.3, z: 0.9, ry: 0 },
+  mug: { x: 2.4, z: 4.3 },
+  pad: { x: 2.35, z: 0.75, ry: 0 },
 };

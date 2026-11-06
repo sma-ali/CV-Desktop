@@ -114,6 +114,7 @@ describe('les corps du plateau', () => {
     for (const id of ITEM_BODY_IDS) expect(bodyHidden(id, true)).toBe(false);
     for (const id of BODY_IDS) expect(bodyHidden(id, false)).toBe(false);
     expect(BODY_IDS.filter((id) => bodyHidden(id, true))).toEqual([
+      'manga',
       'fox',
       'wanderer',
       'rope',

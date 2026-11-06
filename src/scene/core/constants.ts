@@ -211,10 +211,11 @@ export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
 
 /**
  * Le casque et son support en portrait (bureau resserré) : à droite de
- * l'écran, tourné vers le centre. À gauche, la lampe passe juste devant lui
- * et le cachait.
+ * l'écran (à gauche, la lampe passe juste devant lui et le cachait), tourné
+ * de profil, un écouteur devant l'autre. De face, ses écouteurs élargissaient
+ * le bureau et le premier entrait dans la dalle de l'écran.
  */
-export const HEADSET_PORTRAIT = { x: 3.5, z: -2.4, ry: -0.25 } as const;
+const HEADSET_PORTRAIT = { x: 3.2, z: -2.15, ry: 1.25 } as const;
 
 /** Le pied du support du casque, selon le format. */
 export const headsetStand = (portrait: boolean): Vec3 =>
@@ -245,8 +246,8 @@ export interface DeskBounds {
  * vers le visiteur (DESK_PORTRAIT_Z1, ses côtés sortent du cadre) et les
  * objets restent dans BOUNDS_PORTRAIT. Le paysage ne change pas.
  */
-export const DESK_PORTRAIT_Z1 = 4.65;
-export const BOUNDS_PORTRAIT = { x0: -3.75, x1: 3.95, z0: -3.2, z1: 4.3 } as const;
+export const DESK_PORTRAIT_Z1 = 5.25;
+export const BOUNDS_PORTRAIT = { x0: -2.75, x1: 3.35, z0: -3.2, z1: 4.9 } as const;
 
 /** Les limites du plateau du format. */
 export const deskBounds = (portrait: boolean): DeskBounds => (portrait ? BOUNDS_PORTRAIT : BOUNDS);

@@ -10,7 +10,7 @@ import {
 } from '../core/bodies';
 import {
   ARRIVAL,
-  HEADSET_PORTRAIT,
+  headsetPose,
   HEADSET_STAND,
   ITEM_POSES,
   LAMP,
@@ -176,9 +176,24 @@ export function fixedExtent(
 const placed = (id: 'lamp', points: readonly Vec3[]): Vec3[] =>
   decorPlacement(id, true).hidden ? [] : points.map((point) => placeDecorPoint(id, true, point));
 
+/**
+ * Le casque en portrait : le haut de l'arceau et ses deux écouteurs (à 0.7
+ * du centre, haut de l'écouteur). Au bord droit du bureau resserré, un
+ * écouteur sortait du cadre alors que le centre y tenait.
+ */
+const headsetPortraitExtent = (): Vec3[] => {
+  const { x, y, z, ry } = headsetPose(true);
+  const cups = [-0.7, 0.7].map((lx): Vec3 => [
+    x + lx * Math.cos(ry),
+    y + 0.17,
+    z - lx * Math.sin(ry),
+  ]);
+  return [[x, y + 0.9, z], ...cups];
+};
+
 const FIXED_EXTENT_PORTRAIT = {
   monitor: FIXED_EXTENT.monitor,
-  headset: [[HEADSET_PORTRAIT.x, ITEM_POSES.headset.y + 0.9, HEADSET_PORTRAIT.z]],
+  headset: headsetPortraitExtent(),
   edge: [],
   lamp: placed('lamp', FIXED_EXTENT.lamp),
 } as const;

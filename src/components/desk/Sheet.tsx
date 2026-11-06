@@ -1,18 +1,17 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore, type CSSProperties } from 'react';
+import { useEffect, useRef, useSyncExternalStore } from 'react';
 import { ContactForm } from '@/components/contact/ContactForm';
 import type { DeskHudTexts, DeskSheets } from '@/lib/desk';
 import { ITEM_STEP, neighborItem, type ItemId } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { FactoryPanel } from './FactoryPanel';
 import { factoryView } from './factoryView';
-import { chestLiveView } from './lifeSignsView';
 import styles from './Desk.module.css';
 import { UPRIGHT_KEY, UprightButton } from './UprightButton';
 import { rotateKey, rotationInput } from '@/scene/rotation/control';
 
-/** L'instant présent à la minute près, pour « il y a 2 h 14 » (null côté serveur). */
+/** L'instant présent à la minute près, pour « dernière vidéo hier » (null côté serveur). */
 function useNowMinute(): number | null {
   const minute = useSyncExternalStore(
     (onChange) => {
@@ -64,8 +63,8 @@ export interface SheetProps {
 
 // La fiche de l'objet présenté : le bristol du prototype (papier ligné,
 // marge rouge, légère rotation). Sur-titre, étape, titre, méta, texte,
-// note, formulaire de contact (carte de visite), signes de vie du coffret,
-// Retourner, appel au contact, dépôt public,
+// note, formulaire de contact (carte de visite), fiche de l'usine (chiffres
+// et genres), Retourner, appel au contact, dépôt public,
 // Remettre droit, Préc. / Reposer / Suiv. Elle s'ouvre avec l'objet présenté
 // (store.presented), quelle qu'en soit la source : puce, clic, étiquette,
 // visite. Flèches pour tourner l'objet, Début pour le remettre droit, Page
@@ -181,23 +180,13 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
     state.putBack();
   };
 
-  // L'horloge avance par pas : jamais avant l'instant de la mesure, sinon
-  // « il y a 2 h 14 » se lirait « 2 h 13 » juste après le chargement.
+  // L'horloge avance par pas : jamais avant l'instant de la mesure (une
+  // horloge de visiteur en retard ne lit pas « dernière vidéo » dans le futur).
   const measuredAt = lifeSigns ? Date.parse(lifeSigns.measuredAt) : Number.NaN;
   const clockNow = Number.isFinite(measuredAt) && now !== null ? Math.max(now, measuredAt) : now;
-  // L'usine montre ses chiffres ; un ancien JSON sans eux garde les signes de vie.
   const factory =
     presented === 'chest' && clockNow !== null
-      ? factoryView(lifeSigns, clockNow, ui.factory, ui.live, locale)
-      : null;
-  const live =
-    presented === 'chest' && now !== null && !factory
-      ? chestLiveView(
-          lifeSigns,
-          Number.isFinite(measuredAt) ? Math.max(now, measuredAt) : now,
-          ui.live,
-          locale,
-        )
+      ? factoryView(lifeSigns, clockNow, ui.factory, locale)
       : null;
   const canFlip = presented !== null && presented !== 'monitor';
 
@@ -253,9 +242,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
             </dl>
           )}
           <p className={styles.sheetBody}>{sheet.body}</p>
-          {factory ? (
-            <FactoryPanel view={factory} texts={ui.factory} sampleLabel={ui.live.sample} />
-          ) : null}
+          {factory ? <FactoryPanel view={factory} texts={ui.factory} /> : null}
           {sheet.note ? <p className={styles.sheetNote}>{sheet.note}</p> : null}
 
           {/* La carte de visite porte le formulaire de contact. */}
@@ -267,45 +254,6 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
               from="desk"
               variant="bristol"
             />
-          ) : null}
-
-          {live ? (
-            <section className={styles.lifeSigns} aria-labelledby="sheet-live-title" data-live="">
-              <p className={styles.liveHead}>
-                <span id="sheet-live-title">
-                  <i aria-hidden="true" />
-                  {ui.live.title}
-                </span>
-                {live.sample ? <span data-sample="">{ui.live.sample}</span> : null}
-              </p>
-              <dl className={styles.liveRows}>
-                <div>
-                  <dt>{ui.live.running}</dt>
-                  <dd data-live-running="">{live.running}</dd>
-                </div>
-                <div>
-                  <dt>{ui.live.last}</dt>
-                  <dd data-live-last="">{live.lastActivity}</dd>
-                </div>
-                <div>
-                  <dt>{ui.live.since}</dt>
-                  <dd data-live-since="">{live.since}</dd>
-                </div>
-              </dl>
-              <div className={styles.liveChart} role="img" aria-label={live.chartLabel}>
-                {live.bars.map((bar, index) => (
-                  <i
-                    key={index}
-                    style={{ '--level': bar.level } as CSSProperties}
-                    data-today={index === live.bars.length - 1 ? '' : undefined}
-                  />
-                ))}
-              </div>
-              <p className={styles.liveAxis} aria-hidden="true">
-                <span>{live.axisStart}</span>
-                <span>{live.axisEnd}</span>
-              </p>
-            </section>
           ) : null}
 
           <div className={styles.sheetActions}>

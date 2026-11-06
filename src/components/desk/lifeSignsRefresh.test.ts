@@ -10,14 +10,15 @@ import {
 } from './lifeSignsRefresh';
 
 // Le navigateur redemande les signes de vie à l'ouverture du coffret quand
-// leur mesure a plus de 10 minutes ; en cas d'échec, il garde ce qu'il a.
+// leur mesure a plus de 70 minutes (10 minutes, plus l'heure que l'arrondi
+// de measuredAt peut ajouter) ; en cas d'échec, il garde ce qu'il a.
 
 const NOW = Date.UTC(2026, 10, 2, 12, 0);
 const MINUTE = 60_000;
 
 const real = (measuredMinutesAgo: number, now = NOW): LifeSigns => ({
   ...sampleLifeSigns(now - measuredMinutesAgo * MINUTE),
-  running: 6,
+  measuredAt: new Date(now - measuredMinutesAgo * MINUTE).toISOString(),
   sample: false,
 });
 
@@ -34,20 +35,20 @@ describe('la forme des signes de vie reçus', () => {
     expect(toLifeSigns({ ...signs, extra: 'non' })).toEqual(signs);
   });
 
-  it('garde les chiffres de l’usine, et ignore ceux qui sont mal formés', () => {
+  it('veut les chiffres de l’usine, sans rien d’autre', () => {
     const signs = real(1);
-    expect(toLifeSigns(signs)?.factory).toEqual(signs.factory);
-    const broken = { ...signs, factory: { ...signs.factory, views: -1 } };
-    const parsed = toLifeSigns(broken);
-    expect(parsed?.factory).toBeUndefined();
-    expect(parsed?.running).toBe(6);
+    const extra = { ...signs, factory: { ...signs.factory, genres: { quiz: { views: 1 } } } };
+    expect(toLifeSigns(extra)?.factory).toEqual(signs.factory);
+    expect(toLifeSigns({ ...signs, factory: { ...signs.factory, views: -1 } })).toBeNull();
+    expect(toLifeSigns({ ...signs, factory: { ...signs.factory, perDay: 2.5 } })).toBeNull();
+    expect(toLifeSigns({ ...signs, factory: undefined })).toBeNull();
   });
 
   it('refuse une forme fausse', () => {
     const signs = real(1);
     expect(toLifeSigns(null)).toBeNull();
     expect(toLifeSigns('texte')).toBeNull();
-    expect(toLifeSigns({ ...signs, running: -1 })).toBeNull();
+    expect(toLifeSigns({ ...signs, since: 42 })).toBeNull();
     expect(toLifeSigns({ ...signs, activity: [1, 'deux'] })).toBeNull();
     expect(toLifeSigns({ ...signs, measuredAt: 'hier' })).toBeNull();
     expect(toLifeSigns({ ...signs, sample: undefined })).toBeNull();
@@ -55,10 +56,10 @@ describe('la forme des signes de vie reçus', () => {
 });
 
 describe('l’âge de la mesure', () => {
-  it('compte à partir de 10 minutes', () => {
-    expect(LIFE_SIGNS_STALE_MS).toBe(10 * MINUTE);
-    expect(isStale(real(9), NOW)).toBe(false);
-    expect(isStale(real(10), NOW)).toBe(true);
+  it('compte à partir de 70 minutes', () => {
+    expect(LIFE_SIGNS_STALE_MS).toBe(70 * MINUTE);
+    expect(isStale(real(69), NOW)).toBe(false);
+    expect(isStale(real(70), NOW)).toBe(true);
     expect(isStale(null, NOW)).toBe(true);
     expect(isStale({ ...real(1), measuredAt: '' }, NOW)).toBe(true);
   });
@@ -73,7 +74,7 @@ describe('le rafraîchissement à l’ouverture du coffret', () => {
 
   it('redemande une mesure vieille et rend la nouvelle', async () => {
     const fresh = real(0);
-    const { refresher, fetchMock } = setup(real(15), async () => Response.json(fresh));
+    const { refresher, fetchMock } = setup(real(75), async () => Response.json(fresh));
     expect(await refresher.refresh()).toEqual(fresh);
     expect(fetchMock).toHaveBeenCalledTimes(1);
     expect(fetchMock.mock.calls[0]![0]).toBe(LIFE_SIGNS_ENDPOINT);
@@ -87,17 +88,17 @@ describe('le rafraîchissement à l’ouverture du coffret', () => {
     for (const reply of [
       async () => new Response('oups', { status: 500 }),
       () => Promise.reject(new TypeError('réseau')),
-      async () => Response.json({ running: 'trois' }),
+      async () => Response.json({ activity: 'trois' }),
       async () => new Response('pas du json'),
     ]) {
-      const { refresher } = setup(real(30), reply);
+      const { refresher } = setup(real(90), reply);
       expect(await refresher.refresh()).toBeNull();
     }
   });
 
   it('ne réessaie pas avant une minute', async () => {
     const { refresher, fetchMock, advance } = setup(
-      real(30),
+      real(90),
       async () => new Response('', { status: 503 }),
     );
     await refresher.refresh();
@@ -112,7 +113,7 @@ describe('le rafraîchissement à l’ouverture du coffret', () => {
   it('ne lance pas deux requêtes à la fois', async () => {
     let release: (response: Response) => void = () => undefined;
     const { refresher, fetchMock } = setup(
-      real(30),
+      real(90),
       () => new Promise<Response>((resolve) => (release = resolve)),
     );
     const first = refresher.refresh();
@@ -123,13 +124,13 @@ describe('le rafraîchissement à l’ouverture du coffret', () => {
   });
 
   it('préfère de vraies données un peu vieilles à l’exemple', async () => {
-    const { refresher } = setup(real(30), async () => Response.json(sampleLifeSigns(NOW)));
+    const { refresher } = setup(real(90), async () => Response.json(sampleLifeSigns(NOW)));
     expect(await refresher.refresh()).toBeNull();
   });
 
   it('remplace l’exemple vieilli par de vraies données', async () => {
     const fresh = real(0);
-    const { refresher } = setup(sampleLifeSigns(NOW - 60 * MINUTE), async () =>
+    const { refresher } = setup(sampleLifeSigns(NOW - 120 * MINUTE), async () =>
       Response.json(fresh),
     );
     expect(await refresher.refresh()).toEqual(fresh);

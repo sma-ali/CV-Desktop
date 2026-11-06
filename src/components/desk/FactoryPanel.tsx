@@ -5,8 +5,8 @@ import type { FactoryTexts, FactoryView } from './factoryView';
 import styles from './Desk.module.css';
 
 // La fiche de l'usine (projets perso) : le circuit en cinq étapes, la
-// validation humaine mise en avant, les chiffres globaux, puis un genre par
-// onglet d'intercalaire. Un seul onglet ouvert à la fois : la fiche garde la
+// validation humaine mise en avant, les chiffres globaux et leur graphique
+// sur 14 jours, puis un genre par onglet d'intercalaire (sans chiffre). Un seul onglet ouvert à la fois : la fiche garde la
 // même hauteur. Au clavier, les flèches gauche et droite (et Début, Fin)
 // passent d'un onglet à l'autre ; elles ne tournent pas l'objet tenu tant
 // que le focus est sur les onglets.
@@ -14,15 +14,7 @@ import styles from './Desk.module.css';
 /** L'étape du circuit mise en avant : la validation humaine. */
 const HUMAN_STEP = 2;
 
-export function FactoryPanel({
-  view,
-  texts,
-  sampleLabel,
-}: {
-  view: FactoryView;
-  texts: FactoryTexts;
-  sampleLabel: string;
-}) {
+export function FactoryPanel({ view, texts }: { view: FactoryView; texts: FactoryTexts }) {
   const [index, setIndex] = useState(0);
   const tabs = useRef<(HTMLButtonElement | null)[]>([]);
   const base = useId();
@@ -57,7 +49,7 @@ export function FactoryPanel({
           <i aria-hidden="true" />
           {view.status}
         </span>
-        {view.sample ? <span data-sample="">{sampleLabel}</span> : null}
+        {view.sample ? <span data-sample="">{texts.sample}</span> : null}
       </p>
 
       <ol className={styles.circuit} aria-label={texts.circuitLabel}>
@@ -76,6 +68,25 @@ export function FactoryPanel({
           </div>
         ))}
       </dl>
+      {view.since ? (
+        <p className={styles.factorySince} data-factory-since="">
+          {view.since}
+        </p>
+      ) : null}
+
+      <div className={styles.liveChart} role="img" aria-label={view.chartLabel}>
+        {view.bars.map((bar, i) => (
+          <i
+            key={i}
+            style={{ '--level': bar.level } as CSSProperties}
+            data-today={i === view.bars.length - 1 ? '' : undefined}
+          />
+        ))}
+      </div>
+      <p className={styles.liveAxis} aria-hidden="true">
+        <span>{view.axisStart}</span>
+        <span>{view.axisEnd}</span>
+      </p>
 
       <div
         className={styles.tabs}
@@ -119,18 +130,6 @@ export function FactoryPanel({
             </div>
           ))}
         </dl>
-        <div className={styles.liveChart} role="img" aria-label={genre.chartLabel}>
-          {genre.bars.map((bar, i) => (
-            <i
-              key={i}
-              style={{ '--level': bar.level } as CSSProperties}
-              data-today={i === genre.bars.length - 1 ? '' : undefined}
-            />
-          ))}
-        </div>
-        <p className={styles.liveAxis} aria-hidden="true">
-          <span>{genre.legend}</span>
-        </p>
       </div>
     </section>
   );

@@ -20,8 +20,8 @@ import { WindowLight } from './WindowLight';
 // projecteur de la lampe et son cône, lueur de l'écran), lumière du jour sur
 // le plateau, poussière, ciel derrière la fenêtre, caméra (arrivée, cadrage,
 // gros plan sur l'écran), visite automatique, post-traitement et qualité
-// adaptative. Les niveaux de l'arrivée et l'ambiance viennent du socle
-// (frame) ; « Rejouer » passe par le store (replays).
+// adaptative. Les niveaux de l'arrivée et l'ambiance viennent de
+// store.frame ; « Rejouer » passe par le store (replays).
 export function Stage() {
   const noPost = useSceneStore((state) => state.settings.noPost);
   const noShadow = useSceneStore((state) => state.settings.noShadow);

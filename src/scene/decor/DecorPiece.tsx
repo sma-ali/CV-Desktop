@@ -8,7 +8,7 @@ import { useSceneStoreApi } from '../core/store-context';
 import { claimBody } from '../gestures/pointer';
 import { DECOR_ANCHORS, decorPlacement, type DecorPieceId } from './layout';
 
-// Un morceau du décor, corps du bureau vivant (étape 6) : ses enfants,
+// Un morceau du décor, corps du moteur physique : ses enfants,
 // dessinés à leur place en paysage (repère du monde), sont décalés de moins
 // son ancre, et le groupe suit chaque image la pose du corps
 // (store.desk[id] : position et orientation complètes, écrites par le

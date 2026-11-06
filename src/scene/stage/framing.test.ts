@@ -200,8 +200,8 @@ describe('le bureau utile', () => {
 describe('le bureau resserré du portrait', () => {
   /**
    * Part minimale de la hauteur libre (entre les bandes du HUD) que couvre le
-   * bureau. Il est limité par la largeur : depuis que le HUD du bas a rétréci
-   * (04/11), la hauteur libre a grandi et la part baisse (0.64 en 412x915).
+   * bureau. Il est limité par la largeur : la hauteur libre est plus grande
+   * que ce qu'il lui faut (0.64 en 412x915).
    */
   const SHARE = 0.62;
   const PORTRAITS = Object.entries(SIZES).filter(([, [width, height]]) =>

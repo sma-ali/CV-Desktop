@@ -4,7 +4,7 @@ import type { PhysicsControl } from '../physics/world';
 
 // Ce que partagent les gestes (Gestures, posé à côté des objets dans
 // Scene.tsx), les objets qu'on prend (usePresentation, DecorPiece), le
-// moteur physique (chargé à part) et les parties de l'étape 6 : l'appui en
+// moteur physique (chargé à part), la rotation et le rangement : l'appui en
 // cours, le pointeur lissé que l'objet tenu suit, l'avancement de la
 // présentation de chaque objet (un objet qui quitte le plateau sort du
 // monde physique), et le monde physique lui-même une fois prêt. Un par
@@ -23,7 +23,7 @@ export interface Press {
   /** Le corps sous le pointeur à l'appui (null : rien qui glisse). */
   body: BodyId | null;
   /**
-   * L'appui a commencé sur l'objet présenté (partie A : au-delà du seuil,
+   * L'appui a commencé sur l'objet présenté (au-delà du seuil,
    * il le fait tourner ; en deçà, c'est un clic qui le retourne).
    */
   held: boolean;

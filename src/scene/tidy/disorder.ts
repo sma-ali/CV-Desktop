@@ -1,7 +1,7 @@
 import { homePose, type DeskBodies, type DeskBodyState } from '../core/bodies';
 import { BODY_IDS, type BodyId } from '../core/ids';
 
-// Le score de désordre du bureau (partie B de l'étape 6), de 0 (rangé) à 1
+// Le score de désordre du bureau, de 0 (rangé) à 1
 // (tout cassé). Chaque corps visible compte d'après son écart à sa place
 // d'origine : la distance parcourue sur le plateau, le fait d'être renversé,
 // le fait d'être tombé. Les points s'additionnent, puis se ramènent à 0..1

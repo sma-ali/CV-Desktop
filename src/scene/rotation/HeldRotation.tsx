@@ -28,7 +28,7 @@ import {
   type Ball,
 } from './trackball';
 
-// Partie A de l'étape 6 : la rotation libre de l'objet présenté. Un appui
+// La rotation libre de l'objet présenté. Un appui
 // sur l'objet tenu (claimHeld, dans usePresentation, qui pose press.held)
 // qui dépasse DRAG_THRESHOLD le fait tourner comme une boule sous le doigt
 // (trackball, sur les trois axes) ; au lâcher, il garde un peu d'élan, puis
@@ -206,7 +206,7 @@ export function HeldRotation() {
     const input = rotationInput(store);
     const canvas = three.gl.domElement;
 
-    // Un autre objet (ou aucun) : tout repart de zéro. Le socle remet
+    // Un autre objet (ou aucun) : tout repart de zéro. Le store remet
     // heldSpin à l'identité dans present(), putBack(), markUser() et replay().
     if (scene.presented !== run.item) {
       run.item = scene.presented;

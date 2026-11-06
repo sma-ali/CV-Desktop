@@ -19,13 +19,13 @@ describe('paramètres de test', () => {
     });
   });
 
-  it('lisent ?desordre (étape 6)', () => {
+  it('lisent ?desordre', () => {
     expect(parseTestParams('?t=11000&desordre').scatter).toBe(true);
   });
 
-  it('lisent ?recto et ?glisse (étape 4)', () => {
+  it('lisent ?recto et ?glisse', () => {
     expect(parseTestParams('?prendre=card&recto')).toMatchObject({ present: 'card', recto: true });
-    // ?glisse seul : le portable poussé sur la carte, comme le prototype.
+    // ?glisse seul : le portable poussé sur la carte.
     expect(parseTestParams('?glisse').drag).toEqual(DEFAULT_TEST_DRAG);
     expect(DEFAULT_TEST_DRAG).toEqual({ item: 'laptop', x: -0.3, z: 2.15 });
     expect(parseTestParams('?glisse=mug:1.5,-0.25').drag).toEqual({
@@ -38,7 +38,7 @@ describe('paramètres de test', () => {
     expect(parseTestParams('?glisse=book:1').drag).toBeNull();
   });
 
-  it('lisent ceux du prototype', () => {
+  it("lisent l'horloge, la visite, l'heure, le mouvement réduit et l'objet présenté", () => {
     const params = parseTestParams('?t=11000&fige&auto=0&heure=14.5&reduit&prendre=book');
     expect(params).toMatchObject({
       t: 11,

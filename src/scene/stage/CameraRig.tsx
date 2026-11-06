@@ -21,7 +21,7 @@ import type { StageShared } from './shared';
 /** Vitesse du lissage de la caméra et du gros plan sur l'écran (part restante après une seconde). */
 const CAMERA_SMOOTHING = 0.02;
 const SCREEN_SMOOTHING = 0.03;
-/** Plan du fond de la caméra au plus près (celui du Canvas du socle). */
+/** Plan du fond de la caméra au plus près (celui de SceneCanvas). */
 const MIN_FAR = 90;
 
 // La caméra : montée de l'arrivée (de START vers la vue de repos), cadrage

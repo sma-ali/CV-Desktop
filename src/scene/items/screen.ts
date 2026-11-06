@@ -9,7 +9,7 @@ import type { SceneFonts } from '../core/fonts';
 
 export const SCREEN_TEXTURE = { width: 2048, height: 1152 } as const;
 
-/** Couleurs de la coloration syntaxique (celles du prototype). */
+/** Couleurs de la coloration syntaxique. */
 const SYNTAX = {
   comment: '#8a7a66',
   string: '#b4c98f',

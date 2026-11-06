@@ -1,10 +1,8 @@
 import type { Vec3 } from './constants';
 import type { BodyId } from './ids';
 
-// Le cadrage de la caméra et la place des objets en portrait. Séparé de
-// constants.ts à l'étape 4 : ce fichier appartient à la partie « objets »
-// (cadrage sur téléphone), le reste du socle ne bouge pas. constants.ts le
-// réexporte : on l'importe toujours depuis '../core/constants'.
+// Le cadrage de la caméra et la place des objets en portrait. constants.ts
+// le réexporte : on l'importe toujours depuis '../core/constants'.
 
 /** En dessous de ce rapport largeur / hauteur, la fenêtre est en portrait. */
 export const PORTRAIT_MAX_ASPECT = 0.9;
@@ -70,8 +68,8 @@ export const REST_FIT = {
  * Ce que le HUD occupe en portrait, en pixels CSS : en haut, l'identité (les
  * boutons à droite descendent plus bas, mais seulement sur le bord) ; en bas,
  * l'indication et les puces (le haut de l'indication, à 171 px du bas sur
- * les trois portraits mesurés le 04/11, depuis le retrait de la phrase de
- * l'heure : le bord avant du bureau ne passe pas dessous). Le bureau tient
+ * les trois portraits mesurés : le bord avant du bureau ne passe pas
+ * dessous). Le bureau tient
  * entre les deux, sur toute la largeur (x, en coordonnées normalisées).
  */
 export const PORTRAIT_HUD = { top: 112, bottom: 175, x: 0.985 } as const;
@@ -103,8 +101,8 @@ export const SCREEN_FOCUS = {
 } as const;
 
 /**
- * Places de repos en portrait : le bureau resserré du téléphone (décision
- * d'Ali du 29/10). Les objets se rangent sur une zone plus étroite et plus
+ * Places de repos en portrait : le bureau resserré du téléphone. Les
+ * objets se rangent sur une zone plus étroite et plus
  * profonde (BOUNDS_PORTRAIT), autour de l'écran et du clavier qui ne
  * bougent pas : à gauche, le coffret à côté du clavier, puis le livre et la
  * manette vers l'avant ; au milieu, le bocal et le badge devant le clavier,

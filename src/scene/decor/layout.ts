@@ -22,7 +22,7 @@ import { BELT, KIMONO_SIZE, KIMONO_TOP } from './kimono';
 // La fenêtre : emplacement du ciel (fourni par la mise en scène)
 // ------------------------------------------------------------------
 
-/** Le ciel de la mise en scène (constante du socle), repris ici pour les tests du décor. */
+/** Le ciel de la mise en scène (core/constants.ts), repris ici pour les tests du décor. */
 export { WINDOW_SKY };
 
 /** Le fond de secours, derrière l'emplacement du ciel. */
@@ -332,7 +332,7 @@ export const STEAM_COUNT = 6;
 /**
  * Le kimono de grappling plié, bleu marine, sa ceinture blanche nouée posée
  * dessus (aucune marque, aucun écusson ; pièces dans kimono.ts) : à gauche
- * du clavier, à la place de l'ancien pavé de boutons, sous la lampe. Assez
+ * du clavier, sous la lampe. Assez
  * loin derrière le livre pour que sa tranche ne le cache pas.
  */
 export const KIMONO = { position: [-2.72, 0, -0.78] as Vec3, ry: 0.1 } as const;
@@ -431,11 +431,10 @@ export function steamPuff(
 // ------------------------------------------------------------------
 
 /**
- * Ce que le décor fixe occupe sur le plateau, en rectangles orientés (étape
- * 4) : les obstacles des glissers (solveur de la partie « gestes ») et des
- * tests de disposition. La tasse et la manette n'y sont plus : elles
- * glissent (BODY_FOOTPRINTS dans core/bodies.ts). Les objets plats (tapis,
- * câbles) ne comptent pas.
+ * Ce que le décor occupe sur le plateau au repos, en rectangles orientés :
+ * le cadrage portrait et les tests de disposition s'en servent. La tasse et
+ * la manette ont leur encombrement avec les objets (BODY_FOOTPRINTS dans
+ * core/bodies.ts). Les objets plats (tapis, câbles) ne comptent pas.
  */
 const square = (id: string, [x, , z]: Vec3, half: number): DeskObstacle => ({
   id,
@@ -447,9 +446,9 @@ const square = (id: string, [x, , z]: Vec3, half: number): DeskObstacle => ({
 });
 
 export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
-  // Le clavier (boîtier de la rangée de touches), comme le prototype.
+  // Le clavier (boîtier de la rangée de touches).
   { id: 'keyboard', x: KEYBOARD[0], z: KEYBOARD[2], ry: 0, hw: 2.15, hd: 0.72 },
-  // Le kimono plié et sa ceinture, à la place de l'ancien pavé de boutons.
+  // Le kimono plié et sa ceinture.
   {
     id: 'kimono',
     x: KIMONO.position[0],
@@ -481,8 +480,8 @@ export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
 // ------------------------------------------------------------------
 
 /**
- * Les morceaux du décor qui changent de place en portrait (décision d'Ali
- * du 29/10, voir BOUNDS_PORTRAIT). Chacun bouge d'un bloc : il tourne de ry
+ * Les morceaux du décor qui changent de place en portrait (voir
+ * BOUNDS_PORTRAIT). Chacun bouge d'un bloc : il tourne de ry
  * autour de son ancre (DECOR_ANCHORS, sa place en paysage), puis l'ancre va
  * en (x, z). Le tapis et la pièce ne bougent pas.
  */

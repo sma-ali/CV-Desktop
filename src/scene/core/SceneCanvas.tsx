@@ -25,7 +25,7 @@ export interface SceneCanvasProps {
 //   se recalibrent (voir docs/scene-3d.md) ;
 // - pas de tone mapping (flat) : l'étalonnage du prototype se fait en
 //   post-traitement (mise en scène) ;
-// - ombres PCF, comme le prototype ;
+// - ombres PCF ;
 // - anticrénelage confié au post-traitement (voir gl) ;
 // - densité de pixels bornée à 2 (la qualité adaptative peut descendre) ;
 // - rendu suspendu quand l'onglet est caché.

@@ -3,7 +3,7 @@ import type { DecorBodyId } from '../core/ids';
 import type { BodySpec, ShapeSpec } from '../physics/shapes';
 import { KIMONO, KIMONO_FOOTPRINT, MANGA, MANGA_SIZE, MANGA_TOP } from './layout';
 
-// Les formes de collision du décor (étape 6) : une boîte, un cylindre ou
+// Les formes de collision du décor : une boîte, un cylindre ou
 // quelques gélules par morceau, dans le repère du corps. L'origine d'un
 // morceau est son ancre (DECOR_ANCHORS) au ras du plateau ; la tasse et la
 // manette ont la leur (elles sont dessinées dans leur propre repère). La

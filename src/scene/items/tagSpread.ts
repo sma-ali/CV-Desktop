@@ -1,4 +1,4 @@
-// Les étiquettes ne se chevauchent pas (étape 4, relecture) : sur
+// Les étiquettes ne se chevauchent pas : sur
 // téléphone, le bureau est petit et deux étiquettes voisines se couvraient
 // (Homelab et DEFI-METIERS, Netherbrain et Compétences). Chaque étiquette
 // part de son point d'accroche ; celles qui se touchent s'écartent du moins

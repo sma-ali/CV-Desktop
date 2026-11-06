@@ -1,6 +1,6 @@
 import { isBodyId, isItemId, isMoodId, type BodyId, type ItemId, type MoodId } from './ids';
 
-// Paramètres de test lus dans l'adresse, comme ceux du prototype. Ils servent
+// Paramètres de test lus dans l'adresse. Ils servent
 // aux captures et aux tests de bout en bout ; un visiteur ne les voit jamais.
 export interface TestParams {
   /** ?t=11000 : saute à 11 s de l'arrivée (en ms dans l'adresse, en secondes ici). */
@@ -22,14 +22,14 @@ export interface TestParams {
   /**
    * ?glisse=laptop:-0.3,2.15 : glisse un objet vers une place du plateau dès
    * le départ, comme un visiteur (collisions comprises), puis le lâche.
-   * ?glisse seul : le portable vers la carte, comme le prototype.
+   * ?glisse seul : le portable vers la carte.
    */
   drag: TestDrag | null;
   /** ?noshadow : sans ombres portées. */
   noShadow: boolean;
   /** ?nopost : sans post-traitement. */
   noPost: boolean;
-  /** ?desordre : tout le bureau dispersé dès que le moteur physique est prêt (étape 6, partie B). */
+  /** ?desordre : tout le bureau dispersé dès que le moteur physique est prêt. */
   scatter: boolean;
 }
 

@@ -2,7 +2,7 @@ import { Quaternion, Vector3 } from 'three';
 import { HELD } from '../core/framing';
 import type { HeldSpin } from '../core/store';
 
-// La rotation libre de l'objet présenté (partie A de l'étape 6), sans React :
+// La rotation libre de l'objet présenté, sans React :
 // une boule virtuelle (trackball) sous le pointeur, l'inertie au lâcher, les
 // pas du clavier et le retour à l'endroit. Tout se calcule dans le repère de
 // la caméra (x à droite, y en haut, z vers le visiteur), puis passe dans

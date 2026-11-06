@@ -1,4 +1,4 @@
-// L'avancement du chargement de la scène (étape 6), montré par l'écran de
+// L'avancement du chargement de la scène, montré par l'écran de
 // chargement : la barre façon jeu vidéo sous le nom, son pourcentage et
 // l'étape en cours. Des étapes
 // réelles, chacune de 0 à 1, écrites dans le store (setLoad) :

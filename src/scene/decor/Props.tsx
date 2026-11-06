@@ -57,8 +57,7 @@ import { box, cyl, MergedParts, rodPart, sph, torus, tube, usePressTime } from '
 // Les petites choses de la vie : corde à sauter, bandes de boxe, plante,
 // pile de mangas et figurines (inventés : ni titre, ni marque, ni
 // personnage réel), tasse fumante, manette. Tasse et manette glissent sur
-// le plateau (étape 4, DeskBody de la partie « gestes ») ; un clic les fait
-// réagir.
+// le plateau (DeskBody) ; un clic les fait réagir.
 
 // ------------------------------------------------------------------
 // Corde à sauter et bandes de boxe

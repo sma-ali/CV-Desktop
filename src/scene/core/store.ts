@@ -68,7 +68,7 @@ export interface SceneSettings {
   /** ?noshadow et ?nopost, pour les mesures et les machines lentes. */
   noShadow: boolean;
   noPost: boolean;
-  /** ?desordre : le bureau dispersé dès que le moteur est prêt (partie B). */
+  /** ?desordre : le bureau dispersé dès que le moteur est prêt. */
   scatter: boolean;
 }
 
@@ -87,15 +87,15 @@ const DEFAULT_SETTINGS: SceneSettings = {
 };
 
 /**
- * Le moteur physique (étape 6), chargé à part après l'arrivée : pas encore
+ * Le moteur physique, chargé à part après l'arrivée : pas encore
  * demandé, en chargement, prêt, ou en échec (le bureau reste immobile, les
  * clics marchent toujours).
  */
 type PhysicsStatus = 'off' | 'loading' | 'ready' | 'failed';
 
 /**
- * L'orientation que le visiteur donne à l'objet présenté (rotation libre,
- * partie A de l'étape 6), un quaternion appliqué par-dessus la pose de
+ * L'orientation que le visiteur donne à l'objet présenté (rotation libre),
+ * un quaternion appliqué par-dessus la pose de
  * présentation. Mutable, lu dans useFrame : l'identité tant que personne ne
  * l'a tourné.
  */
@@ -132,7 +132,7 @@ export function settingsFromParams(
 }
 
 /**
- * Valeurs recalculées à chaque image par le socle (ClockDriver), avant tous
+ * Valeurs recalculées à chaque image par ClockDriver, avant tous
  * les autres useFrame. Les parties les lisent ; seules les valeurs marquées
  * « écrit par » sont écrites ailleurs.
  */
@@ -181,15 +181,15 @@ export interface SceneState {
   /**
    * Les corps du plateau (places, soulèvement, inclinaison), mutables : écrits
    * par les gestes à chaque image, lus par les objets et le décor dans
-   * useFrame. Le socle cale ceux qui n'ont pas bougé sur leur place de repos
+   * useFrame. ClockDriver cale ceux qui n'ont pas bougé sur leur place de repos
    * du format courant (syncDeskBodies), avant tout le monde.
    */
   desk: DeskBodies;
   /** Le son : play(cue) ne fait rien tant qu'il est coupé (voir sound.ts). */
   sound: SoundPlayer;
   /**
-   * La rotation libre de l'objet présenté (partie A), mutable : remise à
-   * l'identité par le socle quand un autre objet est présenté, quand il est
+   * La rotation libre de l'objet présenté, mutable : remise à
+   * l'identité par le store quand un autre objet est présenté, quand il est
    * reposé, et par Rejouer.
    */
   heldSpin: HeldSpin;
@@ -209,7 +209,7 @@ export interface SceneState {
   presentedBy: PresentSource | null;
   /**
    * L'objet présenté a fait son geste (retourné, ouvert, tourné) : vrai dès
-   * qu'il est présenté, comme dans le prototype, sauf avec ?recto. Un clic sur
+   * qu'il est présenté, sauf avec ?recto. Un clic sur
    * l'objet tenu, le bouton « Retourner » ou son raccourci l'inversent.
    */
   flipped: boolean;
@@ -219,25 +219,25 @@ export interface SceneState {
   places: DeskPlaces;
   /** Les corps tombés du plateau, recopiés avec places (data-fallen). */
   fallen: readonly BodyId[];
-  /** Le moteur physique (étape 6). */
+  /** L'état du moteur physique. */
   physics: PhysicsStatus;
-  /** Score de désordre du bureau, de 0 (rangé) à 1 (tout cassé), écrit par la partie B. */
+  /** Score de désordre du bureau, de 0 (rangé) à 1 (tout cassé), écrit par Tidy. */
   disorder: number;
-  /** Nombre de demandes de rangement (bouton « Je range pour vous ? ») : la partie B s'y abonne. */
+  /** Nombre de demandes de rangement (bouton « Je range pour vous ? ») : Tidy s'y abonne. */
   tidyRequests: number;
-  /** Le rangement animé est en cours (partie B). */
+  /** Le rangement animé est en cours. */
   tidying: boolean;
-  /** Le visiteur a tourné l'objet présenté (partie A) : le bouton « Remettre droit » apparaît. */
+  /** Le visiteur a tourné l'objet présenté : le bouton « Remettre droit » apparaît. */
   heldTurned: boolean;
-  /** Nombre de demandes « Remettre droit » (partie A). */
+  /** Nombre de demandes « Remettre droit » (HeldRotation s'y abonne). */
   uprightRequests: number;
-  /** Avancement du chargement de la scène, par étape (écran de chargement, partie C). */
+  /** Avancement du chargement de la scène, par étape (écran de chargement). */
   load: LoadProgress;
   /** Le son est ouvert (bouton « Son » du HUD). */
   soundOn: boolean;
   /** Ce qui sort du cadre au repos (identifiants d'objets ou de décor), vu par la caméra. */
   offscreen: readonly string[];
-  /** Les signes de vie du coffret (données d'exemple à l'étape 4). */
+  /** Les signes de vie du coffret (null tant qu'ils ne sont pas reçus). */
   lifeSigns: LifeSigns | null;
   /** L'objet sous le pointeur. */
   hovered: ItemId | null;
@@ -251,9 +251,9 @@ export interface SceneState {
   // --- Actions ---
   /** Applique les réglages au démarrage (côté client). */
   init(settings: SceneSettings, mood: MoodId, moodPinned: boolean): void;
-  /** Appelée par le socle quand la scène a dessiné. */
+  /** Appelée par ClockDriver quand la scène a dessiné. */
   markReady(): void;
-  /** Appelée par le socle à chaque image : met phase et hud à jour s'ils changent. */
+  /** Appelée par ClockDriver à chaque image : met phase et hud à jour s'ils changent. */
   syncArrival(t: number): void;
   setMood(mood: MoodId, pinned: boolean): void;
   /** Présente un objet ; toute source autre que 'auto' compte comme une action du visiteur. */
@@ -262,31 +262,31 @@ export interface SceneState {
   putBack(): void;
   /** Retourne l'objet présenté, ou le remet à l'endroit (sans effet sur l'écran). */
   toggleFlip(): void;
-  /** Un glisser commence (socle, gestes) : compte comme une action du visiteur. */
+  /** Un glisser commence (Gestures) : compte comme une action du visiteur. */
   startDrag(body: BodyId): void;
   /** Le glisser finit : places reprend les corps déplacés (desk). */
   endDrag(): void;
   /** Recopie dans places et fallen les corps déplacés (le bureau s'est posé). */
   commitPlaces(): void;
-  /** Réservé au socle : état du moteur physique. */
+  /** Réservé au chargement du moteur (PhysicsGate, PhysicsLayer, claimBody) : son état. */
   setPhysics(status: PhysicsStatus): void;
-  /** Partie B : le score de désordre (0 à 1). N'écrit que s'il change d'au moins 0.01. */
+  /** Le score de désordre (0 à 1). N'écrit que s'il change d'au moins 0.01. */
   setDisorder(score: number): void;
-  /** Le visiteur demande le rangement (bouton du HUD, partie B). Compte comme une action. */
+  /** Le visiteur demande le rangement (bouton du HUD). Compte comme une action. */
   requestTidy(): void;
-  /** Partie B : le rangement commence ou finit. */
+  /** Le rangement commence ou finit. */
   setTidying(on: boolean): void;
-  /** Partie A : l'objet présenté a été tourné (ou remis droit). */
+  /** L'objet présenté a été tourné (ou remis droit). */
   setHeldTurned(turned: boolean): void;
-  /** Le visiteur demande de remettre l'objet présenté droit (bouton ou touche, partie A). */
+  /** Le visiteur demande de remettre l'objet présenté droit (bouton ou touche). */
   requestUpright(): void;
-  /** Partie C : une étape du chargement avance (0 à 1, jamais en arrière). */
+  /** Une étape du chargement avance (0 à 1, jamais en arrière). */
   setLoad(step: LoadStep, value: number): void;
   /** Ouvre ou coupe le son (ouvert par défaut par DeskShell). */
   setSound(on: boolean): void;
-  /** Réservé au cadrage (partie objets) : ce qui sort du cadre. */
+  /** Réservé au cadrage (OffscreenProbe) : ce qui sort du cadre. */
   setOffscreen(ids: readonly string[]): void;
-  /** Les signes de vie reçus du serveur (étape 5 : rafraîchis par /api/signes-de-vie). */
+  /** Les signes de vie reçus du serveur (rafraîchis par /api/signes-de-vie). */
   setLifeSigns(signs: LifeSigns | null): void;
   setHovered(item: ItemId | null): void;
   /** Note une action du visiteur : coupe le mode auto et repose ce qu'il tenait. */
@@ -462,7 +462,7 @@ export function createSceneStore(
 
     markReady() {
       // La première image est dessinée : textures, shaders et image sont
-      // faits (la partie C peut faire avancer assets et shaders plus tôt).
+      // faits (LoadProbe peut faire avancer assets et shaders plus tôt).
       if (!get().ready) set({ ready: true, load: { code: 1, assets: 1, shaders: 1, frame: 1 } });
     },
 

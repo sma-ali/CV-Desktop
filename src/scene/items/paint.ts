@@ -109,7 +109,7 @@ export function paintBookCover(scene: SceneContent): Painter {
   });
 }
 
-/** Le dos du livre (vu quand on le retournera, étape 4). */
+/** Le dos du livre (vu quand on le retourne). */
 export function paintBookBack(scene: SceneContent): Painter {
   const job = scene.facts.defiMetiers;
   return scaled(512, (c, w, h, F) => {
@@ -486,7 +486,7 @@ const STICKER_STYLES: {
 /**
  * La pile du portable : les compétences du CV que porte le contenu de la
  * scène (la pile de l'écran, les autocollants), sans les noms des projets,
- * qui ont désormais leurs objets (le bocal et la baie). Sans doublon, dans
+ * qui ont leurs propres objets (le bocal et la baie). Sans doublon, dans
  * l'ordre du contenu.
  */
 export function laptopSkills(scene: SceneContent): string[] {

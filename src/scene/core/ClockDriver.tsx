@@ -10,7 +10,7 @@ import { blendMoodValues, copyMoodValues, moodValues, type MoodValues } from './
 import { useSceneStoreApi } from './store-context';
 import { updateFrame } from './store';
 
-/** Priorité du useFrame du socle : avant tous les autres (négative, elle garde le rendu automatique). */
+/** Priorité du useFrame de l'horloge : avant tous les autres (négative, elle garde le rendu automatique). */
 const CLOCK_PRIORITY = -100;
 
 /** Images dessinées avant d'annoncer la scène prête. */
@@ -23,7 +23,7 @@ interface MoodBlend {
   k: number;
 }
 
-// Le cœur du socle : à chaque image, avance l'horloge, recalcule frame
+// Le cœur de la scène : à chaque image, avance l'horloge, recalcule frame
 // (niveaux de l'arrivée, ambiance interpolée, portrait) et met à jour phase
 // et hud dans le store quand ils changent. Suspend l'horloge quand l'onglet
 // est caché.

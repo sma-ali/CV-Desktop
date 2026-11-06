@@ -22,7 +22,7 @@ import {
   type ShapeSpec,
 } from './shapes';
 
-// Le monde physique du bureau vivant (étape 6) : un corps rigide Rapier par
+// Le monde physique du bureau : un corps rigide Rapier par
 // objet du CV et par morceau du décor, posés endormis à leur place
 // d'origine, sur un plateau, un sol et un mur fixes. Ce module ne dépend ni
 // de React ni de three : il reçoit le module Rapier (useRapier() dans la
@@ -188,7 +188,7 @@ function bodySpec(id: BodyId): BodySpec {
 
 /**
  * Ce que les autres parties peuvent demander au monde (via gestureHub(store).physics) :
- * le glisser (socle), le retour et le rangement (partie B).
+ * le glisser, le retour et le rangement.
  */
 export interface PhysicsControl {
   /** Le format courant (le bureau resserré en portrait). */
@@ -204,7 +204,7 @@ export interface PhysicsControl {
   /** Le corps est-il éveillé (il bouge encore) ? */
   isAwake(id: BodyId): boolean;
   /**
-   * Reprend un corps en main (partie B, retour et rangement) : il ne subit
+   * Reprend un corps en main (retour et rangement) : il ne subit
    * plus rien et se déplace par drive(), jusqu'à handBack(). Sans effet sur
    * le corps glissé ou présenté.
    */

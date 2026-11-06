@@ -23,7 +23,7 @@ const deskArea = (portrait: boolean): DeskArea => ({
   under: -DESK_THICKNESS,
 });
 
-// Le metteur en ordre du bureau (partie B de l'étape 6), sans React ni
+// Le metteur en ordre du bureau, sans React ni
 // three : il reçoit le monde physique par PhysicsControl et les poses par
 // store.desk, et se teste en Node avec le vrai Rapier (director.test.ts).
 //

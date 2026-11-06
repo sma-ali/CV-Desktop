@@ -1,7 +1,7 @@
 import type { Vec3 } from '../core/constants';
 
 // La petite pile de cartes sous la carte de visite, dans le repère de la
-// carte posée sur le bureau (étape 4) : elle suit la carte quand on la fait
+// carte posée sur le bureau : elle suit la carte quand on la fait
 // glisser, et son encombrement (BODY_FOOTPRINTS.card) la contient, pour
 // qu'aucun corps ne s'enfonce dedans. Données pures, sans three : testées
 // dans cardPile.test.ts.

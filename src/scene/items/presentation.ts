@@ -19,7 +19,7 @@ import type { HeldSpin } from '../core/store';
 /** Priorité des useFrame des objets : après la caméra de la mise en scène (voir docs). */
 export const ITEMS_PRIORITY = -10;
 
-/** Vitesses du prototype (par seconde) : soulever, reposer, retourner ou ouvrir. */
+/** Vitesses (par seconde) : soulever, reposer, retourner ou ouvrir. */
 export const RATES = { lift: 1.25, putBack: 1.6, flip: 1.15 } as const;
 
 /** Relèvement au survol (unités de la scène) et lueur des textures. */
@@ -219,7 +219,7 @@ export function glowLevel(state: PresentState, base = 0): number {
 
 /**
  * La rotation libre propre à un objet (local), tirée de store.heldSpin. Le
- * socle remet heldSpin à l'identité dès que l'objet est reposé ou qu'un autre
+ * store remet heldSpin à l'identité dès que l'objet est reposé ou qu'un autre
  * est présenté : pendant son retour (p > 0), l'objet garde donc l'orientation
  * où on l'a lâché, et la pose de repos la défait en douceur ; elle n'est
  * oubliée qu'une fois l'objet à sa place. Présenté de nouveau en plein

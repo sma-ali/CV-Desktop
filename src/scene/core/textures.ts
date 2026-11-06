@@ -11,7 +11,7 @@ import {
   type SceneFonts,
 } from './fonts';
 
-// Textures peintes en code sur un canvas 2D, comme dans le prototype.
+// Textures peintes en code sur un canvas 2D.
 // Différences avec r128 : la texture est déclarée sRGB (la gestion des
 // couleurs est active), et elle se redessine quand les polices arrivent.
 

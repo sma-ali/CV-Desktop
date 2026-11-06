@@ -3,7 +3,7 @@ import { hourOffset, moodOfHour, visitorNow } from './mood';
 import { blendMoodValues, hexToRgb, moodValues } from './mood-values';
 
 describe("l'ambiance selon l'heure", () => {
-  it('suit les heures du prototype', () => {
+  it('change aux heures prévues', () => {
     expect([6, 7, 10, 11, 17, 18, 21, 22, 0].map(moodOfHour)).toEqual([
       'night',
       'morning',

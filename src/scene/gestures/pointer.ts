@@ -36,8 +36,8 @@ export function claimBody(store: SceneStore, event: ThreeEvent<PointerEvent>, bo
 
 /**
  * onPointerDown de l'objet présenté : l'appui lui est réservé (rotation
- * libre, partie A). Sans arrêter la propagation : le clic qui suit, s'il en
- * est un, le retourne comme avant.
+ * libre, HeldRotation). Sans arrêter la propagation : le clic qui suit,
+ * s'il en est un, le retourne comme avant.
  */
 export function claimHeld(store: SceneStore, event: ThreeEvent<PointerEvent>): void {
   if (!isNearest(event)) return;

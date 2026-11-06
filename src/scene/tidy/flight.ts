@@ -1,6 +1,6 @@
 import type { DeskPose } from '../core/bodies';
 
-// Le trajet d'un corps qui rentre à sa place (partie B de l'étape 6) : il
+// Le trajet d'un corps qui rentre à sa place : il
 // monte presque à la verticale, passe au-dessus du bureau, puis descend à
 // la verticale sur sa place, en se remettant droit à son cap d'origine.
 // Courbe de Bézier cubique (départ, au-dessus du départ, au-dessus de

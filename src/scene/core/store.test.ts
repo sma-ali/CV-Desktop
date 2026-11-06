@@ -128,7 +128,7 @@ describe('le store de la scène', () => {
   });
 });
 
-describe('les gestes dans le store (étape 4)', () => {
+describe('les gestes dans le store', () => {
   function withSound(search = '') {
     const sound = createSilentSound();
     const store = createSceneStore('afternoon', { sound });
@@ -136,7 +136,7 @@ describe('les gestes dans le store (étape 4)', () => {
     return { store, sound };
   }
 
-  it('présente un objet retourné, comme le prototype, sauf avec ?recto', () => {
+  it('présente un objet retourné, sauf avec ?recto', () => {
     const store = started('?prendre=card');
     expect(store.getState().flipped).toBe(true);
     expect(started('?prendre=card&recto').getState().flipped).toBe(false);

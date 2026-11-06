@@ -28,13 +28,13 @@ import {
 // devant la caméra et pose de l'étiquette (TagLayer). Chaque objet appelle ce
 // hook et pose `ref` et `handlers` sur son groupe racine.
 //
-// Étape 6 : un objet qui est un corps (BODY_IDS) repose à sa pose du
+// Un objet qui est un corps (BODY_IDS) repose à sa pose du
 // plateau, store.desk[id] (position et orientation complètes, écrites par le
 // moteur physique : il peut être renversé, ou tombé). Un appui le désigne
 // au glisser (claimBody) ; un glisser n'arrive jamais jusqu'au clic
 // (Gestures avale le clic qui le termine). Le geste de présentation suit
 // store.flipped ; tenu, l'objet suit un peu le pointeur (lissé par les
-// gestes) et prend la rotation libre du visiteur (store.heldSpin, partie A).
+// gestes) et prend la rotation libre du visiteur (store.heldSpin).
 
 /** Avancement de la présentation de chaque objet, lu par CvItems pour frame.presentLevel. */
 export class PresentProgress {
@@ -58,7 +58,7 @@ export class PresentProgress {
 
 export const ProgressContext = createContext<PresentProgress | null>(null);
 
-/** Avant cet instant de l'arrivée, un clic sur un objet ne fait rien (comme le prototype). */
+/** Avant cet instant de l'arrivée, un clic sur un objet ne fait rien. */
 const CLICK_AFTER = GESTURES_AFTER;
 
 /** Un matériau qui luit au survol et pendant la présentation. */
@@ -177,7 +177,7 @@ export function usePresentation({
           heldPosition,
           heldQuaternion,
         );
-        // La rotation libre du visiteur (partie A), par-dessus la pose tenue.
+        // La rotation libre du visiteur, par-dessus la pose tenue.
         if (spin.w !== 1) heldQuaternion.premultiply(spin);
         const k = ease(current.p);
         group.position.lerpVectors(restPosition, heldPosition, k);
@@ -215,7 +215,7 @@ export function usePresentation({
       },
       onPointerDown(event: ThreeEvent<PointerEvent>) {
         const scene = store.getState();
-        // L'objet présenté : l'appui lui est réservé (rotation libre, partie A).
+        // L'objet présenté : l'appui lui est réservé (rotation libre).
         if (scene.presented === id && id !== 'monitor') {
           claimHeld(store, event);
           return;

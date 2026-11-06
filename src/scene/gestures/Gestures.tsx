@@ -12,7 +12,7 @@ import { DRAG_THRESHOLD, gestureHub } from './hub';
 import { GESTURES_AFTER } from './pointer';
 import { GESTURES_PRIORITY } from './priorities';
 
-// Les gestes du visiteur sur le plateau (étape 6 : sur le moteur physique) :
+// Les gestes du visiteur sur le plateau, sur le moteur physique :
 // glisser n'importe quel corps (BODY_IDS) à la souris ou au doigt ; il suit
 // le pointeur au-dessus de ce qu'il survole, pousse ce qu'il heurte, et
 // part avec l'élan du geste au lâcher (sauf en mouvement réduit). ?glisse=
@@ -21,7 +21,7 @@ import { GESTURES_PRIORITY } from './priorities';
 // Le chemin d'un appui :
 // 1. pointerdown sur le canvas : l'appui commence (hub.down) ; l'objet sous
 //    le pointeur s'y désigne s'il glisse (claimBody, dans son onPointerDown),
-//    ou s'il est l'objet présenté (claimHeld : la partie A le fait tourner) ;
+//    ou s'il est l'objet présenté (claimHeld : HeldRotation le fait tourner) ;
 // 2. pointermove : au-delà de DRAG_THRESHOLD pixels sur un corps, le glisser
 //    commence (capture du pointeur, physics.grab, startDrag) ; le corps vise
 //    ensuite le point du plateau (plan y = 0) sous le pointeur ;

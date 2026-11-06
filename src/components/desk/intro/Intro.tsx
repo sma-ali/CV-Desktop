@@ -1,20 +1,12 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
+import { useHydrated } from '@/components/hooks/useHydrated';
 import type { DeskHudTexts } from '@/lib/desk';
 import { currentLoadStep, introProgress } from '@/scene/core/loading';
 import { useSceneStore } from '@/scene/core/store-context';
 import { createDevScene, INTRO_FIRST_FRAME, INTRO_VIEWBOX } from './introArt';
 import styles from './Intro.module.css';
-
-/** Vrai une fois la page hydratée (faux dans le HTML du serveur, sans écart à l'hydratation). */
-function useHydrated(): boolean {
-  return useSyncExternalStore(
-    () => () => undefined,
-    () => true,
-    () => false,
-  );
-}
 
 /** Après le « ting », le temps de dessiner encore pendant le fondu (ms). */
 const DRAW_AFTER_DONE_MS = 2000;

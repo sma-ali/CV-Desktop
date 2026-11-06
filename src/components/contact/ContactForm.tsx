@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useId, useRef, useState, type FormEvent, type KeyboardEvent } from 'react';
+import { useHydrated } from '@/components/hooks/useHydrated';
 import type { ContactFormContent } from '@/content';
 import type { Locale } from '@/content/locales';
 import {
@@ -89,7 +90,7 @@ export function ContactForm({
   const [values, setValues] = useState<ContactValues>(EMPTY);
   const [errors, setErrors] = useState<FieldErrors>({});
   const [status, setStatus] = useState<Status>({ kind: 'idle' });
-  const [hydrated, setHydrated] = useState(false);
+  const hydrated = useHydrated();
   const fields = useRef<Record<ContactField, HTMLInputElement | HTMLTextAreaElement | null>>({
     name: null,
     email: null,
@@ -104,11 +105,9 @@ export function ContactForm({
    */
   const shownAt = useRef<number | null>(null);
 
-  // Hydraté : le formulaire valide lui-même (noValidate) et envoie par fetch.
+  // Hydraté, le formulaire valide lui-même (noValidate) et envoie par fetch.
   useEffect(() => {
     shownAt.current = Date.now();
-    // eslint-disable-next-line react-hooks/set-state-in-effect
-    setHydrated(true);
   }, []);
 
   // Arrivé par le lien du contact (#contact), le formulaire replié s'ouvre.

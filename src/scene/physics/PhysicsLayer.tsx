@@ -7,7 +7,6 @@ import { isItemId } from '../core/ids';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import { gestureHub } from '../gestures/hub';
 import { PHYSICS_PRIORITY } from '../gestures/priorities';
-import type { RapierModule } from './colliders';
 import { DeskPhysics, FIXED_STEP, GRAVITY } from './world';
 
 // Le moteur physique dans la scène (chargé à part, PhysicsGate). Rapier par
@@ -69,11 +68,7 @@ function PhysicsDriver() {
   useFrame(() => {
     let physics = physicsRef.current;
     if (!physics) {
-      physics = new DeskPhysics(
-        rapier as unknown as RapierModule,
-        world,
-        store.getState().frame.portrait,
-      );
+      physics = new DeskPhysics(rapier, world, store.getState().frame.portrait);
       physicsRef.current = physics;
       gestureHub(store).physics = physics;
       store.getState().setPhysics('ready');

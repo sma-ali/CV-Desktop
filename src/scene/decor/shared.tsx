@@ -82,11 +82,12 @@ export function rodPart(
   const a = new Vector3(...from);
   const direction = new Vector3(...to).sub(a);
   const length = direction.length();
+  const middle = a.addScaledVector(direction, 0.5);
   return {
     geometry: new CylinderGeometry(radius, radius, length, segments),
     color,
     finish,
-    position: a.addScaledVector(direction, 0.5).toArray() as unknown as Vec3,
+    position: [middle.x, middle.y, middle.z],
     quaternion: new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction.normalize()),
   };
 }

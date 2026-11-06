@@ -368,4 +368,8 @@ test('sitemap.xml et robots.txt répondent', async ({ request }) => {
 
   const icon = await request.get('/icon.svg');
   expect(icon.status()).toBe(200);
+
+  const appleIcon = await request.get('/apple-icon.png');
+  expect(appleIcon.status()).toBe(200);
+  expect(appleIcon.headers()['content-type']).toBe('image/png');
 });

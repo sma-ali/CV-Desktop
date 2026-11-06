@@ -5,7 +5,7 @@ import { useHydrated } from '@/components/hooks/useHydrated';
 import type { DeskHudTexts } from '@/lib/desk';
 import { currentLoadStep, introProgress } from '@/scene/core/loading';
 import { useSceneStore } from '@/scene/core/store-context';
-import { createDevScene, INTRO_FIRST_FRAME, INTRO_VIEWBOX } from './introArt';
+import { createIntroScene, INTRO_FIRST_FRAME, INTRO_VIEWBOX } from './introArt';
 import styles from './Intro.module.css';
 
 /** Après le « ting », le temps de dessiner encore pendant le fondu (ms). */
@@ -13,7 +13,7 @@ const DRAW_AFTER_DONE_MS = 2000;
 
 const noop = () => undefined;
 
-// L'écran de chargement, revu le 05/11 : Ali derrière son ordinateur, qui
+// L'écran de chargement : Ali derrière son ordinateur, qui
 // tape (introArt.ts). La barre sous l'ordinateur suit le chargement réel
 // (store.load, core/loading.ts), lissée à l'œil ; aria-valuenow garde la
 // valeur exacte. Rendu par le serveur dès le premier octet (la première
@@ -61,7 +61,7 @@ export function Intro({
     const svg = art.current;
     if (!svg) return;
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const render = createDevScene('intro', { still });
+    const render = createIntroScene({ still });
     // Le SVG du serveur porte déjà la première image.
     let markup = INTRO_FIRST_FRAME;
     let value = 0;

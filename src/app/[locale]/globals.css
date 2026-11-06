@@ -1,5 +1,5 @@
-/* Jetons de couleur : papier et encre, comme le prototype du bureau.
-   Contraste AA vérifié pour chaque texte sur --paper et sur --page. */
+/* Jetons de couleur : papier et encre, comme le bureau. Contraste AA
+   vérifié pour chaque texte sur --paper et sur --page. */
 :root {
   color-scheme: light;
   --page: #e9dec6;

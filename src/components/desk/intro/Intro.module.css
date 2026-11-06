@@ -1,7 +1,7 @@
 /* L'écran de chargement du bureau : rendu par le serveur, il couvre tout le
    bureau (scène et HUD) tant que la scène se prépare. Un écran noir, le nom,
    et dessous Ali derrière son ordinateur (introArt.ts), la barre sous
-   l'ordinateur. Intro.tsx redessine le SVG à chaque image. */
+   l'ordinateur. Intro.tsx redessine le SVG quand il change. */
 
 .intro {
   position: fixed;

@@ -14,7 +14,7 @@ const isDev = process.env.NODE_ENV === 'development';
 // (un nonce forcerait le rendu dynamique de chaque page).
 // 'unsafe-eval' ne sert qu'au rechargement à chaud en développement.
 // 'wasm-unsafe-eval' permet de compiler du WebAssembly, et rien d'autre (ni
-// eval, ni new Function) : le moteur physique du bureau (Rapier, étape 6)
+// eval, ni new Function) : le moteur physique du bureau (Rapier)
 // est un module WebAssembly embarqué dans son fichier JavaScript, servi par
 // le site lui-même.
 const contentSecurityPolicy = [

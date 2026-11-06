@@ -77,9 +77,9 @@ export interface DeskHudTexts {
     contextLost: string;
     expressLink: string;
   };
-  /** Étape 6 : le bouton de rangement (partie B) et ses annonces. */
+  /** Le bouton de rangement et ses annonces. */
   tidy: { offer: string; tidying: string; done: string };
-  /** Étape 6 : l'écran de chargement (partie C) et le repli s'il tarde. */
+  /** L'écran de chargement et le repli s'il tarde. */
   intro: {
     preparing: string;
     slow: string;

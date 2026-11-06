@@ -1,6 +1,6 @@
 import { describe, expect, it } from 'vitest';
 import { clockHold, TING_MS } from '@/scene/core/loading';
-import { createDevScene, hitSchedule, INTRO_FIRST_FRAME } from './introArt';
+import { createIntroScene, hitSchedule, INTRO_FIRST_FRAME } from './introArt';
 
 /** Un hasard reproductible (suite congruentielle). */
 function seeded(seed = 1) {
@@ -13,7 +13,7 @@ function seeded(seed = 1) {
 
 describe("le dessin de l'écran de chargement", () => {
   it('rend la même première image au serveur et au client', () => {
-    expect(createDevScene('intro', { still: true })(0, 0)).toBe(INTRO_FIRST_FRAME);
+    expect(createIntroScene({ still: true })(0, 0)).toBe(INTRO_FIRST_FRAME);
     expect(INTRO_FIRST_FRAME).not.toContain('ting');
   });
 
@@ -27,7 +27,7 @@ describe("le dessin de l'écran de chargement", () => {
   });
 
   it('montre la goutte de sueur à 70 %, une seule fois, et la garde', () => {
-    const render = createDevScene('t', { random: seeded(3) });
+    const render = createIntroScene({ random: seeded(3) });
     expect(render(0.5, 1000)).not.toContain('#9ec9ff" stroke="#dfe9ff');
     const first = render(0.72, 2000);
     expect(first).toContain('#9ec9ff" stroke="#dfe9ff');
@@ -35,7 +35,7 @@ describe("le dessin de l'écran de chargement", () => {
   });
 
   it('dit « ting ! » quand tout est prêt, verres blancs', () => {
-    const render = createDevScene('t', { random: seeded(5) });
+    const render = createIntroScene({ random: seeded(5) });
     render(0.9, 1000);
     render(1, 2000);
     const frame = render(1, 2400);
@@ -44,7 +44,7 @@ describe("le dessin de l'écran de chargement", () => {
   });
 
   it('en mouvement réduit : ni frappes, ni « ting »', () => {
-    const render = createDevScene('t', { still: true, random: seeded(9) });
+    const render = createIntroScene({ still: true, random: seeded(9) });
     expect(render(0.4, 3000)).toBe(render(0.4, 3500));
     render(1, 4000);
     expect(render(1, 5000)).not.toContain('ting !');

@@ -1,7 +1,7 @@
-/* Partie B de l'étape 6 : « Oulala, vous avez tout cassé. Je range pour
+/* Le bouton de rangement : « Oulala, vous avez tout cassé. Je range pour
    vous ? ». Au milieu de l'écran, un peu haut, par-dessus le bureau
    dézingué (rien du HUD n'y est) ; sur grand écran, en haut, sous
-   l'indication. Même famille que les boutons du HUD (Desk.module.css), en
+   l'indication. Même famille que les boutons du HUD (Hud.module.css), en
    ambre. */
 
 .tidy {
@@ -87,7 +87,7 @@
   }
 }
 
-/* Sous &fige, les animations du HUD sont en pause (Desk.module.css) : le
+/* Sous &fige, les animations du bureau sont en pause (Desk.module.css) : le
    bouton paraît tout de suite, sans rester figé invisible. */
 :global(#hud[data-frozen='true']) .tidy,
 :global(#hud[data-frozen='true']) .icon {

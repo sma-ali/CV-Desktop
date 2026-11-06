@@ -7,7 +7,7 @@ import styles from './Sheet.module.css';
 /** La touche du clavier qui remet l'objet présenté droit (Sheet). */
 export const UPRIGHT_KEY = 'Home';
 
-// Partie A de l'étape 6 : le bouton « Remettre droit » de la fiche, présent
+// Le bouton « Remettre droit » de la fiche, présent
 // seulement quand le visiteur a tourné l'objet présenté (store.heldTurned).
 // Il appelle requestUpright() : HeldRotation ramène l'objet à sa pose de
 // présentation (animé, immédiat en mouvement réduit). La touche Début fait

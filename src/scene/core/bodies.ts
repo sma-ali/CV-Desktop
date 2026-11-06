@@ -1,6 +1,6 @@
 import { headsetPose, headsetStand, HEADSET_STAND, ITEM_POSES, MONITOR } from './constants';
 import { DECOR_BODY_HOMES, decorPlacement } from './decorPlaces';
-import { PORTRAIT_PLACES } from './framing';
+import { PORTRAIT_PLACES } from './views';
 import { BODY_IDS, isDecorBodyId, type BodyId } from './ids';
 
 // Les corps du bureau, vus de dessus et en 3D : où ils reposent (leur place

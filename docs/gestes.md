@@ -81,7 +81,7 @@ Obstacles fixes : `DECOR_OBSTACLES` (`src/scene/decor/layout.ts` : clavier, pav�
 
 Outils : `homePlace(id, portrait)`, `bodyObb(id, place)`, `obbCorners(box)`, `obbPenetration(a, b, margin)` (axe séparateur : 0 ou la profondeur), `obbOutside(box, bounds)`, `createDeskBodies`, `resetDeskBodies`, `syncDeskBodies`, `movedPlaces`, `formatPlaces`. `bodies.test.ts` vérifie qu'au repos rien ne se chevauche (écart de 0.02), en paysage et en portrait, et que tout tient dans les limites du format (`deskBounds(portrait)`).
 
-`PORTRAIT_PLACES` (`core/framing.ts`) : les places du bureau resserré (portrait), décrites plus bas.
+`PORTRAIT_PLACES` (`core/views.ts`) : les places du bureau resserré (portrait), décrites plus bas.
 
 ## Le bureau resserré du portrait
 

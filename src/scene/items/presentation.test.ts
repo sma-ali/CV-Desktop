@@ -1,6 +1,7 @@
 import { PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { HELD_MAX_DISTANCE, ITEM_POSES, MONITOR, POSTIT_ON_MONITOR } from '../core/constants';
+import { ITEM_POSES, MONITOR, POSTIT_ON_MONITOR } from '../core/constants';
+import { HELD_MAX_DISTANCE } from '../core/views';
 import {
   createPresentState,
   followSpin,

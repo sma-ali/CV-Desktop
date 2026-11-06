@@ -1,8 +1,9 @@
 import type { Vec3 } from './constants';
 import type { BodyId } from './ids';
 
-// Le cadrage de la caméra et la place des objets en portrait. constants.ts
-// le réexporte : on l'importe toujours depuis '../core/constants'.
+// Les vues de la caméra (repos, départ de l'arrivée, objet tenu, gros plan
+// sur l'écran) et la place des objets en portrait, en données pures. Le
+// calcul du cadrage d'après le format de la fenêtre est dans stage/framing.ts.
 
 /** En dessous de ce rapport largeur / hauteur, la fenêtre est en portrait. */
 export const PORTRAIT_MAX_ASPECT = 0.9;

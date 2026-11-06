@@ -1,5 +1,5 @@
 import { Quaternion, Vector3 } from 'three';
-import { HELD } from '../core/framing';
+import { HELD } from '../core/views';
 import type { HeldSpin } from '../core/store';
 
 // La rotation libre de l'objet présenté, sans React :

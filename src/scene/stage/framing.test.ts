@@ -2,17 +2,8 @@ import { describe, expect, it } from 'vitest';
 import { cameraProgress } from '../core/arrival';
 import { bodyObb, FOOTPRINT_IDS, homePlace } from '../core/bodies';
 import { decorExtentPortrait } from '../decor/obstacles';
-import {
-  ARRIVAL,
-  HELD,
-  PORTRAIT_HUD,
-  REST,
-  REST_FIT,
-  SETTLE,
-  START_L,
-  START_P,
-  type View,
-} from '../core/constants';
+import { ARRIVAL, SETTLE } from '../core/constants';
+import { HELD, PORTRAIT_HUD, REST, REST_FIT, START_L, START_P, type View } from '../core/views';
 import {
   arrivalPose,
   blendPose,

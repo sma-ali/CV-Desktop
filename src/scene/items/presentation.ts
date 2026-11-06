@@ -1,13 +1,7 @@
 import { Euler, Quaternion, Vector3, type PerspectiveCamera } from 'three';
 import { clamp, damp, lerp } from '../core/math';
-import {
-  HELD,
-  HELD_MAX_DISTANCE,
-  MONITOR,
-  POSTIT_ON_MONITOR,
-  type ItemPose,
-  type PresentMode,
-} from '../core/constants';
+import { MONITOR, POSTIT_ON_MONITOR, type ItemPose, type PresentMode } from '../core/constants';
+import { HELD, HELD_MAX_DISTANCE } from '../core/views';
 import type { HeldSpin } from '../core/store';
 
 // La présentation d'un objet du CV (updateItem, heldPose et presentQ du

@@ -1,7 +1,7 @@
 'use client';
 
 import { useThree } from '@react-three/fiber';
-import { PORTRAIT_MAX_ASPECT } from './constants';
+import { PORTRAIT_MAX_ASPECT } from './views';
 
 /**
  * La fenêtre est-elle en portrait ? Réactif : le composant se redessine

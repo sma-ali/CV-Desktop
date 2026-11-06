@@ -4,7 +4,8 @@ import { Canvas } from '@react-three/fiber';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Color } from 'three';
 import { ClockDriver } from './ClockDriver';
-import { BACKGROUND, REST } from './constants';
+import { BACKGROUND } from './constants';
+import { REST } from './views';
 import { useSceneStore } from './store-context';
 
 export interface SceneCanvasProps {

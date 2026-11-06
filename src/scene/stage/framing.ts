@@ -12,10 +12,13 @@ import {
   ARRIVAL,
   HEADSET_PORTRAIT,
   HEADSET_STAND,
-  HELD,
   ITEM_POSES,
   LAMP,
   MONITOR,
+  type Vec3,
+} from '../core/constants';
+import {
+  HELD,
   PORTRAIT_HUD,
   PORTRAIT_MAX_ASPECT,
   REST,
@@ -23,9 +26,8 @@ import {
   SCREEN_FOCUS,
   START_L,
   START_P,
-  type Vec3,
   type View,
-} from '../core/constants';
+} from '../core/views';
 import { decorPlacement, placeDecorPoint } from '../core/decorPlaces';
 import { ROPE_EXTENT } from '../decor/layout';
 import { decorExtentPortrait } from '../decor/obstacles';

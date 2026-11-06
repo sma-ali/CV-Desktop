@@ -1,7 +1,5 @@
 import type { ItemId, MoodId } from './ids';
 
-export * from './framing';
-
 // Constantes du prototype (prototype/bureau-plateau.html), portées telles
 // quelles. Repère : le plateau du bureau est en y = 0, x va de -6.6 (gauche)
 // à 6.6 (droite), z de -3.55 (mur du fond) à 3.4 (bord avant, côté visiteur).

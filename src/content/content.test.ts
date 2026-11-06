@@ -3,7 +3,7 @@ import { en } from './en';
 import { fr } from './fr';
 import { getContent, locales, type Locale } from './index';
 import { contentSchema, type Content } from './schema';
-import { forbiddenPattern } from '../../tests/forbidden-terms';
+import { forbiddenPattern } from '../../tests/private-terms';
 
 type Leaf = { path: string; value: string | number | boolean };
 
@@ -80,21 +80,11 @@ describe.each(locales)('contenu %s', (locale) => {
     expect(exposed.map((leaf) => leaf.path)).toEqual([]);
   });
 
-  // L'usine (projets perso, décision du 04/11/2026) montre le savoir-faire,
-  // pas la vitrine : des genres, jamais un nom de chaîne, un compte, une
-  // plateforme ni un lien qui permette de les retrouver. Vaut pour tout ce
-  // que la scène, le bureau et les fiches affichent.
+  // L'usine montre le savoir-faire, pas la vitrine : des genres, jamais un
+  // nom, un compte ni un lien qui permette de retrouver une chaîne. Vaut pour
+  // tout ce que la scène, le bureau et les fiches affichent.
   it("ne mène à aucune chaîne de l'usine", () => {
-    const forbidden = forbiddenPattern([
-      'tiktok',
-      'youtube',
-      'shorts',
-      'instagram',
-      'twitch',
-      'upload-?post',
-      'home\\.arpa',
-      '192\\.168',
-    ]);
+    const forbidden = forbiddenPattern(['home\\.arpa', '192\\.168']);
     const leaked = textLeaves(content).filter(
       (leaf) => /^(desk|scene|sheets)\./.test(leaf.path) && forbidden.test(leaf.value),
     );

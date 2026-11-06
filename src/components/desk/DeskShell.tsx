@@ -78,10 +78,11 @@ export interface DeskShellProps {
 // La page du bureau côté navigateur. Le HUD, l'écran de chargement (Intro)
 // et le repli sont dans le HTML du serveur ; la scène arrive ensuite, sous
 // l'écran de chargement qui s'efface quand elle est prête. Pendant
-// l'attente, le HUD caché dessous sort du parcours au clavier (inert). Sans JavaScript, la feuille de style
-// montre le repli (@media (scripting: none)) ; sans WebGL, ou si la scène
-// plante ou perd son contexte, data-fallback le montre et cache le HUD et le
-// canvas : un seul h1 à la fois.
+// l'attente, le HUD caché dessous sort du parcours au clavier (inert). Sans
+// JavaScript, la feuille de style montre le repli (@media (scripting:
+// none)) ; sans WebGL, ou si la scène plante ou perd son contexte,
+// data-fallback le montre et cache le HUD et le canvas : un seul h1 et un
+// seul contenu principal (main) visibles à la fois.
 export function DeskShell({ hud, scene, lifeSigns, fontClassName, children }: DeskShellProps) {
   const [store] = useState(() =>
     createSceneStore('afternoon', { sound: createWebAudioSound(), lifeSigns }),
@@ -191,18 +192,28 @@ export function DeskShell({ hud, scene, lifeSigns, fontClassName, children }: De
   return (
     <SceneStoreProvider store={store}>
       <div className={`${styles.desk} ${fontClassName}`} data-fallback={fallback ?? undefined}>
-        <div className={styles.stage} data-visible={status === 'ready' ? 'true' : undefined}>
-          {sceneMounted ? (
-            <SceneBoundary onError={onCrash}>
-              <Scene
-                texts={scene}
-                className={styles.canvas}
-                onReady={onReady}
-                onContextLost={onContextLost}
-              />
-            </SceneBoundary>
-          ) : null}
-        </div>
+        {/* Le contenu principal : la scène, ou à sa place le repli. */}
+        <main>
+          <div className={styles.stage} data-visible={status === 'ready' ? 'true' : undefined}>
+            {sceneMounted ? (
+              <SceneBoundary onError={onCrash}>
+                <Scene
+                  texts={scene}
+                  className={styles.canvas}
+                  onReady={onReady}
+                  onContextLost={onContextLost}
+                />
+              </SceneBoundary>
+            ) : null}
+          </div>
+          <Fallback
+            reason={reason}
+            expressHref={hud.expressHref}
+            expressLink={hud.fallback.expressLink}
+          >
+            {children}
+          </Fallback>
+        </main>
         <div className={styles.vignette} aria-hidden="true" />
         <Grain className={styles.grain} />
         <Hud texts={hud} loading={status === 'loading'} />
@@ -211,14 +222,6 @@ export function DeskShell({ hud, scene, lifeSigns, fontClassName, children }: De
           texts={hud.intro}
           state={status === 'ready' ? 'ready' : fallback ? 'fallback' : 'loading'}
         />
-
-        <Fallback
-          reason={reason}
-          expressHref={hud.expressHref}
-          expressLink={hud.fallback.expressLink}
-        >
-          {children}
-        </Fallback>
       </div>
     </SceneStoreProvider>
   );

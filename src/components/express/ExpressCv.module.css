@@ -449,8 +449,8 @@
     margin-bottom: 2mm;
   }
 
-  /* Le CV « Full Stack + IA » (05/11) est plus dense : profil et puces se
-     resserrent pour tenir sur une page A4. */
+  /* Le profil et les puces se resserrent pour que le CV tienne sur une
+     page A4. */
   .summaryText {
     max-width: none;
     font-size: 9pt;

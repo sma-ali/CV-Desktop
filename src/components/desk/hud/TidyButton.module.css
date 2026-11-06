@@ -1,7 +1,7 @@
-/* Partie B de l'étape 6 : « Oulala, vous avez tout cassé. Je range pour
+/* Le bouton de rangement : « Oulala, vous avez tout cassé. Je range pour
    vous ? ». Au milieu de l'écran, un peu haut, par-dessus le bureau
    dézingué (rien du HUD n'y est) ; sur grand écran, en haut, sous
-   l'indication. Même famille que les boutons du HUD (Desk.module.css), en
+   l'indication. Même famille que les boutons du HUD (Hud.module.css), en
    ambre. */
 
 .tidy {
@@ -20,7 +20,7 @@
   background: rgb(18 12 8 / 0.78);
   color: #ffd9a0;
   font-family: var(--mono);
-  font-size: 11px;
+  font-size: 0.75rem;
   font-weight: 600;
   line-height: 1.35;
   letter-spacing: 0.16em;
@@ -63,8 +63,8 @@
   width: 8px;
   height: 8px;
   border-radius: 50%;
-  background: #ffb45e;
-  box-shadow: 0 0 10px #ffb45e;
+  background: var(--amber);
+  box-shadow: 0 0 10px var(--amber);
 }
 
 .tidy[data-tidy='tidying'] .icon {
@@ -87,7 +87,7 @@
   }
 }
 
-/* Sous &fige, les animations du HUD sont en pause (Desk.module.css) : le
+/* Sous &fige, les animations du bureau sont en pause (Desk.module.css) : le
    bouton paraît tout de suite, sans rester figé invisible. */
 :global(#hud[data-frozen='true']) .tidy,
 :global(#hud[data-frozen='true']) .icon {
@@ -123,7 +123,7 @@
 @media (max-width: 760px) {
   .tidy {
     width: max-content;
-    font-size: 10.5px;
+    font-size: 0.75rem;
     letter-spacing: 0.12em;
   }
 }

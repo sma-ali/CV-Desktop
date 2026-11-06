@@ -1,6 +1,6 @@
 import type { SoundCue, SoundPlayer } from '@/scene/core/sound';
 
-// La synthèse des sons du bureau en WebAudio, d'après le prototype (Snd) :
+// La synthèse des sons du bureau en WebAudio :
 // aucun fichier audio, tout part d'oscillateurs et d'un bruit calculé.
 // Le son est ouvert par défaut (DeskShell appelle setSound(true) du store).
 // Les navigateurs ne laissent sonner une page qu'après un geste du visiteur :
@@ -9,7 +9,7 @@ import type { SoundCue, SoundPlayer } from '@/scene/core/sound';
 
 type WindowWithWebkit = Window & { webkitAudioContext?: typeof AudioContext };
 
-/** Volume général quand le son est ouvert (celui du prototype). */
+/** Volume général quand le son est ouvert. */
 const MASTER = 0.8;
 /** Le souffle de la pièce, très bas, sous les autres sons. */
 const ROOM = 0.035;
@@ -138,7 +138,7 @@ function paper(synth: Synth, delay = 0): void {
 
 const clamp01 = (value: number) => Math.min(1, Math.max(0, value));
 
-/** Les onze sons du bureau (prototype, Snd). strength : de 0 à 1. */
+/** Les onze sons du bureau. strength : de 0 à 1. */
 const CUES: Record<SoundCue, (synth: Synth, strength: number) => void> = {
   pick: (s) => {
     whoosh(s);
@@ -165,7 +165,7 @@ const CUES: Record<SoundCue, (synth: Synth, strength: number) => void> = {
     noise(s, 0.08, 900, 3, 0.25, 'bandpass', 0.07);
   },
   tick: (s, v) => {
-    // La force choisit la hauteur, comme l'indice du prototype (tick(i)).
+    // La force choisit la hauteur : neuf notes, de la plus grave à la plus aiguë.
     const i = Math.round(v * 8);
     tone(s, 1200 + i * 90, 0.07, 0.08, 'sine');
     tone(s, 2400 + i * 120, 0.03, 0.03, 'triangle');

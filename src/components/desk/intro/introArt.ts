@@ -1,15 +1,15 @@
-// Le dessin de l'écran de chargement (validé le 05/11, version 24 de la
-// maquette) : Ali derrière son ordinateur portable, vu de face, qui tape.
-// Ses lunettes reflètent un éditeur sombre où défile du code, la lueur de
-// l'écran vacille sur son visage, une tasse fume à côté, et la barre de
-// chargement court sous l'ordinateur. Des frappes tombent au hasard sur les
-// côtés du clavier, chacune fait plonger un peu sa tête. Vers 70 %, une
-// goutte de sueur apparaît une fois et reste. Quand tout est prêt, ses
-// verres deviennent blancs, une étincelle brille et un « ting ! » s'affiche.
+// Le dessin de l'écran de chargement : Ali derrière son ordinateur
+// portable, vu de face, qui tape. Ses lunettes reflètent un éditeur sombre
+// où défile du code, la lueur de l'écran vacille sur son visage, une tasse
+// fume à côté, et la barre de chargement court sous l'ordinateur. Des
+// frappes tombent au hasard sur les côtés du clavier, chacune fait plonger
+// un peu sa tête. Vers 70 %, une goutte de sueur apparaît une fois et
+// reste. Quand tout est prêt, ses verres deviennent blancs, une étincelle
+// brille et un « ting ! » s'affiche.
 //
 // Tout est du SVG en texte : le serveur rend la première image, puis
-// Intro.tsx redessine à chaque image. Le décor ne montre rien de réel (ni
-// marque, ni jeu, ni animé).
+// Intro.tsx le redessine quand il change. Le décor ne montre rien de réel
+// (ni marque, ni jeu, ni animé).
 
 /** Le cadre du dessin (viewBox du SVG). */
 export const INTRO_VIEWBOX = '-12 4 224 140';
@@ -81,7 +81,7 @@ export function hitSchedule(rnd: () => number = Math.random): Hit[] {
   return out;
 }
 
-// Les six stickers au dos de l'ordinateur, dans l'ordre choisi le 05/11 :
+// Les six stickers au dos de l'ordinateur, dans cet ordre :
 // balise de code, dé à 20 faces, terminal, cœur en pixels, branche git, manette.
 const HEART_ROWS: ReadonlyArray<readonly [number, number, number]> = [
   // [y, x de début, x de fin] des lignes du cœur
@@ -229,7 +229,7 @@ function lensShape(cx: number, gy: number, k = 1): string {
   return `M${X(-5.2)} ${Y(-7.6)} C${X(-1)} ${Y(-8.3)} ${X(4)} ${Y(-8.3)} ${X(7.2)} ${Y(-7.7)} C${X(9.6)} ${Y(-7.3)} ${X(10.2)} ${Y(-6)} ${X(10.2)} ${Y(-3.4)} C${X(10.2)} ${Y(3.6)} ${X(6.4)} ${Y(8.8)} ${X(0)} ${Y(8.8)} C${X(-6.4)} ${Y(8.8)} ${X(-10.2)} ${Y(4)} ${X(-10.2)} ${Y(-1)} C${X(-10.2)} ${Y(-5.2)} ${X(-8.6)} ${Y(-7.2)} ${X(-5.2)} ${Y(-7.6)} Z`;
 }
 
-export interface DevSceneOptions {
+export interface IntroSceneOptions {
   /** Mouvement réduit : ni frappes, ni code qui défile, ni vacillement, ni « ting ». */
   still?: boolean;
   /** Le hasard des frappes (les tests le fixent). */
@@ -241,7 +241,9 @@ export interface DevSceneOptions {
  * boucle) : à chaque image, render(v, t) rend le contenu du SVG pour
  * l'avancement v (0 à 1) à l'instant t (ms).
  */
-export function createDevScene(id: string, { still = false, random }: DevSceneOptions = {}) {
+export function createIntroScene({ still = false, random }: IntroSceneOptions = {}) {
+  /** Le préfixe des id du SVG (filtres, dégradés, découpes des verres). */
+  const id = 'intro';
   let doneAt: number | null = null;
   let sweatAt: number | null = null;
   let cache: { loop: number; hits: Hit[] } = { loop: -1, hits: [] };
@@ -397,4 +399,4 @@ export function createDevScene(id: string, { still = false, random }: DevSceneOp
 }
 
 /** La première image (serveur et hydratation) : il tape, rien n'est chargé. */
-export const INTRO_FIRST_FRAME = createDevScene('intro', { still: true })(0, 0);
+export const INTRO_FIRST_FRAME = createIntroScene({ still: true })(0, 0);

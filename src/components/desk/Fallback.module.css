@@ -1,0 +1,31 @@
+/* Le repli : la version express à la place du bureau. Caché tant que la
+   scène tourne ; Desk.module.css cache le reste du bureau en même temps. */
+
+.fallback {
+  display: none;
+  padding: clamp(1rem, 3vw, 2.5rem) 1rem;
+}
+
+:global([data-fallback]) .fallback {
+  display: block;
+}
+
+@media (scripting: none) {
+  .fallback {
+    display: block;
+  }
+}
+
+.notice {
+  max-width: 68rem;
+  margin: 0 auto 1rem;
+  font-family: var(--mono);
+  font-size: 0.875rem;
+  line-height: 1.5;
+  color: var(--ink-soft);
+}
+
+.link {
+  font-weight: 600;
+  color: var(--accent);
+}

@@ -1,11 +1,9 @@
 /* L'écran de chargement du bureau : rendu par le serveur, il couvre tout le
    bureau (scène et HUD) tant que la scène se prépare. Un écran noir, le nom,
    et dessous Ali derrière son ordinateur (introArt.ts), la barre sous
-   l'ordinateur. Intro.tsx redessine le SVG à chaque image. */
+   l'ordinateur. Intro.tsx redessine le SVG quand il change. */
 
 .intro {
-  --creme: #f3e9d4;
-
   position: fixed;
   inset: 0;
   z-index: 20;
@@ -13,7 +11,7 @@
   place-items: center;
   padding: max(24px, env(safe-area-inset-top)) 16px max(24px, env(safe-area-inset-bottom));
   background: #000;
-  color: var(--creme);
+  color: var(--cream);
   font-family: var(--mono);
   transition:
     opacity 0.6s ease 0.9s,
@@ -54,10 +52,10 @@
   font-family: var(--serif);
   font-weight: 600;
   font-variation-settings: 'opsz' 144;
-  font-size: clamp(28px, 6vw, 40px);
+  font-size: clamp(1.75rem, 6vw, 2.5rem);
   line-height: 1;
   letter-spacing: -0.02em;
-  color: #f7ecd6;
+  color: var(--pale);
 }
 
 /* Le dessin : large sur ordinateur, à la largeur de l'écran sur téléphone. */

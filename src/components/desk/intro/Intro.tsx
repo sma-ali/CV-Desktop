@@ -1,25 +1,19 @@
 'use client';
 
-import { useEffect, useRef, useSyncExternalStore } from 'react';
+import { useEffect, useRef } from 'react';
+import { useHydrated } from '@/components/hooks/useHydrated';
 import type { DeskHudTexts } from '@/lib/desk';
 import { currentLoadStep, introProgress } from '@/scene/core/loading';
 import { useSceneStore } from '@/scene/core/store-context';
-import { createDevScene, INTRO_FIRST_FRAME, INTRO_VIEWBOX } from './introArt';
+import { createIntroScene, INTRO_FIRST_FRAME, INTRO_VIEWBOX } from './introArt';
 import styles from './Intro.module.css';
-
-/** Vrai une fois la page hydratée (faux dans le HTML du serveur, sans écart à l'hydratation). */
-function useHydrated(): boolean {
-  return useSyncExternalStore(
-    () => () => undefined,
-    () => true,
-    () => false,
-  );
-}
 
 /** Après le « ting », le temps de dessiner encore pendant le fondu (ms). */
 const DRAW_AFTER_DONE_MS = 2000;
 
-// L'écran de chargement, revu le 05/11 : Ali derrière son ordinateur, qui
+const noop = () => undefined;
+
+// L'écran de chargement : Ali derrière son ordinateur, qui
 // tape (introArt.ts). La barre sous l'ordinateur suit le chargement réel
 // (store.load, core/loading.ts), lissée à l'œil ; aria-valuenow garde la
 // valeur exacte. Rendu par le serveur dès le premier octet (la première
@@ -55,21 +49,28 @@ export function Intro({
   const art = useRef<SVGSVGElement>(null);
   const target = useRef(shown);
   const phase = useRef(state);
+  /** Relance la boucle de dessin si elle s'est arrêtée (mouvement réduit). */
+  const wake = useRef<() => void>(noop);
   useEffect(() => {
     target.current = shown;
     phase.current = state;
+    wake.current();
   }, [shown, state]);
 
   useEffect(() => {
     const svg = art.current;
     if (!svg) return;
     const still = window.matchMedia('(prefers-reduced-motion: reduce)').matches;
-    const render = createDevScene('intro', { still });
+    const render = createIntroScene({ still });
+    // Le SVG du serveur porte déjà la première image.
+    let markup = INTRO_FIRST_FRAME;
     let value = 0;
     let last = performance.now();
     let frame = 0;
+    let scheduled = false;
     let doneAt: number | null = null;
     const draw = (now: number) => {
+      scheduled = false;
       // La version express a pris la place : plus rien à dessiner.
       if (phase.current === 'fallback') return;
       const goal = target.current;
@@ -79,13 +80,31 @@ export function Intro({
         : Math.min(goal, value + (goal - value) * Math.min(1, (now - last) / 160));
       if (goal - value < 0.004) value = goal;
       last = now;
-      svg.innerHTML = render(value, now);
+      // Le SVG n'est réécrit (et relu par le navigateur) que si le dessin change.
+      const next = render(value, now);
+      const changed = next !== markup;
+      if (changed) {
+        svg.innerHTML = next;
+        markup = next;
+      }
       if (value >= 1 && doneAt === null) doneAt = now;
       if (doneAt !== null && now - doneAt > DRAW_AFTER_DONE_MS) return;
+      // Mouvement réduit : rien ne bouge de soi-même. La boucle s'arrête
+      // quand le dessin a rattrapé la barre, et repart quand elle avance.
+      if (still && !changed && value === goal) return;
+      schedule();
+    };
+    const schedule = () => {
+      if (scheduled) return;
+      scheduled = true;
       frame = requestAnimationFrame(draw);
     };
-    frame = requestAnimationFrame(draw);
-    return () => cancelAnimationFrame(frame);
+    wake.current = schedule;
+    schedule();
+    return () => {
+      cancelAnimationFrame(frame);
+      wake.current = noop;
+    };
   }, []);
 
   return (

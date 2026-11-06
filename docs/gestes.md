@@ -160,9 +160,9 @@ interface LifeSigns {
 ```
 
 - `sample.ts` : `sampleLifeSigns(now)`, signalés comme données d'exemple, déjà arrondis, et qui ne ressemblent pas aux vrais chiffres (6 chaînes, 200 vidéos, 8 par jour) ; `rebaseLifeSigns(signs, now)` recale l'exemple sur l'heure du visiteur (la page est rendue au build).
-- `source.ts` : `getLifeSigns(now?)`, le point d'entrée du serveur. Depuis l'étape 5 : le JSON public (`LIFE_SIGNS_URL`), validé par `schema.ts`, avec repli sur l'exemple ; partagé par la page (régénérée toutes les 10 minutes) et `/api/signes-de-vie`. Le navigateur les rafraîchit à l'ouverture du coffret (`src/components/desk/lifeSignsRefresh.ts`). Voir [`routes-serveur.md`](routes-serveur.md).
+- `source.ts` : `getLifeSigns(now?)`, le point d'entrée du serveur. Depuis l'étape 5 : le JSON public (`LIFE_SIGNS_URL`), validé par `schema.ts`, avec repli sur l'exemple ; partagé par la page (régénérée toutes les 10 minutes) et `/api/signes-de-vie`. Le navigateur les rafraîchit à l'ouverture du coffret (`src/lib/life-signs/refresh.ts`). Voir [`routes-serveur.md`](routes-serveur.md).
 - `types.ts` : `activityPulse(signs)` donne `{ period, strength }` du battement du coffret (de 3.4 s et 0.35 au calme à 1.6 s et 1 quand les trois derniers jours sont les plus actifs).
-- La mise en mots est dans `src/components/desk/factoryView.ts` (gabarits dans `content.sheets.ui.factory`).
+- La mise en mots est dans `src/components/desk/sheet/factoryView.ts` (gabarits dans `content.sheets.ui.factory`).
 
 Chemin : `page.tsx` (serveur) appelle `getLifeSigns()` et passe le résultat à `DeskShell` (prop `lifeSigns`), qui le met dans le store (`createSceneStore(mood, { sound, lifeSigns })`, puis `setLifeSigns(rebaseLifeSigns(...))` côté client). La fiche et le coffret lisent `store.lifeSigns`. La règle ESLint reste respectée : `src/lib/life-signs` n'importe ni zod ni le contenu.
 

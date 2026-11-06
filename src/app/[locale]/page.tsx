@@ -1,4 +1,5 @@
 import type { Metadata } from 'next';
+import { Pixelify_Sans } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { DeskShell } from '@/components/desk/DeskShell';
 import { ExpressCv } from '@/components/express/ExpressCv';
@@ -6,6 +7,15 @@ import { getContent, isLocale } from '@/content';
 import { buildDeskTexts, buildSceneTexts } from '@/lib/desk';
 import { getLifeSigns } from '@/lib/life-signs/source';
 import { buildDeskMetadata } from '@/lib/metadata';
+
+// L'interface du bureau parle en Pixelify Sans : chargée ici, elle n'est ni
+// téléchargée ni préchargée par la version express et les mentions légales.
+// Police variable : un seul fichier pour les graisses de 400 à 700.
+const pixel = Pixelify_Sans({
+  subsets: ['latin'],
+  display: 'swap',
+  variable: '--font-pixel',
+});
 
 export async function generateMetadata({ params }: PageProps<'/[locale]'>): Promise<Metadata> {
   const { locale } = await params;
@@ -34,6 +44,7 @@ export default async function DeskPage({ params }: PageProps<'/[locale]'>) {
       hud={buildDeskTexts(content, locale)}
       scene={buildSceneTexts(content, locale)}
       lifeSigns={lifeSigns}
+      fontClassName={pixel.variable}
     >
       <ExpressCv locale={locale} from="desk" />
     </DeskShell>

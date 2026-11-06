@@ -1,6 +1,7 @@
 import { Fragment, useId } from 'react';
 import { ContactForm } from '@/components/contact/ContactForm';
 import { getContent, type Locale } from '@/content';
+import type { ContactSource } from '@/lib/contact/rules';
 import { formatMonthPeriod, formatYearPeriod, RANGE_SEPARATOR, type DateLabel } from '@/lib/dates';
 import { displayUrl } from '@/lib/urls';
 import styles from './ExpressCv.module.css';
@@ -12,13 +13,7 @@ import styles from './ExpressCv.module.css';
 // client, replié), qui marche aussi sans JavaScript.
 //
 // from : la page qui l'affiche, où revient un envoi sans JavaScript.
-export function ExpressCv({
-  locale,
-  from = 'express',
-}: {
-  locale: Locale;
-  from?: 'express' | 'desk';
-}) {
+export function ExpressCv({ locale, from = 'express' }: { locale: Locale; from?: ContactSource }) {
   const nameId = useId();
   const content = getContent(locale);
   const { profile, contact, sections, experiences, projects, education, skills, ui } = content;

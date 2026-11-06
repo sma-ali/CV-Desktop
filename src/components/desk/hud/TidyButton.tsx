@@ -7,7 +7,7 @@ import { useSceneStoreApi } from '@/scene/core/store-context';
 import { offerShown } from '@/scene/tidy/disorder';
 import styles from './TidyButton.module.css';
 
-// Partie B de l'étape 6 : le bouton « Oulala, vous avez tout cassé. Je
+// Le bouton de rangement : « Oulala, vous avez tout cassé. Je
 // range pour vous ? ». Il apparaît quand le score de désordre
 // (store.disorder) passe DISORDER.offer, et disparaît sous
 // DISORDER.withdraw. Au clic (ou Entrée, Espace : c'est un vrai bouton,

@@ -15,7 +15,7 @@ import { ITEM_STEP } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { Sheet } from '../sheet/Sheet';
 import { TidyButton } from './TidyButton';
-import styles from '../Desk.module.css';
+import styles from './Hud.module.css';
 
 /** Au-delà, une puce touchée pendant le chargement mène à la version express. */
 const PENDING_MS = 6000;
@@ -153,10 +153,10 @@ export function Hud({
       // L'écran de chargement le couvre : hors du parcours au clavier.
       inert={loading}
     >
-      <p className={styles.carton} data-on={hud.carton ? 'true' : undefined} aria-hidden="true">
-        <span className={styles.cartonKicker}>{texts.arrivalKicker}</span>
-        <span className={styles.cartonName}>{texts.firstName}</span>
-        <span className={styles.cartonRole}>{texts.headline}</span>
+      <p className={styles.titleCard} data-on={hud.carton ? 'true' : undefined} aria-hidden="true">
+        <span className={styles.titleCardKicker}>{texts.arrivalKicker}</span>
+        <span className={styles.titleCardName}>{texts.firstName}</span>
+        <span className={styles.titleCardRole}>{texts.headline}</span>
       </p>
 
       <header className={styles.top}>

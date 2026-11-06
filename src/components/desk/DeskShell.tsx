@@ -10,7 +10,7 @@ import { parseTestParams } from '@/scene/core/params';
 import { createSceneStore, settingsFromParams, type SceneStore } from '@/scene/core/store';
 import { SceneStoreProvider } from '@/scene/core/store-context';
 import type { SceneTexts } from '@/scene/core/texts';
-import { Paper } from '@/components/paper/Paper';
+import { Fallback } from './Fallback';
 import { Grain } from './Grain';
 import { Hud } from './hud/Hud';
 import { Intro } from './intro/Intro';
@@ -210,15 +210,13 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
           state={status === 'ready' ? 'ready' : fallback ? 'fallback' : 'loading'}
         />
 
-        <section className={styles.fallback} aria-label={hud.fallback.expressLink}>
-          <p className={styles.fallbackNotice}>
-            {reason}{' '}
-            <a href={hud.expressHref} className={styles.fallbackLink}>
-              {hud.fallback.expressLink}
-            </a>
-          </p>
-          <Paper>{children}</Paper>
-        </section>
+        <Fallback
+          reason={reason}
+          expressHref={hud.expressHref}
+          expressLink={hud.fallback.expressLink}
+        >
+          {children}
+        </Fallback>
       </div>
     </SceneStoreProvider>
   );

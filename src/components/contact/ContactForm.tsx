@@ -28,8 +28,8 @@ export interface ContactFormProps {
   from: ContactSource;
   /** L'adresse proposée quand l'envoi échoue. */
   email: string;
-  /** « page » : aux couleurs du thème ; « bristol » : sur le papier clair de la fiche. */
-  variant: 'page' | 'bristol';
+  /** « page » : aux couleurs du thème ; « sheet » : sur le papier clair de la fiche du bureau. */
+  variant: 'page' | 'sheet';
   /**
    * Prépare les messages d'état d'un envoi sans JavaScript, affichés par
    * :target (#contact-envoye...). Une seule fois par page : la version express.
@@ -379,7 +379,7 @@ export function ContactForm({
   );
 
   return (
-    <div className={`${styles.root} ${variant === 'bristol' ? styles.bristol : ''}`}>
+    <div className={`${styles.root} ${variant === 'sheet' ? styles.onSheet : ''}`}>
       {noScriptStatus ? <NoScriptStatus texts={texts} email={email} /> : null}
       {collapsible ? (
         <details ref={details} className={styles.details}>

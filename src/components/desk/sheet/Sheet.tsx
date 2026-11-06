@@ -7,7 +7,7 @@ import { ITEM_STEP, neighborItem, type ItemId } from '@/scene/core/ids';
 import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
 import { FactoryPanel } from './FactoryPanel';
 import { factoryView } from './factoryView';
-import styles from '../Desk.module.css';
+import styles from './Sheet.module.css';
 import { UPRIGHT_KEY, UprightButton } from './UprightButton';
 import { rotateKey, rotationInput } from '@/scene/rotation/control';
 
@@ -194,7 +194,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
     <aside
       ref={sheetRef}
       id="sheet"
-      className={styles.bristol}
+      className={styles.sheet}
       data-open={sheet ? 'true' : 'false'}
       data-sheet={presented ?? ''}
       aria-labelledby={sheet ? 'sheet-title' : undefined}
@@ -211,15 +211,15 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
     >
       {sheet && presented ? (
         <>
-          <p className={styles.sheetKicker}>
+          <p className={styles.kicker}>
             <span>{sheet.kicker}</span>
             <span>{sheet.step}</span>
           </p>
-          <h2 id="sheet-title" ref={titleRef} className={styles.sheetTitle} tabIndex={-1}>
+          <h2 id="sheet-title" ref={titleRef} className={styles.title} tabIndex={-1}>
             {sheet.title}
           </h2>
           {factory ? null : (
-            <dl className={styles.sheetMeta}>
+            <dl className={styles.meta}>
               {sheet.meta.map((row) => (
                 <div key={row.term}>
                   <dt>{row.term}</dt>
@@ -241,9 +241,9 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
               ))}
             </dl>
           )}
-          <p className={styles.sheetBody}>{sheet.body}</p>
+          <p className={styles.body}>{sheet.body}</p>
           {factory ? <FactoryPanel view={factory} texts={ui.factory} /> : null}
-          {sheet.note ? <p className={styles.sheetNote}>{sheet.note}</p> : null}
+          {sheet.note ? <p className={styles.note}>{sheet.note}</p> : null}
 
           {/* La carte de visite porte le formulaire de contact. */}
           {presented === 'card' ? (
@@ -252,18 +252,18 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
               email={texts.contactForm.email}
               locale={locale}
               from="desk"
-              variant="bristol"
+              variant="sheet"
             />
           ) : null}
 
-          <div className={styles.sheetActions}>
+          <div className={styles.actions}>
             {/* Ni « Retourner » ni « Me contacter » : on retourne l'objet d'un clic
                 (ou R au clavier), et le contact est en bas à droite. */}
             {canFlip ? <UprightButton label={ui.upright} /> : null}
             {sheet.repository ? (
               <a
                 href={sheet.repository.href}
-                className={styles.sheetRepo}
+                className={styles.repo}
                 target="_blank"
                 rel="noopener noreferrer"
                 data-repository=""
@@ -273,7 +273,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
             ) : null}
           </div>
 
-          <div className={styles.sheetFoot}>
+          <div className={styles.foot}>
             {/* Le nom de chaque bouton commence par son texte visible (WCAG
                 2.5.3, commande vocale) ; l'abréviation se complète pour les
                 lecteurs d'écran. */}
@@ -284,7 +284,7 @@ export function Sheet({ texts, locale, onAnnounce }: SheetProps) {
             </button>
             <button
               type="button"
-              className={styles.sheetClose}
+              className={styles.close}
               aria-keyshortcuts="Escape"
               onClick={putBack}
             >

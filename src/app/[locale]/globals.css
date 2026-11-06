@@ -14,6 +14,24 @@
   --chip: rgb(31 23 16 / 0.35);
   --shadow: 0 1.5rem 4rem rgb(70 45 20 / 0.18);
 
+  /* Le bureau : toujours sombre, quel que soit le thème (un bureau la nuit,
+     éclairé par sa lampe). */
+  --night: #0e0a08;
+  --amber: #ffb45e;
+  --amber-light: #ffd59a;
+  --cream: #f3e9d4;
+  --pale: #f7ecd6;
+  --green: #62d18e;
+
+  /* La fiche de l'objet tenu : papier clair et encre, quel que soit le thème. */
+  --sheet-paper: var(--cream);
+  --sheet-ink: #1f1710;
+  --sheet-soft: #2c2116;
+  --sheet-muted: #6b5a46;
+  --sheet-faint: #5e4e3c;
+  --sheet-line: rgb(31 23 16 / 0.35);
+  --brick: #8d2a20;
+
   /* Les polices de lecture (version express, impression). Le bureau les
      précède de Pixelify Sans (Desk.module.css). */
   --serif: var(--font-fraunces), 'Iowan Old Style', 'Palatino Linotype', Georgia, serif;
@@ -75,8 +93,9 @@ a:hover {
   color: var(--accent);
 }
 
+/* --focus-color : le bureau et la fiche donnent la leur à leurs éléments. */
 :focus-visible {
-  outline: 2px solid var(--accent);
+  outline: 2px solid var(--focus-color, var(--accent));
   outline-offset: 3px;
   border-radius: 2px;
 }

@@ -2,7 +2,7 @@
 
 import { useId, useRef, useState, type CSSProperties, type KeyboardEvent } from 'react';
 import type { FactoryTexts, FactoryView } from './factoryView';
-import styles from '../Desk.module.css';
+import styles from './FactoryPanel.module.css';
 
 // La fiche de l'usine (projets perso) : le circuit en cinq étapes, la
 // validation humaine mise en avant, les chiffres globaux et leur graphique
@@ -44,7 +44,7 @@ export function FactoryPanel({ view, texts }: { view: FactoryView; texts: Factor
 
   return (
     <section className={styles.factory} data-factory="" aria-label={texts.circuitLabel}>
-      <p className={styles.liveHead}>
+      <p className={styles.head}>
         <span data-factory-status="">
           <i aria-hidden="true" />
           {view.status}
@@ -69,12 +69,12 @@ export function FactoryPanel({ view, texts }: { view: FactoryView; texts: Factor
         ))}
       </dl>
       {view.since ? (
-        <p className={styles.factorySince} data-factory-since="">
+        <p className={styles.since} data-factory-since="">
           {view.since}
         </p>
       ) : null}
 
-      <div className={styles.liveChart} role="img" aria-label={view.chartLabel}>
+      <div className={styles.chart} role="img" aria-label={view.chartLabel}>
         {view.bars.map((bar, i) => (
           <i
             key={i}
@@ -83,7 +83,7 @@ export function FactoryPanel({ view, texts }: { view: FactoryView; texts: Factor
           />
         ))}
       </div>
-      <p className={styles.liveAxis} aria-hidden="true">
+      <p className={styles.axis} aria-hidden="true">
         <span>{view.axisStart}</span>
         <span>{view.axisEnd}</span>
       </p>

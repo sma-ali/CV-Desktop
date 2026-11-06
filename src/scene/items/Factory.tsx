@@ -27,7 +27,7 @@ import { usePaintedMaterial } from './usePaintedMaterial';
 import { usePresentation } from './usePresentation';
 
 // L'usine (projets perso) : une mini usine low poly, à la place du coffret
-// scellé (décision du 04/11/2026), sur le même encombrement (BODY_FOOTPRINTS
+// scellé, sur le même encombrement (BODY_FOOTPRINTS
 // et la forme physique du coffret, id 'chest'). Une halle en brique à trois
 // toits, un bureau clair aux fenêtres allumées, une cheminée, et un tapis
 // roulant qui sort des cassettes. Elle se met en marche à ARRIVAL.chestLed ;

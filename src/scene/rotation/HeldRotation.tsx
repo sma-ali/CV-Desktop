@@ -16,7 +16,6 @@ import {
   easeShare,
   heldBall,
   keyRotation,
-  parseTurn,
   readSpin,
   rotationAngle,
   SPIN,
@@ -28,7 +27,7 @@ import {
   type Ball,
 } from './trackball';
 
-// Partie A de l'étape 6 : la rotation libre de l'objet présenté. Un appui
+// La rotation libre de l'objet présenté. Un appui
 // sur l'objet tenu (claimHeld, dans usePresentation, qui pose press.held)
 // qui dépasse DRAG_THRESHOLD le fait tourner comme une boule sous le doigt
 // (trackball, sur les trois axes) ; au lâcher, il garde un peu d'élan, puis
@@ -72,8 +71,7 @@ interface RotationState {
   upright: boolean;
   /** Dernier uprightRequests vu. */
   uprightSeen: number;
-  /** ?tourne (lu une fois), et déjà appliqué. */
-  turn: { x: number; y: number } | null;
+  /** ?tourne déjà appliqué. */
   turnDone: boolean;
 }
 
@@ -110,13 +108,8 @@ export function HeldRotation() {
     pending: new Quaternion(),
     upright: false,
     uprightSeen: 0,
-    turn: null,
     turnDone: false,
   });
-
-  useEffect(() => {
-    state.current.turn = parseTurn(window.location.search);
-  }, []);
 
   // Le glisser sur l'objet tenu. Ces écouteurs s'ajoutent après ceux de
   // Gestures (monté avant dans Scene.tsx) : press.travel est déjà à jour.
@@ -206,7 +199,7 @@ export function HeldRotation() {
     const input = rotationInput(store);
     const canvas = three.gl.domElement;
 
-    // Un autre objet (ou aucun) : tout repart de zéro. Le socle remet
+    // Un autre objet (ou aucun) : tout repart de zéro. Le store remet
     // heldSpin à l'identité dans present(), putBack(), markUser() et replay().
     if (scene.presented !== run.item) {
       run.item = scene.presented;
@@ -231,9 +224,10 @@ export function HeldRotation() {
 
     // ?tourne=x,y : une orientation donnée d'office à l'objet de ?prendre=
     // (captures, tests).
-    if (run.turn && !run.turnDone && scene.presentedBy === 'test') {
+    const turn = scene.settings.initialTurn;
+    if (turn && !run.turnDone && scene.presentedBy === 'test') {
       run.turnDone = true;
-      spin.premultiply(cameraToWorld(turnRotation(run.turn, delta), camera, world));
+      spin.premultiply(cameraToWorld(turnRotation(turn, delta), camera, world));
     }
 
     // L'inertie, une fois lâché.

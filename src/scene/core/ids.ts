@@ -3,7 +3,7 @@
 
 // Les objets du CV posés sur le bureau. L'écran (monitor) se regarde de près
 // sans quitter le bureau : la caméra s'en approche au lieu de le soulever.
-// Netherbrain et Homelab (étape 4) : le bocal au cerveau et la mini baie.
+// Netherbrain et Homelab : le bocal au cerveau et la mini baie.
 export const ITEM_IDS = [
   'book',
   'badge',
@@ -79,7 +79,7 @@ export function neighborItem(item: ItemId, direction: 1 | -1): ItemId {
   return order[index < 0 ? 0 : next] ?? 'book';
 }
 
-// Les corps du bureau vivant (étape 6, moteur physique) : tout ce qui se
+// Les corps du moteur physique : tout ce qui se
 // déplace, se lance, se renverse et tombe. Les objets du CV posés sur le
 // plateau, le casque (pendu à son support, il tombe si on le heurte), et
 // tout le décor posé. Restent fixes : l'écran (son gros plan et le post-it
@@ -101,7 +101,7 @@ export type ItemBodyId = (typeof ITEM_BODY_IDS)[number];
 /**
  * Les morceaux du décor qui sont des corps. Leurs enfants sont dessinés à
  * leur place en paysage (repère du monde) ; l'origine du corps est l'ancre
- * du morceau (DECOR_ANCHORS, decor/layout.ts), sauf la tasse et la manette,
+ * du morceau (DECOR_ANCHORS, core/decorPlaces.ts), sauf la tasse et la manette,
  * dessinées dans leur propre repère.
  */
 const DECOR_BODY_IDS = [

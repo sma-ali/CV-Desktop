@@ -11,7 +11,7 @@ import {
   type SceneFonts,
 } from './fonts';
 
-// Textures peintes en code sur un canvas 2D, comme dans le prototype.
+// Textures peintes en code sur un canvas 2D.
 // Différences avec r128 : la texture est déclarée sRGB (la gestion des
 // couleurs est active), et elle se redessine quand les polices arrivent.
 
@@ -115,14 +115,13 @@ export function useCanvasTexture(options: CanvasTextureOptions): CanvasTexture {
   // La texture ne dépend que de sa taille ; le reste se règle au dessin.
   const texture = useMemo(
     () => createCanvasTexture(gl, options),
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- options est un objet neuf à chaque rendu : seule la taille recrée la texture
     [gl, width, height],
   );
   useEffect(() => () => texture.dispose(), [texture]);
   useLayoutEffect(() => {
     paintCanvasTexture(texture, draw, fonts, mirror);
-    // draw n'entre pas dans les dépendances : passer redrawKey pour redessiner.
-    // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- draw change à chaque rendu : redrawKey décide du redessin
   }, [texture, fontsKey, redrawKey, mirror]);
   return texture;
 }

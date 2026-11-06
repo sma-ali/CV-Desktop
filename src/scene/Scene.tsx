@@ -19,11 +19,9 @@ export interface SceneProps {
 
 // La scène du bureau, chargée à part (next/dynamic, sans rendu serveur) après
 // le premier affichage de la page. Elle compose les parties, chacune dans son
-// dossier et propriété d'un seul agent : ce fichier ne change pas quand elles
-// changent (voir docs/scene-3d.md). Étape 4 : les gestes s'ajoutent à côté
-// du décor, des objets et de la mise en scène. Étape 6 (docs/bureau-vivant.md) :
-// le moteur physique, chargé à part (PhysicsGate), la rotation libre de
-// l'objet présenté (partie A) et le rangement (partie B).
+// dossier (voir docs/scene-3d.md) : le décor, les objets du CV, la mise en
+// scène et les gestes, puis le moteur physique, chargé à part (PhysicsGate),
+// la rotation libre de l'objet présenté et le rangement du bureau.
 export default function Scene({ texts, className, onReady, onContextLost }: SceneProps) {
   return (
     <SceneCanvas

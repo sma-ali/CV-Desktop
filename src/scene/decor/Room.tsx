@@ -25,7 +25,7 @@ import { box, MergedParts } from './shared';
 
 // La pièce : le plateau en noyer, le sol, le mur du fond percé de la fenêtre
 // (embrasure, dormant, croisillons, appui). Le ciel derrière la vitre
-// appartient à la mise en scène (WINDOW_SKY, constante du socle) : le décor
+// appartient à la mise en scène (WINDOW_SKY, core/constants.ts) : le décor
 // met un fond sombre derrière.
 
 const DESK_WIDTH = DESK.x1 - DESK.x0;

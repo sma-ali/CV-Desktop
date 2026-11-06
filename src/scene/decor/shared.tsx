@@ -53,6 +53,9 @@ export function MergedParts({
 // Briques de géométrie pour les pièces (créées puis fusionnées)
 // ------------------------------------------------------------------
 
+/** Le bois brun des poignées de la corde et du chapeau du voyageur. */
+export const WOOD = 0x6e4a2e;
+
 export const box = (w: number, h: number, d: number): BufferGeometry => new BoxGeometry(w, h, d);
 export const cyl = (top: number, bottom: number, height: number, segments = 8): BufferGeometry =>
   new CylinderGeometry(top, bottom, height, segments);
@@ -79,11 +82,12 @@ export function rodPart(
   const a = new Vector3(...from);
   const direction = new Vector3(...to).sub(a);
   const length = direction.length();
+  const middle = a.addScaledVector(direction, 0.5);
   return {
     geometry: new CylinderGeometry(radius, radius, length, segments),
     color,
     finish,
-    position: a.addScaledVector(direction, 0.5).toArray() as unknown as Vec3,
+    position: [middle.x, middle.y, middle.z],
     quaternion: new Quaternion().setFromUnitVectors(new Vector3(0, 1, 0), direction.normalize()),
   };
 }

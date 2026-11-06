@@ -2,7 +2,7 @@
 
 import { useEffect, useMemo, useRef } from 'react';
 import { MeshBasicMaterial, PlaneGeometry, type Group } from 'three';
-import { seg } from '../core/arrival';
+import { seg } from '../core/math';
 import { ITEM_POSES } from '../core/constants';
 import { Box, flatPlaneGeometry } from '../core/geometry';
 import { standardMaterial } from '../core/materials';

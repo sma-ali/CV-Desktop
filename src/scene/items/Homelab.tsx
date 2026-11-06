@@ -59,6 +59,12 @@ const POST_Z = RACK.d / 2 - RACK.post / 2;
 const FACE_W = FACE.x1 - FACE.x0;
 const FACE_H = FACE.y1 - FACE.y0;
 const FACE_Y = (FACE.y0 + FACE.y1) / 2;
+/**
+ * Les équipements reculent un peu derrière le plan peint de la façade, et
+ * les LED avancent devant : rien ne scintille entre les plans.
+ */
+const FACE_GAP = 0.004;
+const LED_OFFSET = 0.006;
 
 /** La baie et ses équipements : des boîtes fusionnées, un seul appel de dessin. */
 const FRAME: BoxPiece[] = [
@@ -81,7 +87,7 @@ const FRAME: BoxPiece[] = [
   // Les équipements, la façade à FACE.z (le plan peint la couvre).
   ...UNITS.map((unit): BoxPiece => ({
     size: [FACE_W, unit.y1 - unit.y0, UNIT_DEPTH],
-    position: [0, (unit.y0 + unit.y1) / 2, FACE.z - 0.004 - UNIT_DEPTH / 2],
+    position: [0, (unit.y0 + unit.y1) / 2, FACE.z - FACE_GAP - UNIT_DEPTH / 2],
     color: unit.color,
   })),
 ];
@@ -179,7 +185,7 @@ export function Homelab({ texts }: { texts: SceneTexts }) {
     const placer = new Object3D();
     const black = new Color(0x000000);
     LEDS.forEach((led, i) => {
-      placer.position.set(led.x, led.y, FACE.z + 0.006);
+      placer.position.set(led.x, led.y, FACE.z + LED_OFFSET);
       placer.updateMatrix();
       mesh.setMatrixAt(i, placer.matrix);
       mesh.setColorAt(i, black);

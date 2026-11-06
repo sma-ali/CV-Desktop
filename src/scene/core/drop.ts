@@ -5,7 +5,7 @@ import type { BodyId } from './ids';
 // place, puis la lampe, posée en dernier, s'allume (ARRIVAL.lampOn). Chaque
 // corps part de DROP.height au-dessus de sa place, tombe en accélérant,
 // rebondit une fois et se pose, légèrement penché pendant la chute. Données
-// pures, sans three : updateFrame (store.ts) applique la pose aux corps que
+// pures, sans three : updateFrame (frame.ts) applique la pose aux corps que
 // rien n'a encore touchés. Le casque, pendu à son support, ne tombe pas.
 
 /** L'ordre de la chute : les gros objets du CV, les petits, le décor, la lampe en dernier. */

@@ -4,7 +4,8 @@ import { Canvas } from '@react-three/fiber';
 import { useEffect, useState, type ReactNode } from 'react';
 import { Color } from 'three';
 import { ClockDriver } from './ClockDriver';
-import { BACKGROUND, REST } from './constants';
+import { BACKGROUND } from './constants';
+import { REST } from './views';
 import { useSceneStore } from './store-context';
 
 export interface SceneCanvasProps {
@@ -25,7 +26,7 @@ export interface SceneCanvasProps {
 //   se recalibrent (voir docs/scene-3d.md) ;
 // - pas de tone mapping (flat) : l'étalonnage du prototype se fait en
 //   post-traitement (mise en scène) ;
-// - ombres PCF, comme le prototype ;
+// - ombres PCF ;
 // - anticrénelage confié au post-traitement (voir gl) ;
 // - densité de pixels bornée à 2 (la qualité adaptative peut descendre) ;
 // - rendu suspendu quand l'onglet est caché.

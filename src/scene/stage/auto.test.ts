@@ -153,7 +153,7 @@ describe('la visite automatique', () => {
     expect(simulate({ to: 40, lastUserAt: Infinity }).log).toEqual([]);
   });
 
-  it('autoWanted suit les règles du prototype', () => {
+  it('autoWanted suit les règles de la visite', () => {
     const input = {
       t: AUTO_START,
       allowed: true,

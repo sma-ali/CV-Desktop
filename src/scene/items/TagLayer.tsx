@@ -15,7 +15,7 @@ import styles from './TagLayer.module.css';
 
 // Les étiquettes accrochées aux objets du CV (TAG_FOR du prototype) : un
 // repère (« 2020 ») et un mot, dans la langue de la page. Une couche HTML
-// posée sur le canvas, construite à la main (comme le prototype) : pas de
+// posée sur le canvas, construite à la main : pas de
 // racine React par étiquette, une seule projection par image.
 //
 // Elles sont décoratives pour les lecteurs d'écran (aria-hidden, hors de la

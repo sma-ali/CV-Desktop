@@ -3,7 +3,7 @@ import type { SceneFonts } from '../core/fonts';
 import { rng } from '../core/rng';
 import { MANGA, spineSpec } from './layout';
 
-// Les textures du décor, peintes en code comme dans le prototype (bois de
+// Les textures du décor, peintes en code (bois de
 // noyer, feutre, enduit du mur, dos des mangas, point doux de la vapeur).
 // Fonctions de dessin pures : elles prennent un contexte 2D et sa taille,
 // et se dessinent à n'importe quelle résolution (s : échelle d'un canvas de

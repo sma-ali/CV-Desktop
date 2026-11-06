@@ -39,7 +39,7 @@ const HAND_OFFSET = new Vector3(-1.2, 1.6, 0.4);
 // Les lumières de la pièce : hémisphère (ciel et sol), soleil par la fenêtre
 // (avec ombres), projecteur de la lampe (avec ombres), lueur de l'écran, et
 // la lumière qui accompagne l'objet présenté. Le fond de la scène (posé par
-// le socle) suit l'ambiance. Tout se règle à chaque image d'après frame
+// SceneCanvas) suit l'ambiance. Tout se règle à chaque image d'après frame
 // (lighting.ts), sans jamais allumer ni éteindre une lumière : changer leur
 // nombre recompilerait les shaders.
 export function Lights({ shadows }: { shadows: boolean }) {

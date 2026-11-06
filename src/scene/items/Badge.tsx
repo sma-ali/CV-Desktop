@@ -31,7 +31,7 @@ export function Badge({ texts }: { texts: SceneTexts }) {
   const { content, locale } = texts;
   const front = usePaintedMaterial(
     useMemo(() => paintBadgeFront(content), [content]),
-    // La pochette plastique ternit un peu le recto (teinte du prototype).
+    // La pochette plastique ternit un peu le recto.
     { ...BADGE_TEXTURE, redrawKey: locale, roughness: 0.9, color: 0xc4baa6 },
   );
   const back = usePaintedMaterial(

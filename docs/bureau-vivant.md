@@ -12,7 +12,7 @@ Ce document est le contrat de l'étape : ce que le socle a posé (branche `feat/
 - CSP : `script-src` gagne `'wasm-unsafe-eval'`, qui autorise seulement la compilation de WebAssembly (pas `eval` ni `new Function`). Testé dans `tests/e2e/securite.spec.ts`.
 - Chargement à part : `physics/PhysicsGate.tsx` importe `PhysicsLayer` (et Rapier avec) dans son propre fichier JavaScript, quand l'arrivée est posée (`phase === 'settled'`), ou plus tôt au premier appui sur un corps. État dans `store.physics` : `'off' | 'loading' | 'ready' | 'failed'` (`data-physics` sur `#hud`). Si Rapier échoue, le bureau reste statique et tout le reste marche (présentation, fiches).
 - `physics/world.ts`, `DeskPhysics` : un monde Rapier piloté à la main, pas fixe de 1/60 s, au plus 4 pas par image (`FIXED_STEP`, `MAX_STEPS_PER_FRAME`). `<Physics paused>` ne sert qu'à charger le WebAssembly ; le monde avance dans `PhysicsLayer`, à `PHYSICS_PRIORITY`. Gravité forte (`GRAVITY` 60) : à l'échelle du bureau, les chutes restent vives.
-- Corps : `BODY_IDS` (`core/ids.ts`) = les 8 objets du CV (`ITEM_BODY_IDS`, casque compris) et les 12 morceaux du décor (`DECOR_BODY_IDS` : tasse, pavé, clavier, souris, lampe, plante, mangas, renard, voyageur, corde, bandes, kimono). Formes simples (boîtes, cylindres, capsules, sphères) : objets du CV dans `physics/shapes.ts` (`ITEM_BODY_SPECS`), décor dans `decor/colliders.ts` (`DECOR_BODY_SPECS`).
+- Corps : `BODY_IDS` (`core/ids.ts`) = les 8 objets du CV (`ITEM_BODY_IDS`, casque compris) et les 12 morceaux du décor (`DECOR_BODY_IDS` : tasse, pavé, clavier, souris, lampe, plante, mangas, renard, voyageur, corde, bandes, kimono). Formes simples (boîtes, cylindres, capsules, sphères) : objets du CV dans `physics/shapes.ts` (`ITEM_BODY_SPECS`), décor dans `physics/decorShapes.ts` (`DECOR_BODY_SPECS`).
 - Fixe : plateau (au format), sol, mur, barrières invisibles autour de la pièce, plafond, l'écran (pied, cou, dalle) avec son post-it, et le support du casque. Le casque, lui, est un corps accroché au support : endormi, il ne bouge que si on le prend ou qu'on le heurte.
 - Au repos, tout dort à sa place d'origine : rien ne bouge sans geste. `store.desk[id]` porte la pose complète de chaque corps (`x, y, z, ry, qx, qy, qz, qw, moved, fallen, hidden`) ; `DeskBody`, `DecorPiece`, `CardPile` et `usePresentation` la dessinent.
 - Glisser : le corps saisi (gravité coupée) suit le point visé par une commande en vitesse, à une hauteur qui passe au-dessus de ce qu'il survole (`GRAB.lift`), et se redresse vers son cap de départ. Il pousse ce qu'il heurte, monte dessus, s'y pose. Au lâcher, il garde son élan (plafonné à `GRAB.maxThrow`), sauf en mouvement réduit.
@@ -42,7 +42,7 @@ Ce document est le contrat de l'étape : ce que le socle a posé (branche `feat/
 
 ### Le pilotage du moteur pour les parties (`gestureHub(store).physics`)
 
-`PhysicsControl` (`physics/world.ts`), null tant que le moteur n'est pas prêt :
+`PhysicsControl` (`core/physicsControl.ts`, implémenté par `physics/world.ts`), null tant que le moteur n'est pas prêt :
 
 - `grab`, `aim`, `release` : le glisser (socle seulement) ;
 - `isAwake(id)` : le corps bouge encore ;

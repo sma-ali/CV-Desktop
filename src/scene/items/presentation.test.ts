@@ -1,6 +1,7 @@
 import { PerspectiveCamera, Quaternion, Vector3 } from 'three';
 import { describe, expect, it } from 'vitest';
-import { HELD_MAX_DISTANCE, ITEM_POSES, MONITOR, POSTIT_ON_MONITOR } from '../core/constants';
+import { ITEM_POSES, MONITOR, POSTIT_ON_MONITOR } from '../core/constants';
+import { HELD_MAX_DISTANCE } from '../core/views';
 import {
   createPresentState,
   followSpin,
@@ -24,7 +25,7 @@ describe('stepToward', () => {
 });
 
 describe('stepPresentation', () => {
-  it('soulève à la vitesse du prototype, puis ouvre ou retourne à mi-chemin', () => {
+  it('soulève à sa vitesse (RATES), puis ouvre ou retourne à mi-chemin', () => {
     const state = createPresentState();
     stepPresentation(state, true, false, 0.1, false);
     expect(state.p).toBeCloseTo(0.1 * RATES.lift);
@@ -130,7 +131,7 @@ describe('le retournement de l’objet tenu', () => {
     const state = createPresentState();
     for (let i = 0; i < 40; i++) stepPresentation(state, true, false, 0.1, false, true);
     expect(state.f).toBe(1);
-    // Remis à l'endroit (un clic sur l'objet tenu) : le geste se défait à la vitesse du prototype.
+    // Remis à l'endroit (un clic sur l'objet tenu) : le geste se défait à sa vitesse (RATES).
     stepPresentation(state, true, false, 0.1, false, false);
     expect(state.f).toBeCloseTo(1 - 0.1 * RATES.flip);
     for (let i = 0; i < 20; i++) stepPresentation(state, true, false, 0.1, false, false);
@@ -192,7 +193,7 @@ describe('followSpin', () => {
     expect(local.angleTo(turned)).toBeCloseTo(0);
   });
 
-  it("garde l'orientation pendant le retour, même si le socle a remis heldSpin à zéro", () => {
+  it("garde l'orientation pendant le retour, même si le store a remis heldSpin à zéro", () => {
     const local = followSpin(new Quaternion(), held(), true, 1, 1 / 60, false);
     // Reposé : heldSpin vaut l'identité, l'objet est encore à mi-chemin.
     followSpin(local, identity, false, 0.5, 1 / 60, false);

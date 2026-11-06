@@ -8,7 +8,7 @@ import { FOOTPRINT_IDS } from '../core/bodies';
 import { useSceneStoreApi } from '../core/store-context';
 import { bodyExtent, fixedExtent, restLimits, screenShare } from './framing';
 
-// Ce qui sort du cadre au repos (partie « objets », cadrage sur téléphone) :
+// Ce qui sort du cadre au repos (cadrage sur téléphone) :
 // toutes les quelques images, une fois l'arrivée finie et rien de présenté
 // ni de tenu, projette l'encombrement de chaque corps du plateau (les huit
 // coins de son rectangle, au ras du plateau et à sa hauteur, à sa place du

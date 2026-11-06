@@ -5,7 +5,7 @@ import { CARD_PILE, CARD_SIZE, pileCorners } from './cardPile';
 
 // La pile sous la carte : tout ce qui se voit de dessus tient dans
 // l'encombrement de la carte. Sans cela, un corps poussé contre la carte
-// s'enfonçait dans la pile (relecture de l'étape 4).
+// s'enfoncerait dans la pile.
 
 describe('la pile sous la carte', () => {
   const { cx, cz, hw, hd } = BODY_FOOTPRINTS.card;

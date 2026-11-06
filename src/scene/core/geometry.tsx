@@ -57,7 +57,7 @@ export function Cyl({
   return <mesh geometry={geometry} castShadow receiveShadow {...props} />;
 }
 
-/** Sphère facettée (icosaèdre) : detail 0 ou 1, comme dans le prototype. */
+/** Sphère facettée (icosaèdre) : detail 0 ou 1. */
 export function Sph({
   radius,
   detail = 0,

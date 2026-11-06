@@ -1,7 +1,5 @@
 import type { ItemId, MoodId } from './ids';
 
-export * from './framing';
-
 // Constantes du prototype (prototype/bureau-plateau.html), portées telles
 // quelles. Repère : le plateau du bureau est en y = 0, x va de -6.6 (gauche)
 // à 6.6 (droite), z de -3.55 (mur du fond) à 3.4 (bord avant, côté visiteur).
@@ -98,10 +96,10 @@ export interface ItemPose {
 }
 
 /**
- * Poses des objets du CV, reprises du prototype. Le post-it est collé au
+ * Poses des objets du CV. Le post-it est collé au
  * cadre de l'écran (voir POSTIT_ON_MONITOR) : sa position ici n'est qu'un
  * repli. Le coffret change de place en portrait (PORTRAIT_PLACES). Netherbrain
- * et Homelab (étape 4) prennent deux places libres : le bocal devant le
+ * et Homelab prennent deux places libres : le bocal devant le
  * clavier, à droite de la lanière du badge ; la baie à l'avant gauche, entre
  * la corde, le coffret et le livre (bodies.test.ts vérifie qu'aucun
  * encombrement ne se chevauche).
@@ -208,15 +206,6 @@ export const POSTIT_ON_MONITOR = {
   rotation: [Math.PI / 2, -0.1, 0] as Vec3,
 } as const;
 
-/**
- * Places de repos de la tasse et de la manette (dessinées dans leur propre
- * repère, contrairement aux autres morceaux du décor).
- */
-export const DECOR_BODY_HOMES = {
-  mug: { x: 4.55, z: -0.62, ry: 0 },
-  pad: { x: 5.1, z: 1.95, ry: 0.45 },
-} as const;
-
 /** Le support du casque, sur lequel le casque est posé. */
 export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
 
@@ -237,8 +226,7 @@ export const headsetPose = (portrait: boolean): Pick<ItemPose, 'x' | 'y' | 'z' |
 
 /**
  * Limites du plateau pour poser ou glisser un objet : aucun rectangle
- * d'encombrement (voir bodies.ts) n'en sort. Celles du prototype, qui
- * bornait le centre des objets.
+ * d'encombrement (voir bodies.ts) n'en sort.
  */
 export const BOUNDS = { x0: -6.15, x1: 6.2, z0: -3.2, z1: 3.05 } as const;
 
@@ -251,7 +239,7 @@ export interface DeskBounds {
 }
 
 /**
- * Le bureau resserré du téléphone en portrait (décision d'Ali du 29/10) :
+ * Le bureau resserré du téléphone en portrait :
  * les objets et le décor se rangent sur une zone plus étroite et plus
  * profonde, pour que le bureau grandisse à l'écran. Le plateau s'allonge
  * vers le visiteur (DESK_PORTRAIT_Z1, ses côtés sortent du cadre) et les

@@ -2,15 +2,16 @@
 
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
-import { smooth } from './arrival';
-import { MOOD_TRANSITION, PORTRAIT_MAX_ASPECT } from './constants';
+import { smooth } from './math';
+import { MOOD_TRANSITION } from './constants';
+import { PORTRAIT_MAX_ASPECT } from './views';
 import { clockHold } from './loading';
 import type { MoodId } from './ids';
-import { blendMoodValues, copyMoodValues, moodValues, type MoodValues } from './mood-values';
+import { blendMoodValues, copyMoodValues, moodValues, type MoodValues } from './moodValues';
 import { useSceneStoreApi } from './store-context';
-import { updateFrame } from './store';
+import { updateFrame } from './frame';
 
-/** Priorité du useFrame du socle : avant tous les autres (négative, elle garde le rendu automatique). */
+/** Priorité du useFrame de l'horloge : avant tous les autres (négative, elle garde le rendu automatique). */
 const CLOCK_PRIORITY = -100;
 
 /** Images dessinées avant d'annoncer la scène prête. */
@@ -23,7 +24,7 @@ interface MoodBlend {
   k: number;
 }
 
-// Le cœur du socle : à chaque image, avance l'horloge, recalcule frame
+// Le cœur de la scène : à chaque image, avance l'horloge, recalcule frame
 // (niveaux de l'arrivée, ambiance interpolée, portrait) et met à jour phase
 // et hud dans le store quand ils changent. Suspend l'horloge quand l'onglet
 // est caché.

@@ -1,7 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { Quaternion } from 'three';
 import { getContent } from '../../src/content';
-import { HELD } from '../../src/scene/core/constants';
+import { HELD } from '../../src/scene/core/views';
 import { rotationAngle, SPIN, turnRotation } from '../../src/scene/rotation/trackball';
 
 // La rotation libre de l'objet présenté (partie A de l'étape 6) : glisser

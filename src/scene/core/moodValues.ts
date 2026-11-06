@@ -1,5 +1,6 @@
 import { MOODS, type Vec3 } from './constants';
 import type { MoodId } from './ids';
+import { lerp } from './math';
 
 // Valeurs d'une ambiance, prêtes à interpoler. Couleurs en composantes sRGB
 // (0 à 1) : les appliquer avec color.setRGB(r, g, b, SRGBColorSpace), ou
@@ -56,11 +57,10 @@ export function moodValues(mood: MoodId): MoodValues {
   };
 }
 
-const mix = (a: number, b: number, k: number) => a + (b - a) * k;
 const mixRgb = (a: Rgb, b: Rgb, k: number, out: Rgb) => {
-  out.r = mix(a.r, b.r, k);
-  out.g = mix(a.g, b.g, k);
-  out.b = mix(a.b, b.b, k);
+  out.r = lerp(a.r, b.r, k);
+  out.g = lerp(a.g, b.g, k);
+  out.b = lerp(a.b, b.b, k);
 };
 
 /** Recopie a dans out, sans créer d'objet. */
@@ -76,24 +76,24 @@ export function blendMoodValues(
   out: MoodValues,
 ): MoodValues {
   mixRgb(a.sunColor, b.sunColor, k, out.sunColor);
-  out.sun = mix(a.sun, b.sun, k);
+  out.sun = lerp(a.sun, b.sun, k);
   const dir = normalize([
-    mix(a.dir.x, b.dir.x, k),
-    mix(a.dir.y, b.dir.y, k),
-    mix(a.dir.z, b.dir.z, k),
+    lerp(a.dir.x, b.dir.x, k),
+    lerp(a.dir.y, b.dir.y, k),
+    lerp(a.dir.z, b.dir.z, k),
   ]);
   out.dir.x = dir.x;
   out.dir.y = dir.y;
   out.dir.z = dir.z;
   mixRgb(a.patch, b.patch, k, out.patch);
-  out.patchOpacity = mix(a.patchOpacity, b.patchOpacity, k);
-  out.shaft = mix(a.shaft, b.shaft, k);
+  out.patchOpacity = lerp(a.patchOpacity, b.patchOpacity, k);
+  out.shaft = lerp(a.shaft, b.shaft, k);
   mixRgb(a.hemiSky, b.hemiSky, k, out.hemiSky);
   mixRgb(a.hemiGround, b.hemiGround, k, out.hemiGround);
-  out.hemi = mix(a.hemi, b.hemi, k);
-  out.lamp = mix(a.lamp, b.lamp, k);
+  out.hemi = lerp(a.hemi, b.hemi, k);
+  out.lamp = lerp(a.lamp, b.lamp, k);
   mixRgb(a.wall, b.wall, k, out.wall);
   mixRgb(a.background, b.background, k, out.background);
-  out.dust = mix(a.dust, b.dust, k);
+  out.dust = lerp(a.dust, b.dust, k);
   return out;
 }

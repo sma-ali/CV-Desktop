@@ -9,7 +9,7 @@ import type { SceneFonts } from '../core/fonts';
 
 export const SCREEN_TEXTURE = { width: 2048, height: 1152 } as const;
 
-/** Couleurs de la coloration syntaxique (celles du prototype). */
+/** Couleurs de la coloration syntaxique. */
 const SYNTAX = {
   comment: '#8a7a66',
   string: '#b4c98f',
@@ -113,6 +113,8 @@ export interface ScreenLayout {
 const HEADER = 76;
 const STATUS = 60;
 const PADDING = 26;
+/** Interligne du code, en multiple de la taille de la police. */
+const LINE_HEIGHT_RATIO = 1.24;
 /** Début de la barre d'état, à droite du post-it rose posé sur le cadre. */
 const STATUS_LEFT = 104;
 
@@ -129,13 +131,13 @@ export function screenLayout(
 ): ScreenLayout {
   const count = Math.max(1, lines.length);
   const longest = Math.max(1, ...lines.map((line) => line.length));
-  const byHeight = (height - HEADER - STATUS - PADDING * 2) / (count * 1.24);
+  const byHeight = (height - HEADER - STATUS - PADDING * 2) / (count * LINE_HEIGHT_RATIO);
   // Gouttière des numéros de ligne : environ 2.3 fois la taille de la police.
   const byWidth = (width - PADDING * 2) / (longest * charRatio + 2.3);
   const fontSize = Math.floor(Math.min(byHeight, byWidth));
   return {
     fontSize,
-    lineHeight: Math.floor(fontSize * 1.24),
+    lineHeight: Math.floor(fontSize * LINE_HEIGHT_RATIO),
     top: HEADER + PADDING,
     gutter: Math.round(fontSize * 2.3),
   };

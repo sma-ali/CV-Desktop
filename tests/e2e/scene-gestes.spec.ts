@@ -1,6 +1,7 @@
 import { expect, test, type Page } from '@playwright/test';
 import { homePlace, type DeskPlace } from '../../src/scene/core/bodies';
-import { DESK, HELD } from '../../src/scene/core/constants';
+import { DESK } from '../../src/scene/core/constants';
+import { HELD } from '../../src/scene/core/views';
 import type { BodyId } from '../../src/scene/core/ids';
 
 // Les gestes (étape 4, portés sur le moteur physique à l'étape 6) : prendre,

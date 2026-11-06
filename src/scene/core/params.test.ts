@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_TEST_DRAG, parseTestParams } from './params';
 
+describe('?tourne', () => {
+  it('lit deux angles en radians', () => {
+    expect(parseTestParams('?t=11000&tourne=0.5,-1.2').turn).toEqual({ x: 0.5, y: -1.2 });
+    expect(parseTestParams('?tourne=2,3').turn).toEqual({ x: 2, y: 3 });
+  });
+
+  it('ignore une valeur absente ou illisible', () => {
+    expect(parseTestParams('?t=11000').turn).toBeNull();
+    expect(parseTestParams('?tourne').turn).toBeNull();
+    expect(parseTestParams('?tourne=a,b').turn).toBeNull();
+    expect(parseTestParams('?tourne=1').turn).toBeNull();
+  });
+});
+
 describe('paramètres de test', () => {
   it('donnent les valeurs par défaut sans paramètre', () => {
     expect(parseTestParams('')).toEqual({
@@ -16,16 +30,17 @@ describe('paramètres de test', () => {
       noShadow: false,
       noPost: false,
       scatter: false,
+      turn: null,
     });
   });
 
-  it('lisent ?desordre (étape 6)', () => {
+  it('lisent ?desordre', () => {
     expect(parseTestParams('?t=11000&desordre').scatter).toBe(true);
   });
 
-  it('lisent ?recto et ?glisse (étape 4)', () => {
+  it('lisent ?recto et ?glisse', () => {
     expect(parseTestParams('?prendre=card&recto')).toMatchObject({ present: 'card', recto: true });
-    // ?glisse seul : le portable poussé sur la carte, comme le prototype.
+    // ?glisse seul : le portable poussé sur la carte.
     expect(parseTestParams('?glisse').drag).toEqual(DEFAULT_TEST_DRAG);
     expect(DEFAULT_TEST_DRAG).toEqual({ item: 'laptop', x: -0.3, z: 2.15 });
     expect(parseTestParams('?glisse=mug:1.5,-0.25').drag).toEqual({
@@ -38,7 +53,7 @@ describe('paramètres de test', () => {
     expect(parseTestParams('?glisse=book:1').drag).toBeNull();
   });
 
-  it('lisent ceux du prototype', () => {
+  it("lisent l'horloge, la visite, l'heure, le mouvement réduit et l'objet présenté", () => {
     const params = parseTestParams('?t=11000&fige&auto=0&heure=14.5&reduit&prendre=book');
     expect(params).toMatchObject({
       t: 11,

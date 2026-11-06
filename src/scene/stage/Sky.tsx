@@ -3,7 +3,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useLayoutEffect, useMemo, useRef } from 'react';
 import { PlaneGeometry, ShaderMaterial, type CanvasTexture, type Mesh } from 'three';
-import { smooth } from '../core/arrival';
+import { smooth } from '../core/math';
 import { MOOD_TRANSITION, WINDOW_SKY } from '../core/constants';
 import type { MoodId } from '../core/ids';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';

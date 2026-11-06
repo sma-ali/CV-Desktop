@@ -1,13 +1,7 @@
 import { Euler, Quaternion, Vector3, type PerspectiveCamera } from 'three';
-import { clamp, lerp } from '../core/arrival';
-import {
-  HELD,
-  HELD_MAX_DISTANCE,
-  MONITOR,
-  POSTIT_ON_MONITOR,
-  type ItemPose,
-  type PresentMode,
-} from '../core/constants';
+import { clamp, damp, lerp } from '../core/math';
+import { MONITOR, POSTIT_ON_MONITOR, type ItemPose, type PresentMode } from '../core/constants';
+import { HELD, HELD_MAX_DISTANCE } from '../core/views';
 import type { HeldSpin } from '../core/store';
 
 // La présentation d'un objet du CV (updateItem, heldPose et presentQ du
@@ -19,8 +13,11 @@ import type { HeldSpin } from '../core/store';
 /** Priorité des useFrame des objets : après la caméra de la mise en scène (voir docs). */
 export const ITEMS_PRIORITY = -10;
 
-/** Vitesses du prototype (par seconde) : soulever, reposer, retourner ou ouvrir. */
+/** Vitesses (par seconde) : soulever, reposer, retourner ou ouvrir. */
 export const RATES = { lift: 1.25, putBack: 1.6, flip: 1.15 } as const;
+
+/** Lissage de la lueur du survol : part de l'écart qui reste après une seconde (voir damp). */
+const HOVER_SMOOTHING = 0.002;
 
 /** Relèvement au survol (unités de la scène) et lueur des textures. */
 export const HOVER_LIFT = 0.08;
@@ -66,7 +63,7 @@ export function stepPresentation(
   const gesture = held && flipped && state.p > 0.55 ? 1 : 0;
   state.f = reduced ? gesture : stepToward(state.f, gesture, dt * RATES.flip);
   const hover = hovered && !held ? 1 : 0;
-  state.hover = reduced ? hover : lerp(state.hover, hover, 1 - Math.pow(0.002, dt));
+  state.hover = reduced ? hover : lerp(state.hover, hover, damp(HOVER_SMOOTHING, dt));
   if (Math.abs(state.hover - hover) < 1e-3) state.hover = hover;
   return state;
 }
@@ -219,7 +216,7 @@ export function glowLevel(state: PresentState, base = 0): number {
 
 /**
  * La rotation libre propre à un objet (local), tirée de store.heldSpin. Le
- * socle remet heldSpin à l'identité dès que l'objet est reposé ou qu'un autre
+ * store remet heldSpin à l'identité dès que l'objet est reposé ou qu'un autre
  * est présenté : pendant son retour (p > 0), l'objet garde donc l'orientation
  * où on l'a lâché, et la pose de repos la défait en douceur ; elle n'est
  * oubliée qu'une fois l'objet à sa place. Présenté de nouveau en plein

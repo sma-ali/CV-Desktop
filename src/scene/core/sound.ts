@@ -1,4 +1,4 @@
-// Le son du bureau, vu par ceux qui le déclenchent (étape 4). Les gestes, les
+// Le son du bureau, vu par ceux qui le déclenchent. Les gestes, les
 // objets et le store appellent play(cue) sans rien savoir de la synthèse :
 // tant que le son est coupé, play ne fait rien. La synthèse WebAudio vit
 // dans src/components/desk/sound.ts ; la page l'ouvre par défaut (DeskShell),

@@ -1,3 +1,5 @@
+import { clamp } from './math';
+
 // L'horloge de la scène : T, en secondes depuis le début de l'arrivée.
 // Objet mutable, lu à chaque image ; jamais dans un état React.
 
@@ -39,7 +41,7 @@ export function createClock({ startAt = 0, frozen = false } = {}): Clock {
     tick(now) {
       if (pausedAt !== null) return;
       if (origin === null) origin = now - start;
-      state.dt = last === null ? 1 / 60 : Math.min(MAX_DT, Math.max(0, now - last));
+      state.dt = last === null ? 1 / 60 : clamp(now - last, 0, MAX_DT);
       last = now;
       state.t = state.frozen ? start : now - origin;
     },

@@ -1,6 +1,6 @@
 import type { DeskBodies } from '../core/bodies';
 import { BODY_IDS, isDecorBodyId, type BodyId } from '../core/ids';
-import { DECOR_BODY_SPECS } from '../decor/colliders';
+import { DECOR_BODY_SPECS } from '../physics/decorShapes';
 import { ITEM_BODY_SPECS, lowestPoint, type BodySpec } from '../physics/shapes';
 
 // L'encombrement grossier de chaque corps, d'après ses formes de collision

@@ -243,7 +243,7 @@ export function Gestures() {
         physics.aim(request.x, request.z);
         scene.startDrag(request.item);
         run.startedAt = frame.t;
-        run.lastMoveAt = performance.now() / 1000;
+        run.lastMoveAt = frame.t;
         run.x = body.x;
         run.z = body.z;
         if (settings.frozen) {
@@ -273,16 +273,17 @@ export function Gestures() {
       three.gl.domElement.style.cursor = 'grabbing';
     } else if (request?.item === grabbed) {
       // Fin d'un ?glisse : arrivé, bloqué, ou trop long.
+      // Sur l'horloge de la scène, comme le reste : un onglet caché suspend
+      // la lecture au lieu de la croire bloquée.
       const body = desk[grabbed];
-      const now = performance.now() / 1000;
       if (Math.hypot(body.x - run.x, body.z - run.z) > 1e-3) {
-        run.lastMoveAt = now;
+        run.lastMoveAt = frame.t;
         run.x = body.x;
         run.z = body.z;
       }
       const close = Math.hypot(request.x - body.x, request.z - body.z) < PLAYBACK.close;
       const late =
-        frame.t - run.startedAt > PLAYBACK.timeout || now - run.lastMoveAt > PLAYBACK.stuck;
+        frame.t - run.startedAt > PLAYBACK.timeout || frame.t - run.lastMoveAt > PLAYBACK.stuck;
       if (close || late) letGo(store, false);
     }
 

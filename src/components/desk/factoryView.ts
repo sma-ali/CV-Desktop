@@ -1,19 +1,30 @@
 import {
   FACTORY_GENRES,
+  LIFE_SIGNS_DAYS,
   type FactoryGenreId,
   type LifeSigns,
-  type LifeSignsTexts,
 } from '@/lib/life-signs';
 import type { SheetsContent } from '@/content/sheets/schema';
-import { chestLiveView, normalizeActivity, type ActivityBar } from './lifeSignsView';
 
-// Ce que la fiche de l'usine affiche : le circuit, les chiffres globaux, et
-// un onglet par genre. Les chiffres viennent des signes de vie (JSON public
-// filtré, ou l'exemple) ; les vues et les j'aime s'affichent en « plus de
-// N », arrondi vers le bas, jamais au-dessus du vrai chiffre. Fonction pure :
-// la fiche l'appelle avec Date.now(), les tests avec un instant fixe.
+// Ce que la fiche de l'usine affiche : le circuit, les chiffres globaux, un
+// graphique global sur 14 jours, et un onglet par genre. Les chiffres
+// viennent des signes de vie (JSON public filtré et arrondi par le serveur,
+// ou l'exemple) ; vidéos, vues et j'aime s'affichent en « plus de N »,
+// arrondi vers le bas, jamais au-dessus du vrai chiffre. Aucun chiffre par
+// genre, jamais d'heure : rien qui permette de recouper avec une chaîne.
+// Fonction pure : la fiche l'appelle avec Date.now(), les tests avec un
+// instant fixe. Les données viennent d'un JSON public : elles sont
+// relues avec méfiance (nombres faux, dates illisibles).
 
 export type FactoryTexts = SheetsContent['ui']['factory'];
+
+const DAY = 86_400_000;
+
+/** Une barre du graphique : la valeur du jour et sa hauteur, de 0 à 1. */
+interface ActivityBar {
+  value: number;
+  level: number;
+}
 
 interface FactoryFigure {
   value: string;
@@ -27,18 +38,22 @@ interface FactoryGenreView {
   tab: string;
   title: string;
   body: string;
-  rows: { term: string; value: string }[];
-  bars: ActivityBar[];
-  /** Le texte équivalent du graphique (aria-label). */
-  chartLabel: string;
-  legend: string;
+  rows: readonly { term: string; value: string }[];
 }
 
 export interface FactoryView {
   sample: boolean;
-  /** « En marche | dernière vidéo il y a 2 h 14 », ou « En marche » seul. */
+  /** « En marche | dernière vidéo hier », ou « En marche » seul. */
   status: string;
   figures: FactoryFigure[];
+  /** « depuis octobre 2026 », ou rien si la date est illisible. */
+  since: string | null;
+  /** Les LIFE_SIGNS_DAYS barres, du plus ancien jour au jour de la mesure. */
+  bars: ActivityBar[];
+  /** Le texte équivalent du graphique (aria-label). */
+  chartLabel: string;
+  axisStart: string;
+  axisEnd: string;
   genres: FactoryGenreView[];
 }
 
@@ -49,6 +64,19 @@ const fill = (template: string, values: Record<string, string | number>) =>
 
 const clean = (value: unknown): number =>
   typeof value === 'number' && Number.isFinite(value) ? Math.max(0, value) : 0;
+
+/** Un nombre de vidéos propre : entier, jamais négatif ni absent. */
+const cleanCount = (value: unknown): number => Math.round(clean(value));
+
+/**
+ * Les 14 derniers jours, quel que soit ce qu'on reçoit : trop court, on
+ * complète par des jours vides au début ; trop long, on garde la fin.
+ */
+export function normalizeActivity(activity: readonly unknown[] | undefined): number[] {
+  const values = (Array.isArray(activity) ? activity : []).map(cleanCount);
+  const recent = values.slice(-LIFE_SIGNS_DAYS);
+  return [...Array<number>(LIFE_SIGNS_DAYS - recent.length).fill(0), ...recent];
+}
 
 /**
  * Un grand nombre arrondi VERS LE BAS à deux chiffres significatifs, en
@@ -64,14 +92,30 @@ export function floorCompact(n: number, locale: string): string {
   return new Intl.NumberFormat(locale, options).format(Math.floor(clean(n)));
 }
 
-const plain = (n: number, locale: string, digits = 0) =>
-  new Intl.NumberFormat(locale, { maximumFractionDigits: digits }).format(clean(n));
+const plain = (n: number, locale: string) => new Intl.NumberFormat(locale).format(cleanCount(n));
+
+/** Jours UTC entiers entre deux instants (jamais négatifs), ou null si l'un est illisible. */
+function daysBetween(from: string, now: number): number | null {
+  const start = Date.parse(from);
+  if (!Number.isFinite(start) || !Number.isFinite(now)) return null;
+  return Math.max(0, Math.floor(now / DAY) - Math.floor(start / DAY));
+}
+
+/** « octobre 2026 », « October 2026 » : le mois et l'année (UTC), ou null. */
+function monthYear(iso: string, locale: string): string | null {
+  const time = Date.parse(iso);
+  if (!Number.isFinite(time)) return null;
+  return new Intl.DateTimeFormat(locale, {
+    month: 'long',
+    year: 'numeric',
+    timeZone: 'UTC',
+  }).format(time);
+}
 
 export function factoryView(
   signs: LifeSigns | null,
   now: number,
   texts: FactoryTexts,
-  live: LifeSignsTexts,
   locale: string,
 ): FactoryView | null {
   const stats = signs?.factory;
@@ -80,61 +124,49 @@ export function factoryView(
   const plural = (forms: { one: string; other: string }, n: number) =>
     new Intl.PluralRules(locale).select(n) === 'one' ? forms.one : forms.other;
 
-  const liveView = chestLiveView(signs, now, live, locale);
-  const status = liveView
-    ? `${texts.status} | ${fill(texts.last, { ago: liveView.lastActivity })}`
-    : texts.status;
+  const days = daysBetween(signs.lastActivityAt, now);
+  const ago =
+    days === null
+      ? null
+      : days === 0
+        ? texts.ago.today
+        : days === 1
+          ? texts.ago.yesterday
+          : fill(plural(texts.ago.days, days), { n: days });
+  const status = ago ? `${texts.status} | ${fill(texts.last, { ago })}` : texts.status;
 
-  const channels = Math.round(clean(stats.channels));
-  const videos = Math.round(clean(stats.videos));
+  const channels = cleanCount(stats.channels);
+  const videos = cleanCount(stats.videos);
   const figures: FactoryFigure[] = [
     {
       value: plain(channels, locale),
       label: plural(texts.figures.channels, channels),
       wide: false,
     },
-    { value: plain(videos, locale), label: plural(texts.figures.videos, videos), wide: false },
-    { value: plain(stats.perDay, locale, 1), label: texts.figures.perDay, wide: false },
+    { value: more(videos), label: plural(texts.figures.videos, videos), wide: false },
+    { value: plain(stats.perDay, locale), label: texts.figures.perDay, wide: false },
     { value: more(stats.views), label: texts.figures.views, wide: true },
     { value: more(stats.likes), label: texts.figures.likes, wide: true },
   ];
 
+  const date = monthYear(signs.since, locale);
+  const activity = normalizeActivity(signs.activity);
+  const max = Math.max(1, ...activity);
+
   const genres = FACTORY_GENRES.map((id): FactoryGenreView => {
-    const copy = texts.genres[id];
-    const genre = stats.genres[id];
-    const rows = [...copy.rows, { term: texts.stats.views, value: more(genre.views) }];
-    const percent = (n: number) => plain(n, locale);
-    if (genre.retention !== undefined) {
-      rows.push({
-        term: texts.stats.retention,
-        value: fill(texts.stats.retentionValue, { n: percent(genre.retention) }),
-      });
-    }
-    if (genre.rejected !== undefined) {
-      rows.push({
-        term: texts.stats.rejected,
-        value: fill(texts.stats.rejectedValue, { n: percent(genre.rejected) }),
-      });
-    }
-    if (genre.minutes !== undefined) {
-      rows.push({
-        term: texts.stats.production,
-        value: fill(texts.stats.productionValue, { n: plain(genre.minutes, locale) }),
-      });
-    }
-    const activity = normalizeActivity(genre.activity);
-    const max = Math.max(1, ...activity);
-    return {
-      id,
-      tab: copy.tab,
-      title: copy.title,
-      body: copy.body,
-      rows,
-      bars: activity.map((value) => ({ value, level: value / max })),
-      chartLabel: fill(texts.chart, { days: activity.length, values: activity.join(', ') }),
-      legend: fill(texts.legend, { days: activity.length }),
-    };
+    const { tab, title, body, rows } = texts.genres[id];
+    return { id, tab, title, body, rows };
   });
 
-  return { sample: signs.sample, status, figures, genres };
+  return {
+    sample: signs.sample,
+    status,
+    figures,
+    since: date ? fill(texts.since, { date }) : null,
+    bars: activity.map((value) => ({ value, level: value / max })),
+    chartLabel: fill(texts.chart, { days: LIFE_SIGNS_DAYS, values: activity.join(', ') }),
+    axisStart: fill(texts.axisStart, { days: LIFE_SIGNS_DAYS }),
+    axisEnd: texts.axisEnd,
+    genres,
+  };
 }

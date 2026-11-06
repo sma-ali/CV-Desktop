@@ -13,7 +13,7 @@ Référence de comportement : `prototype/bureau-plateau.html` (gestes et clic l.
 3. **Glisser** : livre, badge, portable, carte, coffret, Netherbrain, Homelab, tasse et manette. Seuil de 7 px, capture du pointeur, l'objet se soulève un peu, s'incline selon sa vitesse, rebondit et s'écrase au lâcher, pousse les autres. Collisions entre rectangles orientés (OBB), contre le décor, les autres corps et les bords (`BOUNDS`, `BOUNDS_PORTRAIT` sur le bureau resserré) ; un portable ne chevauche plus la carte. Petit solveur 2D maison, pur, déterministe et testé (pas de moteur tiers : WASM et workers sont interdits par la CSP). Les places tiennent jusqu'à « Rejouer ». Un clic reste un clic (moins de 7 px) ; un glisser ne présente pas l'objet.
 4. **Fiches** : une fiche HTML par objet, ouverte quand il est présenté (sur-titre, étape, titre, méta, texte, note, appel au contact, Préc. / Reposer / Suiv., flèches, Échap). Sur téléphone, elle monte du bas sans cacher l'objet tenu. Focus géré, titre annoncé, cibles de 44 px.
 5. **Netherbrain et Homelab** : un bocal au cerveau qui luit (retourné : son étiquette et sa pile), une mini baie de 10 pouces aux LED qui clignotent. Lien GitHub seulement si `repository.public` (depuis le 05/11/2026 : Homelab, vers sa vitrine publique sma-ali/Homelab-Demo ; Netherbrain reste privé).
-6. **Coffret et signes de vie** : projets en marche, dernière activité, en route depuis, graphique sur 14 jours (`role="img"` et texte équivalent), mention « Données d'exemple ». La LED et le liseré battent au rythme de l'activité.
+6. **Coffret et signes de vie** : remplacés par la fiche de l'usine (voir [`usine-et-intro.md`](usine-et-intro.md)) : chiffres globaux arrondis, dernière vidéo en jours, graphique global sur 14 jours (`role="img"` et texte équivalent), mention « Données d'exemple ». La LED et le liseré battent au rythme de l'activité.
 7. **Son** : synthèse WebAudio, aucun fichier. Depuis le 04/11, ouvert par défaut et sans bouton ; l'AudioContext se crée au premier geste du visiteur (règle des navigateurs).
 8. **Téléphone** : en portrait (390x844, 360x740, 412x915) et en paysage (844x390), tout le bureau utile tient à l'écran, coffret compris, sans grande bande vide : en portrait, le bureau se resserre (voir « Le bureau resserré du portrait »). Glisser au doigt sans faire défiler la page, tap pour prendre.
 9. **Mouvement réduit** : glisser reste possible, sans rebond ni inclinaison ; retournement et présentation immédiats.
@@ -150,19 +150,19 @@ Qui appelle quoi : le store (`pick`, `putBack`, `hum`, `flip`, `slide`, `switch`
 
 ```ts
 interface LifeSigns {
-  running: number; // projets en marche
-  lastActivityAt: string; // ISO 8601
-  since: string; // ISO 8601, premier jour
+  lastActivityAt: string; // ISO 8601, début du jour UTC de la dernière vidéo
+  since: string; // ISO 8601, premier jour du mois UTC du début
   activity: readonly number[]; // LIFE_SIGNS_DAYS (14) jours, du plus ancien au jour de la mesure
-  measuredAt: string; // ISO 8601
+  measuredAt: string; // ISO 8601, à l'heure pleine
   sample: boolean; // données d'exemple
+  factory: FactoryStats; // chiffres globaux arrondis : channels, videos, perDay, views, likes
 }
 ```
 
-- `sample.ts` : `SAMPLE_LIFE_SIGNS` et `sampleLifeSigns(now)`, signalés comme données d'exemple (valeurs du prototype : 3 projets, 2 h 14, 47 jours).
+- `sample.ts` : `sampleLifeSigns(now)`, signalés comme données d'exemple, déjà arrondis, et qui ne ressemblent pas aux vrais chiffres (6 chaînes, 200 vidéos, 8 par jour) ; `rebaseLifeSigns(signs, now)` recale l'exemple sur l'heure du visiteur (la page est rendue au build).
 - `source.ts` : `getLifeSigns(now?)`, le point d'entrée du serveur. Depuis l'étape 5 : le JSON public (`LIFE_SIGNS_URL`), validé par `schema.ts`, avec repli sur l'exemple ; partagé par la page (régénérée toutes les 10 minutes) et `/api/signes-de-vie`. Le navigateur les rafraîchit à l'ouverture du coffret (`src/components/desk/lifeSignsRefresh.ts`). Voir [`routes-serveur.md`](routes-serveur.md).
-- `types.ts` : `rebaseLifeSigns(signs, now)` recale l'exemple sur l'heure du visiteur (la page est rendue au build) ; `activityPulse(signs)` donne `{ period, strength }` du battement du coffret (de 3.4 s et 0.35 au calme à 1.6 s et 1 quand les trois derniers jours sont les plus actifs).
-- `format.ts` : `formatLifeSigns(signs, now, texts, locale)` donne `{ running, lastActivity, since, activity, max, chartLabel, axisStart, axisEnd, sample }` ; `agoText()` pour « il y a 2 h 14 » ou « 2 h 14 min ago ». Gabarits dans `content.sheets.ui.live`.
+- `types.ts` : `activityPulse(signs)` donne `{ period, strength }` du battement du coffret (de 3.4 s et 0.35 au calme à 1.6 s et 1 quand les trois derniers jours sont les plus actifs).
+- La mise en mots est dans `src/components/desk/factoryView.ts` (gabarits dans `content.sheets.ui.factory`).
 
 Chemin : `page.tsx` (serveur) appelle `getLifeSigns()` et passe le résultat à `DeskShell` (prop `lifeSigns`), qui le met dans le store (`createSceneStore(mood, { sound, lifeSigns })`, puis `setLifeSigns(rebaseLifeSigns(...))` côté client). La fiche et le coffret lisent `store.lifeSigns`. La règle ESLint reste respectée : `src/lib/life-signs` n'importe ni zod ni le contenu.
 
@@ -170,7 +170,7 @@ Chemin : `page.tsx` (serveur) appelle `getLifeSigns()` et passe le résultat à 
 
 Tout est écrit et testé par le socle ; les parties ne touchent pas `src/content`.
 
-- `content.sheets` (`src/content/sheets/`) : `ui` (libellés de la fiche, `flipKey`, `contact`, `repository`, `sound`, `live` pour les signes de vie) et `items`, une fiche par objet dans l'ordre de `SHEET_ORDER` : `{ kicker, step, title, meta: { term, value, href? }[], body, note? }`. `sheets.test.ts` compare chaque fait au CV (périodes au mois près, rôles, organisations, pile groupe par groupe, projets, contact) et refuse tout lien vers un dépôt.
+- `content.sheets` (`src/content/sheets/`) : `ui` (libellés de la fiche, `flipKey`, `contact`, `repository`, `sound`, `factory` pour la fiche de l'usine) et `items`, une fiche par objet dans l'ordre de `SHEET_ORDER` : `{ kicker, step, title, meta: { term, value, href? }[], body, note? }`. `sheets.test.ts` compare chaque fait au CV (périodes au mois près, rôles, organisations, pile groupe par groupe, projets, contact) et refuse tout lien vers un dépôt.
 - Côté HUD : `DeskHudTexts.sheets` (`buildDeskSheets` dans `src/lib/desk.ts`) ajoute `contactHref` (`/fr/express#contact`) et, par fiche, `repository: { label, href } | null`, non nul seulement si `repository.public`.
 - `content.desk.hint` gagne `held: { pointer, touch }` (comment retourner l'objet tenu) ; `pointer` et `touch` parlent du glisser.
 - `content.scene` : étiquettes `netherbrain` et `homelab` (« 2026 »), celle du portable devient « Pile | Compétences » ; `scene.netherbrain.label` (nom, accroche, année, pile, tests) et `scene.homelab` (nom, `units.server`, `units.firewall`, `access`), comparés au CV.
@@ -288,7 +288,7 @@ Fiches et son (`src/components/desk/`) :
 - La fiche s'appelle `.bristol` en CSS : `.sheet` reste le cadre du repli (version express).
 - Sous `?fige`, l'animation d'entrée de la fiche est coupée (sinon elle resterait gelée à opacité 0) : toute nouvelle animation d'entrée du HUD a le même piège.
 - L'indication du HUD (`#hud p[data-on]`, seul de son espèce) se découpe en phrases, une par ligne sur téléphone ; avec la fiche ouverte, elle se centre à gauche de la fiche sous 1300 px et se masque en portrait.
-- Signes de vie : `lifeSignsView.ts` (pur, testé) appelle `formatLifeSigns` et résiste aux données mal formées ; l'horloge de la fiche avance par pas de 20 s et ne remonte jamais avant `measuredAt`.
+- Signes de vie : `factoryView.ts` (pur, testé) résiste aux données mal formées ; l'horloge de la fiche avance par pas de 20 s et ne remonte jamais avant `measuredAt`.
 - `createWebAudioSound()` : les 11 sons d'après `Snd` du prototype, un souffle de pièce et un compresseur, sans fichier. L'AudioContext naît au premier `setEnabled(true)` ; couper met le gain à 0 et suspend le contexte. La préférence du son n'est pas gardée d'une page à l'autre : la rouvrir sans clic créerait un AudioContext sans geste du visiteur.
 
 Objets et cadrage (`src/scene/items/`, `src/scene/stage/`) :

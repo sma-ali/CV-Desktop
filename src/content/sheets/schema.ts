@@ -39,26 +39,6 @@ const template = (...keys: string[]) =>
 
 const pluralSchema = z.strictObject({ one: template('n'), other: template('n') });
 
-// Les signes de vie du coffret (src/lib/life-signs/format.ts, LifeSignsTexts).
-const liveSchema = z.strictObject({
-  title: text,
-  sample: text,
-  running: text,
-  last: text,
-  since: text,
-  chart: template('days', 'values'),
-  axisStart: template('days'),
-  axisEnd: text,
-  ago: z.strictObject({
-    now: text,
-    minutes: template('n'),
-    hours: template('h'),
-    hoursMinutes: template('h', 'mm'),
-    days: pluralSchema,
-  }),
-  age: pluralSchema,
-});
-
 // Un genre montré en exemple dans la fiche de l'usine : jamais de nom de
 // chaîne, de compte ni de lien (sheets.test.ts le vérifie).
 const genreSchema = z.strictObject({
@@ -70,14 +50,21 @@ const genreSchema = z.strictObject({
 });
 
 // La fiche de l'usine (FactoryPanel) : le circuit, les chiffres globaux et
-// les genres en onglets. Les chiffres viennent des signes de vie.
+// les genres en onglets. Les chiffres, globaux, viennent des signes de vie ;
+// aucun chiffre par genre.
 const factorySchema = z.strictObject({
   circuitLabel: text,
   /** Les cinq étapes ; la troisième, la validation humaine, est mise en avant. */
   circuit: z.array(text).length(5),
   status: text,
+  /** La mention des données d'exemple. */
+  sample: text,
   last: template('ago'),
+  /** La dernière vidéo, en jours UTC : jamais d'heure ni de minute. */
+  ago: z.strictObject({ today: text, yesterday: text, days: pluralSchema }),
   more: template('n'),
+  /** « depuis octobre 2026 » : {date} est le mois et l'année. */
+  since: template('date'),
   figures: z.strictObject({
     // Le libellé sous le chiffre, au singulier ou au pluriel (sans {n}).
     channels: z.strictObject({ one: text, other: text }),
@@ -87,17 +74,10 @@ const factorySchema = z.strictObject({
     likes: text,
   }),
   tabsLabel: text,
-  stats: z.strictObject({
-    views: text,
-    retention: text,
-    retentionValue: template('n'),
-    rejected: text,
-    rejectedValue: template('n'),
-    production: text,
-    productionValue: template('n'),
-  }),
+  /** Le graphique global sur 14 jours : texte équivalent et bornes de l'axe. */
   chart: template('days', 'values'),
-  legend: template('days'),
+  axisStart: template('days'),
+  axisEnd: text,
   genres: z.strictObject({
     fantasy: genreSchema,
     philosophy: genreSchema,
@@ -125,7 +105,6 @@ const uiSchema = z.strictObject({
   contact: text,
   /** Le lien vers le dépôt d'un projet public. */
   repository: text,
-  live: liveSchema,
   factory: factorySchema,
 });
 

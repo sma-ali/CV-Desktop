@@ -12,27 +12,29 @@ Décision du 04/11/2026 : le coffret scellé devient une mini usine, et l'écran
 ## L'usine
 
 - **Modèle** (`src/scene/items/Factory.tsx`) : halle en brique à trois toits, bureau aux fenêtres allumées, cheminée qui fume, tapis roulant qui sort des cassettes. Même encombrement et même forme physique que le coffret ; l'identifiant interne reste `chest` (paramètres `?prendre=chest`, tests, physique). Présentée, elle fait un demi-tour (mode `spin`) ; le tremblement du coffret et son bruit sont retirés. Son rythme suit `activityPulse` (`factory.ts`).
-- **Fiche** (`FactoryPanel.tsx`, `factoryView.ts`) : état « En marche | dernière vidéo il y a… », circuit en cinq étapes (validation humaine mise en avant), chiffres globaux (chaînes, vidéos, vidéos par jour, vues et j'aime en « plus de N » arrondi vers le bas), puis un genre par onglet (récits de fantasy, philosophie, billes 3D, quiz) avec ses lignes et son graphique sur 14 jours. Onglets ARIA, flèches gauche et droite, Début et Fin.
-- **Données** : champ `factory` facultatif du JSON public (`src/lib/life-signs/schema.ts`), validé par zod côté serveur et vérifié à nouveau dans le navigateur (`lifeSignsRefresh.ts`). Sans lui, la fiche garde l'ancien bloc des signes de vie.
+- **Fiche** (`FactoryPanel.tsx`, `factoryView.ts`) : état « En marche | dernière vidéo aujourd'hui » (ou « hier », « il y a N jours », en jours UTC, jamais d'heure ni de minute), circuit en cinq étapes (validation humaine mise en avant), chiffres globaux (chaînes en entier, vidéos en « plus de N », vidéos par jour en entier, vues et j'aime en « plus de N » arrondi vers le bas), « depuis octobre 2026 » (mois et année), un seul graphique global sur 14 jours (`role="img"`, texte équivalent, bornes de l'axe), puis un genre par onglet (récits de fantasy, philosophie, billes 3D, quiz) avec son texte et ses lignes descriptives, sans aucun chiffre ni graphique. Onglets ARIA, flèches gauche et droite, Début et Fin.
+- **Données** : format 2 du JSON public (`src/lib/life-signs/schema.ts`), validé par zod côté serveur, arrondi, puis vérifié à nouveau dans le navigateur (`lifeSignsRefresh.ts`). `factory` est obligatoire ; l'ancien bloc « Signes de vie » de la fiche n'existe plus.
 
 ```json
-"factory": {
-  "channels": 7, "videos": 412, "perDay": 5, "views": 2431000, "likes": 38412,
-  "genres": {
-    "fantasy":    { "views": 312400, "retention": 41, "rejected": 14, "minutes": 22, "activity": [14 entiers] },
-    "philosophy": { "views": 0, "activity": [14 entiers] },
-    "marbles":    { "views": 0, "activity": [14 entiers] },
-    "quiz":       { "views": 0, "activity": [14 entiers] }
-  }
+{
+  "version": 2,
+  "measuredAt": "2026-11-06T01:00:00Z",
+  "lastActivityAt": "2026-11-05T00:00:00Z",
+  "since": "2026-10-01T00:00:00Z",
+  "activity": [14 entiers],
+  "factory": { "channels": 9, "videos": 350, "perDay": 16, "views": 300000, "likes": 17000 }
 }
 ```
 
-`retention`, `rejected` (en %) et `minutes` sont facultatifs : absents, leur ligne ne s'affiche pas.
+`activity` : vidéos publiées chacun des 14 derniers jours, toutes chaînes mêlées, du plus ancien au jour de la mesure. Aucun chiffre par genre : un genre peut n'être qu'une chaîne, et ses chiffres permettraient de la retrouver en les recoupant avec des compteurs publics.
+
+**Arrondi côté serveur** (défense en profondeur, `parsePublicLifeSigns`) : même si la source envoyait des chiffres exacts, rien de précis ne sort. `videos`, `views` et `likes` gardent deux chiffres significatifs, arrondis vers le bas (`floorSignificant` : 303 174 donne 300 000, 353 donne 350) ; `perDay` est arrondi à l'entier le plus proche ; `measuredAt` à l'heure pleine (UTC, vers le bas), `lastActivityAt` au début du jour UTC, `since` au premier jour du mois UTC. L'ordre des dates se vérifie avant l'arrondi, qui le garde : un JSON valide n'est jamais refusé à cause de lui. Les champs inconnus (un ancien `genres`, `running`...) ne ressortent pas.
 
 ## Règles de confidentialité
 
 - Aucun nom de chaîne, de compte, de plateforme, ni aucun lien dans la fiche : des genres seulement. Testé dans `src/content/content.test.ts`.
-- Les chiffres de l'exemple (`sample.ts`) viennent de la maquette : ils sont affichés avec la mention « Données d'exemple » et doivent être recomptés avant la mise en ligne (le nombre de chaînes compte celles produites par l'usine, publication automatique ou validée à la main).
+- Seuls des chiffres globaux et arrondis sortent (voir « Arrondi côté serveur ») : ni chiffre par genre, ni heure de la dernière vidéo, ni date exacte de début.
+- Les chiffres de l'exemple (`sample.ts`) ne ressemblent pas aux vrais, exprès : ils sont affichés avec la mention « Données d'exemple ». Les vrais sont recomptés à la source (le nombre de chaînes compte celles produites par l'usine, publication automatique ou validée à la main).
 
 ## Retours du 04/11 (après la première version)
 

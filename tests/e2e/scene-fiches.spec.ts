@@ -221,7 +221,7 @@ test.describe("la fiche de l'usine", () => {
     test(`montre le circuit, les chiffres et les genres, sans rien trahir (${locale})`, async ({
       page,
     }) => {
-      const { live, factory } = getContent(locale).sheets.ui;
+      const { factory } = getContent(locale).sheets.ui;
       await page.goto(at(locale, 'prendre=chest'));
       await waitForScene(page);
       await expect(sheet(page)).toHaveAttribute('data-sheet', 'chest');
@@ -231,14 +231,25 @@ test.describe("la fiche de l'usine", () => {
         /\s+/g,
         ' ',
       );
+      // L'exemple est recalé sur l'heure du visiteur : dernière vidéo le jour même.
       expect(status).toBe(
-        locale === 'fr'
-          ? 'En marche | dernière vidéo il y a 2 h 14'
-          : 'Running | last video 2 h 14 min ago',
+        locale === 'fr' ? "En marche | dernière vidéo aujourd'hui" : 'Running | last video today',
       );
-      await expect(block).toContainText(live.sample);
+      await expect(block).toContainText(factory.sample);
       await expect(block.getByRole('listitem')).toHaveText(factory.circuit);
       await expect(block).toContainText(factory.figures.views);
+      await expect(block.locator('[data-factory-since]')).toHaveText(
+        locale === 'fr' ? /^depuis \p{L}+ \d{4}$/u : /^since \p{L}+ \d{4}$/u,
+      );
+
+      // Un seul graphique, global, sur 14 jours.
+      const chart = block.getByRole('img');
+      await expect(chart).toHaveCount(1);
+      await expect(chart).toHaveAttribute(
+        'aria-label',
+        /6, 9, 7, 8, 5, 10, 8, 7, 9, 6, 8, 11, 7, 8/,
+      );
+      await expect(chart.locator('i')).toHaveCount(14);
 
       // Un onglet par genre ; les flèches passent de l'un à l'autre.
       const tabs = block.getByRole('tab');
@@ -256,10 +267,9 @@ test.describe("la fiche de l'usine", () => {
       await expect(panel).toContainText(factory.genres.quiz.title);
       await tabs.nth(2).click();
       await expect(panel).toContainText(factory.genres.marbles.title);
-
-      const chart = panel.getByRole('img');
-      await expect(chart).toHaveAttribute('aria-label', /6, 7, 6, 8, 7, 7, 8, 6, 7, 8, 8, 7, 8, 8/);
-      await expect(chart.locator('i')).toHaveCount(14);
+      // Aucun chiffre ni graphique par genre.
+      await expect(panel.getByRole('img')).toHaveCount(0);
+      expect(await panel.innerText()).not.toMatch(/\d\s*%|\d{2,}/);
 
       // Aucune chaîne, aucun compte, aucun lien.
       const text = await sheet(page).innerText();

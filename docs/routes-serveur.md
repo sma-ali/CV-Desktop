@@ -7,7 +7,7 @@ Ce document fixe le contrat de l'étape 5 : le formulaire de contact (`/api/cont
 1. **`/api/contact`** : POST seulement, en JSON (envoi par `fetch`) ou en `application/x-www-form-urlencoded` (formulaire sans JavaScript). Validation zod côté serveur avec les mêmes limites que le navigateur, piège à robots, saisie trop rapide, contrôle de l'origine, corps borné, limite de débit, envoi par Mailjet ou dry run.
 2. **Le formulaire** : un composant client unique (`src/components/contact/ContactForm.tsx`), accessible, qui marche aussi sans JavaScript. Il apparaît dans la version express (section Contact, ancre `#contact`) et dans la fiche de la carte de visite du bureau.
 3. **`/api/signes-de-vie`** : GET et HEAD. Lecture d'un JSON public (adresse dans `LIFE_SIGNS_URL`), validée et filtrée par liste blanche, avec cache et repli sur les données d'exemple. Jamais d'erreur 500.
-4. **Le bureau** : la page se régénère toutes les 10 minutes, et le navigateur rafraîchit les signes de vie à l'ouverture de la fiche du coffret si leur mesure a plus de 10 minutes.
+4. **Le bureau** : la page se régénère toutes les 10 minutes, et le navigateur rafraîchit les signes de vie à l'ouverture de la fiche du coffret si leur mesure a plus de 70 minutes (10 minutes, plus l'heure que l'arrondi de `measuredAt` peut ajouter).
 
 Aucune des deux routes n'envoie d'en-tête CORS.
 
@@ -129,28 +129,45 @@ GET et HEAD, toujours 200, JSON `LifeSigns`, `Cache-Control: public, max-age=0, 
 - adresse dans `LIFE_SIGNS_URL`, https seulement, variable serveur jamais envoyée au navigateur ;
 - `fetch` hors du cache de fetch de Next (`cache: 'no-store'`), délai de 3 s, redirections refusées, 32 Kio lus au plus ;
 - le résultat validé, quelques centaines d'octets, est gardé 600 s par `unstable_cache` (clé `life-signs`, sans l'adresse). Un échec n'est jamais gardé : la lecture suivante réessaie ;
-- validation zod (`schema.ts`), puis liste blanche : seuls les champs connus ressortent, même si le JSON en contient d'autres ;
+- validation zod (`schema.ts`), puis liste blanche et arrondi : seuls les champs connus ressortent, même si le JSON en contient d'autres, et aucun chiffre ni aucune date précise (voir plus bas) ;
 - au moindre échec, données d'exemple (`sample: true`). Le journal dit « signes de vie : données d'exemple, cause <code> », sans l'adresse. Codes : `missing_url` (journalisé une fois par processus), `invalid_url`, `http_error`, `timeout`, `network`, `too_large`, `invalid_json`, `invalid_format`.
 
 La page du bureau exporte `revalidate = 600` : le premier affichage porte des signes de vie de moins de 10 minutes environ.
 
-### Format attendu
+### Format attendu (version 2)
 
 ```jsonc
 {
-  "running": 3, // entier >= 0, projets en marche
-  "lastActivityAt": "2026-11-02T10:16:00Z", // ISO 8601 avec fuseau (Z ou +01:00)
-  "since": "2026-09-16T09:00:00Z", // premier jour, <= lastActivityAt
-  "activity": [3, 5, 2, 0, 4, 6, 3, 7, 5, 2, 6, 4, 8, 5], // exactement 14 entiers >= 0, du plus ancien au jour de la mesure
-  "measuredAt": "2026-11-02T12:30:00Z", // >= lastActivityAt, au plus 5 min dans le futur
+  "version": 2, // obligatoire
+  "measuredAt": "2026-11-06T01:00:00Z", // ISO 8601 avec fuseau (Z ou +01:00), au plus 5 min dans le futur
+  "lastActivityAt": "2026-11-05T00:00:00Z", // dernière vidéo publiée, <= measuredAt
+  "since": "2026-10-01T00:00:00Z", // premier jour de l'usine, <= lastActivityAt
+  "activity": [12, 15, 9, 0, 14, 17, 11, 16, 15, 12, 16, 14, 18, 15], // exactement 14 entiers >= 0 : vidéos publiées chaque jour, toutes chaînes mêlées, du plus ancien au jour de la mesure
+  "factory": {
+    "channels": 9, // entier >= 0
+    "videos": 350, // entier >= 0, depuis le début
+    "perDay": 16, // nombre >= 0, moyenne
+    "views": 300000, // entier >= 0, toutes chaînes
+    "likes": 17000, // entier >= 0, toutes chaînes
+  },
 }
 ```
 
-Tout autre champ est ignoré ; `sample` est posé par le serveur. Le fichier doit être servi en https, sans redirection, et peser moins de 32 Kio. Il ne doit contenir aucun nom, aucun hôte, aucune adresse. Pour élargir le format plus tard (le contenu du coffret va changer) : ajouter le champ dans `schema.ts` et dans `LifeSigns` (`types.ts`), puis dans `toLifeSigns()` (`lifeSignsRefresh.ts`).
+Tout autre champ est ignoré (`running`, `genres` ou des chiffres par genre d'un ancien format ne ressortent jamais) ; `sample` est posé par le serveur, `version` ne ressort pas. Le fichier doit être servi en https, sans redirection, et peser moins de 32 Kio. Il ne doit contenir aucun nom, aucun hôte, aucune adresse. Pour élargir le format plus tard : ajouter le champ dans `schema.ts` et dans `LifeSigns` (`types.ts`), puis dans `toLifeSigns()` (`lifeSignsRefresh.ts`).
+
+### Arrondi
+
+Défense en profondeur : même si la source envoyait des chiffres exacts, le site ne laisse rien passer de précis, car un chiffre exact ou une heure exacte permettrait de recouper avec les compteurs publics d'une chaîne. Après zod, `parsePublicLifeSigns` ramène :
+
+- `videos`, `views` et `likes` à deux chiffres significatifs, vers le bas (`floorSignificant` : 303 174 donne 300 000, 17 289 donne 17 000, 353 donne 350) ;
+- `perDay` à l'entier le plus proche ; `channels` reste un entier exact ;
+- `measuredAt` à l'heure pleine (UTC, vers le bas), `lastActivityAt` au début du jour UTC, `since` au premier jour du mois UTC à 00:00.
+
+La cohérence des dates se vérifie sur les dates reçues, avant l'arrondi : chaque date étant arrondie vers le bas, à une échelle plus large pour `since` que pour `lastActivityAt`, puis pour `measuredAt`, l'ordre est gardé et un JSON valide n'est jamais refusé à cause de l'arrondi. La fiche affiche la dernière vidéo en jours (aujourd'hui, hier, il y a N jours) et le début en mois et année.
 
 ### Dans le navigateur
 
-À l'ouverture de la fiche du coffret (y compris par `?prendre=chest`), si la mesure envoyée par le serveur a 10 minutes ou plus, `DeskShell` fait un GET `/api/signes-de-vie` (délai de 5 s), sans bloquer la fiche. Jamais deux requêtes à la fois, pas de nouvel essai avant 60 s. En cas d'échec ou de réponse mal formée, il garde ce qu'il a ; il ne remplace jamais de vraies données par l'exemple. La forme reçue est vérifiée sans zod (`toLifeSigns`, liste blanche). Les données d'exemple restent affichées comme telles (« Données d'exemple »).
+À l'ouverture de la fiche de l'usine (y compris par `?prendre=chest`), si la mesure envoyée par le serveur a 70 minutes ou plus (elle est ramenée à l'heure pleine), `DeskShell` fait un GET `/api/signes-de-vie` (délai de 5 s), sans bloquer la fiche. Jamais deux requêtes à la fois, pas de nouvel essai avant 60 s. En cas d'échec ou de réponse mal formée, il garde ce qu'il a ; il ne remplace jamais de vraies données par l'exemple. La forme reçue est vérifiée sans zod (`toLifeSigns`, liste blanche). Les données d'exemple restent affichées comme telles (« Données d'exemple »).
 
 ### Pourquoi pas le cache de fetch
 

@@ -1012,14 +1012,7 @@
   transform: rotate(-1deg);
 }
 
-/* Les signes de vie du coffret. */
-.lifeSigns {
-  margin-top: 14px;
-  padding: 12px 14px 9px;
-  border: 1px solid rgb(31 23 16 / 0.3);
-  background: rgb(255 251 240 / 0.7);
-}
-
+/* L'en-tête, le graphique et l'axe de la fiche de l'usine. */
 .liveHead {
   display: flex;
   flex-wrap: wrap;
@@ -1052,42 +1045,6 @@
   border-radius: 2px;
   color: var(--brique);
   letter-spacing: 0.14em;
-}
-
-.liveRows {
-  margin: 8px 0 0;
-  padding: 0;
-}
-
-.liveRows > div {
-  display: flex;
-  align-items: baseline;
-  gap: 8px;
-  padding: 3px 0;
-}
-
-.liveRows dt {
-  font-family: var(--serif);
-  font-size: 15px;
-  color: #2c2116;
-}
-
-/* Les points de conduite entre le libellé et la valeur. */
-.liveRows > div::after {
-  content: '';
-  order: 1;
-  flex: 1;
-  border-bottom: 1px dotted rgb(31 23 16 / 0.35);
-}
-
-.liveRows dd {
-  order: 2;
-  margin: 0;
-  font-family: var(--mono);
-  font-size: 12.5px;
-  font-weight: 600;
-  white-space: nowrap;
-  color: var(--encre);
 }
 
 .liveChart {
@@ -1204,7 +1161,17 @@
   color: var(--encre);
 }
 
+/* « depuis octobre 2026 », sous les chiffres. */
+.factorySince {
+  margin: -8px 0 4px;
+  font-size: 10px;
+  letter-spacing: 0.08em;
+  text-transform: uppercase;
+  color: var(--gris);
+}
+
 .tabs {
+  margin-top: 14px;
   display: flex;
   border-bottom: 1.5px solid var(--encre);
 }

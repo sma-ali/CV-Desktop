@@ -1,21 +1,19 @@
-import {
-  FACTORY_GENRES,
-  type FactoryGenreStats,
-  type FactoryStats,
-  type LifeSigns,
-} from '@/lib/life-signs';
+import type { FactoryStats, LifeSigns } from '@/lib/life-signs';
 
-// Le rafraîchissement des signes de vie à l'ouverture de la fiche du coffret.
+// Le rafraîchissement des signes de vie à l'ouverture de la fiche de l'usine.
 // La page est régénérée au plus toutes les 10 minutes, mais un visiteur peut
-// la garder ouverte longtemps : si la mesure a plus de 10 minutes, le
-// navigateur redemande /api/signes-de-vie, sans bloquer la fiche. En cas
-// d'échec, il garde ce qu'il a. Ni zod ni contenu ici (JavaScript initial) :
-// le serveur a déjà validé le JSON, on vérifie seulement sa forme.
+// la garder ouverte longtemps : si la mesure est trop vieille, le navigateur
+// redemande /api/signes-de-vie, sans bloquer la fiche. En cas d'échec, il
+// garde ce qu'il a. Ni zod ni contenu ici (JavaScript initial) : le serveur
+// a déjà validé et arrondi le JSON, on vérifie seulement sa forme.
 
 /** La route qui sert les signes de vie. */
 export const LIFE_SIGNS_ENDPOINT = '/api/signes-de-vie';
-/** Au-delà de cet âge, la mesure est redemandée. */
-export const LIFE_SIGNS_STALE_MS = 10 * 60_000;
+/**
+ * Au-delà de cet âge, la mesure est redemandée : 10 minutes, plus l'heure
+ * que l'arrondi de measuredAt (à l'heure pleine, vers le bas) peut ajouter.
+ */
+export const LIFE_SIGNS_STALE_MS = 70 * 60_000;
 /** Après un essai, échoué ou non, pas de nouvel essai avant ce délai. */
 export const LIFE_SIGNS_RETRY_MS = 60_000;
 /** Délai maximal de la requête du navigateur. */
@@ -27,50 +25,13 @@ const isInstant = (value: unknown): value is string =>
 const isCount = (value: unknown): value is number =>
   typeof value === 'number' && Number.isInteger(value) && value >= 0;
 
-const isNumber = (value: unknown): value is number =>
-  typeof value === 'number' && Number.isFinite(value) && value >= 0;
-
-const optional = (value: unknown): number | undefined | null =>
-  value === undefined ? undefined : isNumber(value) ? value : null;
-
-function toGenre(value: unknown): FactoryGenreStats | null {
-  if (typeof value !== 'object' || value === null) return null;
-  const data = value as Record<string, unknown>;
-  const { views, activity } = data;
-  if (!isCount(views) || !Array.isArray(activity) || !activity.every(isCount)) return null;
-  const retention = optional(data.retention);
-  const rejected = optional(data.rejected);
-  const minutes = optional(data.minutes);
-  if (retention === null || rejected === null || minutes === null) return null;
-  const genre: FactoryGenreStats = { views, activity: [...activity] };
-  if (retention !== undefined) genre.retention = retention;
-  if (rejected !== undefined) genre.rejected = rejected;
-  if (minutes !== undefined) genre.minutes = minutes;
-  return genre;
-}
-
 /** Les chiffres de l'usine, ou null si leur forme est fausse (champ par champ, rien de plus). */
 function toFactory(value: unknown): FactoryStats | null {
   if (typeof value !== 'object' || value === null) return null;
-  const data = value as Record<string, unknown>;
-  const { channels, videos, perDay, views, likes, genres } = data;
-  if (!isCount(channels) || !isCount(videos) || !isNumber(perDay)) return null;
+  const { channels, videos, perDay, views, likes } = value as Record<string, unknown>;
+  if (!isCount(channels) || !isCount(videos) || !isCount(perDay)) return null;
   if (!isCount(views) || !isCount(likes)) return null;
-  if (typeof genres !== 'object' || genres === null) return null;
-  const parsed: Partial<FactoryStats['genres']> = {};
-  for (const id of FACTORY_GENRES) {
-    const genre = toGenre((genres as Record<string, unknown>)[id]);
-    if (!genre) return null;
-    parsed[id] = genre;
-  }
-  return {
-    channels,
-    videos,
-    perDay,
-    views,
-    likes,
-    genres: parsed as FactoryStats['genres'],
-  };
+  return { channels, videos, perDay, views, likes };
 }
 
 /**
@@ -80,22 +41,13 @@ function toFactory(value: unknown): FactoryStats | null {
 export function toLifeSigns(value: unknown): LifeSigns | null {
   if (typeof value !== 'object' || value === null) return null;
   const data = value as Record<string, unknown>;
-  const { running, lastActivityAt, since, activity, measuredAt, sample } = data;
-  if (!isCount(running) || !Array.isArray(activity) || !activity.every(isCount)) return null;
+  const { lastActivityAt, since, activity, measuredAt, sample } = data;
+  if (!Array.isArray(activity) || !activity.every(isCount)) return null;
   if (!isInstant(lastActivityAt) || !isInstant(since) || !isInstant(measuredAt)) return null;
   if (typeof sample !== 'boolean') return null;
-  const signs: LifeSigns = {
-    running,
-    lastActivityAt,
-    since,
-    activity: [...activity],
-    measuredAt,
-    sample,
-  };
-  // Les chiffres de l'usine sont facultatifs : mal formés, ils sont ignorés.
-  const factory = data.factory === undefined ? null : toFactory(data.factory);
-  if (factory) signs.factory = factory;
-  return signs;
+  const factory = toFactory(data.factory);
+  if (!factory) return null;
+  return { lastActivityAt, since, activity: [...activity], measuredAt, sample, factory };
 }
 
 /** La mesure a-t-elle plus de LIFE_SIGNS_STALE_MS à l'instant now ? Illisible ou absente : oui. */

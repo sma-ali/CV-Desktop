@@ -194,10 +194,11 @@ Fait le 06/11/2026 :
 - Domaine alismaani.fr validé chez Mailjet (enregistrement TXT de propriété), SPF complété (`include:spf.mailjet.com`, à côté de `include:mx.ovh.com`) et DKIM (`mailjet._domainkey`) posés chez OVH. Expéditeur : une adresse sur alismaani.fr.
 - Variables `CONTACT_TO`, `CONTACT_FROM`, `MAILJET_API_KEY` et `MAILJET_API_SECRET` sur le projet Vercel (les deux clés en Sensitive), sans `CONTACT_DRY_RUN`. Premier envoi réel reçu.
 
+- DMARC posé en `p=none` (observation, sans adresse de rapport).
+- Règle du pare-feu Vercel « Limite du formulaire » : `/api/contact`, fenêtre fixe de 60 s, 10 requêtes par IP, puis 429. Vérifiée : 10 réponses 400 puis 429.
+
 Reste à faire :
 
-- Poser un enregistrement DMARC.
-- Poser une règle de limite de débit du pare-feu Vercel sur `/api/contact` (seuil à choisir).
 - Choisir où vit le JSON public des signes de vie, et ce qu'il mesure, puis poser `LIFE_SIGNS_URL`.
 
 ## À valider avec Ali

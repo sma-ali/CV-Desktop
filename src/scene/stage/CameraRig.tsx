@@ -23,6 +23,8 @@ const CAMERA_SMOOTHING = 0.02;
 const SCREEN_SMOOTHING = 0.03;
 /** Plan du fond de la caméra au plus près (celui de SceneCanvas). */
 const MIN_FAR = 90;
+/** Le plan du fond, en multiple de la distance de la vue de repos (le mur reste dans le champ). */
+const FAR_PER_DISTANCE = 2.2;
 
 // La caméra : montée de l'arrivée (de START vers la vue de repos), cadrage
 // recalculé au redimensionnement (portrait sur téléphone), léger mouvement
@@ -91,7 +93,7 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
     camera.lookAt(smoothed.target);
     // En portrait, la caméra recule loin pour faire tenir tout le bureau :
     // le plan du fond suit, pour garder le mur et la fenêtre.
-    const far = Math.max(MIN_FAR, rest.dist * 2.2);
+    const far = Math.max(MIN_FAR, rest.dist * FAR_PER_DISTANCE);
     if (Math.abs(camera.fov - pose.fov) > 1e-4 || camera.far !== far) {
       camera.fov = pose.fov;
       camera.far = far;

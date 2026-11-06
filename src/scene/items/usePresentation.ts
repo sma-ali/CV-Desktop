@@ -58,6 +58,12 @@ export class PresentProgress {
 
 export const ProgressContext = createContext<PresentProgress | null>(null);
 
+/** Hauteur (unités du bureau) du sommet de l'arc que décrit un objet soulevé, avant le facteur arc. */
+const ARC_HEIGHT = 1.2;
+
+/** L'objet finit de tourner un peu avant d'arriver (à 1 / TURN_LEAD de son trajet). */
+const TURN_LEAD = 1.15;
+
 /** Avant cet instant de l'arrivée, un clic sur un objet ne fait rien. */
 const CLICK_AFTER = GESTURES_AFTER;
 
@@ -181,10 +187,10 @@ export function usePresentation({
         if (spin.w !== 1) heldQuaternion.premultiply(spin);
         const k = ease(current.p);
         group.position.lerpVectors(restPosition, heldPosition, k);
-        group.position.y += Math.sin(Math.PI * k) * 1.2 * arc;
+        group.position.y += Math.sin(Math.PI * k) * ARC_HEIGHT * arc;
         group.quaternion
           .copy(restQuaternion)
-          .slerp(heldQuaternion, easeOut(Math.min(1, current.p * 1.15)));
+          .slerp(heldQuaternion, easeOut(Math.min(1, current.p * TURN_LEAD)));
         group.scale.setScalar(lerp(1, scale, k));
       }
     }

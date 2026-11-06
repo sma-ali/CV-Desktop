@@ -1,47 +1,22 @@
 'use client';
 
 import Link from 'next/link';
-import {
-  Fragment,
-  useEffect,
-  useRef,
-  useState,
-  useSyncExternalStore,
-  type MouseEvent,
-} from 'react';
-import type { DeskHudTexts, DeskStep } from '@/lib/desk';
-import { formatPlaces } from '@/scene/core/bodies';
-import { ITEM_STEP } from '@/scene/core/ids';
-import { useSceneStore, useSceneStoreApi } from '@/scene/core/store-context';
+import { useState } from 'react';
+import type { DeskHudTexts } from '@/lib/desk';
+import { useSceneStore } from '@/scene/core/store-context';
 import { Sheet } from '../sheet/Sheet';
+import { Hint } from './Hint';
+import { HudProbe } from './HudProbe';
+import { StepChips } from './StepChips';
 import { TidyButton } from './TidyButton';
 import styles from './Hud.module.css';
 
-/** Au-delà, une puce touchée pendant le chargement mène à la version express. */
-const PENDING_MS = 6000;
-
-/** Le visiteur pointe-t-il avec le doigt ? */
-function useCoarsePointer(): boolean {
-  return useSyncExternalStore(
-    (onChange) => {
-      const query = window.matchMedia('(pointer: coarse)');
-      query.addEventListener('change', onChange);
-      return () => query.removeEventListener('change', onChange);
-    },
-    () => window.matchMedia('(pointer: coarse)').matches,
-    () => false,
-  );
-}
-
-// Le HUD du bureau, d'après le prototype : identité, bouton de langue, puces
-// du CV (la lumière suit l'heure du visiteur, sans réglage ni texte), carton
-// d'arrivée, indication, fiche de l'objet présenté. Le son est ouvert par
-// défaut (DeskShell), sans bouton. Rendu par le serveur,
-// visible avant la 3D. Expose l'état de la scène aux tests par des attributs
-// data-* (phase, ambiance, objet présenté, mode auto, objet retourné, glisser,
-// son, places des objets déplacés, ce qui sort du cadre, et depuis l'étape 6
-// le moteur physique, les corps tombés, le désordre, le rangement, l'objet
-// tourné).
+// Le HUD du bureau, rendu par le serveur et visible avant la 3D : carton
+// d'arrivée, identité et bouton de langue en haut, puces du CV et
+// indication en bas, fiche de l'objet présenté, bouton de rangement. La
+// lumière suit l'heure du visiteur, sans réglage ni texte ; le son est
+// ouvert par défaut (DeskShell), sans bouton. La racine (HudProbe) expose
+// l'état de la scène aux tests.
 export function Hud({
   texts,
   loading,
@@ -50,109 +25,19 @@ export function Hud({
   /** La scène se prépare sous l'écran de chargement (Intro). */
   loading: boolean;
 }) {
-  const store = useSceneStoreApi();
-  const coarse = useCoarsePointer();
-  const initialized = useSceneStore((state) => state.initialized);
   const ready = useSceneStore((state) => state.ready);
-  const phase = useSceneStore((state) => state.phase);
   const hud = useSceneStore((state) => state.hud);
-  const mood = useSceneStore((state) => state.mood);
-  const autoOn = useSceneStore((state) => state.autoOn);
-  const presented = useSceneStore((state) => state.presented);
-  const flipped = useSceneStore((state) => state.flipped);
-  const dragging = useSceneStore((state) => state.dragging);
-  const places = useSceneStore((state) => state.places);
-  const soundOn = useSceneStore((state) => state.soundOn);
-  const offscreen = useSceneStore((state) => state.offscreen);
-  const fallen = useSceneStore((state) => state.fallen);
-  const physics = useSceneStore((state) => state.physics);
-  const disorder = useSceneStore((state) => state.disorder);
-  const tidying = useSceneStore((state) => state.tidying);
-  const heldTurned = useSceneStore((state) => state.heldTurned);
-  const settings = useSceneStore((state) => state.settings);
   // Ce que la région d'état annonce : seulement les gestes du visiteur
-  // (objet présenté par une puce).
+  // (objet présenté par une puce ou depuis la scène).
   const [announcement, setAnnouncement] = useState('');
 
-  const presentedStep = presented ? ITEM_STEP[presented] : null;
   // Avant la première image de la scène, tout le HUD est visible. Ensuite,
   // l'identité et les puces suivent l'arrivée.
   const brandHidden = ready && !hud.brand ? 'true' : undefined;
   const chipsHidden = ready && !hud.chips ? 'true' : undefined;
-  // L'indication : la visite, l'objet tenu (comment le retourner), ou
-  // comment prendre et glisser. Au doigt, ses variantes tactiles.
-  const showHint = ready && hud.hint;
-  const held = presented !== null && !autoOn && !dragging;
-  const hint = autoOn
-    ? texts.hint.auto
-    : held
-      ? coarse
-        ? texts.hint.held.touch
-        : texts.hint.held.pointer
-      : coarse
-        ? texts.hint.touch
-        : texts.hint.pointer;
-  // Une phrase par ligne sur téléphone : l'indication n'y est plus coupée.
-  const hintSentences = hint.split(/(?<=[.!?])\s+/);
-
-  // Une puce touchée pendant le chargement : l'objet se présente dès que la
-  // scène est prête. Si elle ne l'est pas à temps (pas de WebGL), la puce
-  // reste un lien vers la version express.
-  const pending = useRef<{ step: DeskStep; timer: number } | null>(null);
-  useEffect(() => {
-    const waiting = pending.current;
-    if (!ready || !waiting) return;
-    window.clearTimeout(waiting.timer);
-    pending.current = null;
-    store.getState().present(waiting.step.item, 'chip');
-  }, [ready, store]);
-  useEffect(() => () => window.clearTimeout(pending.current?.timer), []);
-
-  const onStep = (event: MouseEvent<HTMLAnchorElement>, step: DeskStep) => {
-    const state = store.getState();
-    event.preventDefault();
-    if (!state.ready) {
-      window.clearTimeout(pending.current?.timer);
-      const timer = window.setTimeout(() => {
-        pending.current = null;
-        window.location.assign(step.href);
-      }, PENDING_MS);
-      pending.current = { step, timer };
-      return;
-    }
-    if (state.presented === step.item) {
-      state.markUser();
-      state.putBack();
-    } else {
-      state.present(step.item, 'chip');
-      setAnnouncement(`${step.title} ${step.detail}. ${texts.hint.presented}`);
-    }
-  };
 
   return (
-    <div
-      id="hud"
-      className={styles.hud}
-      data-ready={ready ? 'true' : 'false'}
-      data-phase={phase}
-      data-mood={initialized ? mood : undefined}
-      data-presented={presented ?? ''}
-      data-auto={autoOn ? 'true' : 'false'}
-      data-reduced={settings.reducedMotion ? 'true' : 'false'}
-      data-frozen={settings.frozen ? 'true' : 'false'}
-      data-flipped={presented && flipped ? 'true' : 'false'}
-      data-dragging={dragging ?? ''}
-      data-sound={soundOn ? 'on' : 'off'}
-      data-places={formatPlaces(places)}
-      data-offscreen={offscreen.join(' ')}
-      data-physics={physics}
-      data-fallen={fallen.join(' ')}
-      data-disorder={disorder.toFixed(2)}
-      data-tidying={tidying ? 'true' : 'false'}
-      data-turned={presented && heldTurned ? 'true' : 'false'}
-      // L'écran de chargement le couvre : hors du parcours au clavier.
-      inert={loading}
-    >
+    <HudProbe className={styles.hud} loading={loading}>
       <p className={styles.titleCard} data-on={hud.carton ? 'true' : undefined} aria-hidden="true">
         <span className={styles.titleCardKicker}>{texts.arrivalKicker}</span>
         <span className={styles.titleCardName}>{texts.firstName}</span>
@@ -187,57 +72,8 @@ export function Hud({
       </header>
 
       <footer className={styles.bottom} data-arrival-hidden={chipsHidden}>
-        <nav aria-label={texts.glance}>
-          <ul className={styles.steps}>
-            {texts.steps.map((step) => (
-              <Fragment key={step.id}>
-                {step.contact ? (
-                  <li data-written="">
-                    {/* La version écrite du CV : un vrai lien, à gauche du contact. */}
-                    <a href={texts.written.href} className={styles.chip} data-written="">
-                      <span className={styles.chipTitle}>{texts.written.title}</span>
-                      <span className={styles.chipDetail}>{texts.written.detail}</span>
-                    </a>
-                  </li>
-                ) : null}
-                <li>
-                  <a
-                    href={step.href}
-                    className={styles.chip}
-                    data-step={step.id}
-                    data-contact={step.contact ? 'true' : undefined}
-                    data-on={presentedStep === step.id ? 'true' : undefined}
-                    aria-current={presentedStep === step.id ? 'true' : undefined}
-                    onClick={(event) => onStep(event, step)}
-                  >
-                    <span className={styles.chipTitle}>
-                      {step.title}
-                      {step.live ? <i className={styles.live} aria-hidden="true" /> : null}
-                    </span>
-                    <span className={styles.chipDetail}>{step.detail}</span>
-                  </a>
-                </li>
-              </Fragment>
-            ))}
-          </ul>
-        </nav>
-        {/* Dans le footer : sous 1300 px, elle se pose juste au-dessus. */}
-        <p
-          className={styles.hint}
-          data-on={showHint ? 'true' : undefined}
-          data-auto={autoOn ? 'true' : undefined}
-          data-held={held ? 'true' : undefined}
-        >
-          <i aria-hidden="true" />
-          <span>
-            {hintSentences.map((sentence, index) => (
-              <span key={index} className={styles.hintLine}>
-                {sentence}
-                {index < hintSentences.length - 1 ? ' ' : null}
-              </span>
-            ))}
-          </span>
-        </p>
+        <StepChips texts={texts} onAnnounce={setAnnouncement} />
+        <Hint texts={texts.hint} />
       </footer>
 
       <Sheet texts={texts.sheets} locale={texts.locale} onAnnounce={setAnnouncement} />
@@ -246,6 +82,6 @@ export function Hud({
       <p className="visually-hidden" role="status">
         {announcement}
       </p>
-    </div>
+    </HudProbe>
   );
 }

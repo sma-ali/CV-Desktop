@@ -7,7 +7,7 @@ import {
   WINDOW_SKY,
   type Vec3,
 } from '../core/constants';
-import { clamp } from '../core/arrival';
+import { clamp } from '../core/math';
 import { anchorPoint } from '../core/decorPlaces';
 import { rng } from '../core/rng';
 import { BELT, KIMONO_SIZE, KIMONO_TOP } from './kimono';

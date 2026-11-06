@@ -1,5 +1,5 @@
 import { PerspectiveCamera, Vector3 } from 'three';
-import { ease, lerp, seg, smooth } from '../core/arrival';
+import { ease, lerp, seg, smooth } from '../core/math';
 import {
   bodyObb,
   FOOTPRINT_IDS,

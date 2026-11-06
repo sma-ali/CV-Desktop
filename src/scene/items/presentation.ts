@@ -1,5 +1,5 @@
 import { Euler, Quaternion, Vector3, type PerspectiveCamera } from 'three';
-import { clamp, lerp } from '../core/arrival';
+import { clamp, damp, lerp } from '../core/math';
 import {
   HELD,
   HELD_MAX_DISTANCE,
@@ -21,6 +21,9 @@ export const ITEMS_PRIORITY = -10;
 
 /** Vitesses (par seconde) : soulever, reposer, retourner ou ouvrir. */
 export const RATES = { lift: 1.25, putBack: 1.6, flip: 1.15 } as const;
+
+/** Lissage de la lueur du survol : part de l'écart qui reste après une seconde (voir damp). */
+const HOVER_SMOOTHING = 0.002;
 
 /** Relèvement au survol (unités de la scène) et lueur des textures. */
 export const HOVER_LIFT = 0.08;
@@ -66,7 +69,7 @@ export function stepPresentation(
   const gesture = held && flipped && state.p > 0.55 ? 1 : 0;
   state.f = reduced ? gesture : stepToward(state.f, gesture, dt * RATES.flip);
   const hover = hovered && !held ? 1 : 0;
-  state.hover = reduced ? hover : lerp(state.hover, hover, 1 - Math.pow(0.002, dt));
+  state.hover = reduced ? hover : lerp(state.hover, hover, damp(HOVER_SMOOTHING, dt));
   if (Math.abs(state.hover - hover) < 1e-3) state.hover = hover;
   return state;
 }

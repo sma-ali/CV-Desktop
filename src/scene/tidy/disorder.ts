@@ -1,5 +1,6 @@
 import { homePose, type DeskBodies, type DeskBodyState } from '../core/bodies';
 import { BODY_IDS, type BodyId } from '../core/ids';
+import { clamp } from '../core/math';
 
 // Le score de désordre du bureau, de 0 (rangé) à 1
 // (tout cassé). Chaque corps visible compte d'après son écart à sa place
@@ -36,7 +37,7 @@ export const DISORDER = {
 export function tiltOf(body: Pick<DeskBodyState, 'qx' | 'qz'>): number {
   // Composante verticale de l'axe y local tourné par le quaternion.
   const up = 1 - 2 * (body.qx * body.qx + body.qz * body.qz);
-  return Math.acos(Math.min(1, Math.max(-1, up)));
+  return Math.acos(clamp(up, -1, 1));
 }
 
 /** Les points de désordre d'un corps (0 s'il est à sa place). */

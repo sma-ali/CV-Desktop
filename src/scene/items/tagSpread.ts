@@ -5,6 +5,8 @@
 // qu'il faut, le plus souvent en hauteur (elles sont larges et basses). Pur
 // et déterministe, sans allocation : appelé à chaque image.
 
+import { clamp } from '../core/math';
+
 /** Une étiquette à l'écran, en pixels : x au centre, y en bas (son point d'accroche). */
 export interface TagBox {
   x: number;
@@ -21,7 +23,7 @@ const ITERATIONS = 40;
 /** Garde une étiquette dans la largeur de la fenêtre. */
 function clampX(box: TagBox, width: number): void {
   const half = box.w / 2 + TAG_EDGE;
-  box.x = Math.min(Math.max(box.x, half), Math.max(half, width - half));
+  box.x = clamp(box.x, half, Math.max(half, width - half));
 }
 
 /**

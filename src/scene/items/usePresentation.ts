@@ -3,7 +3,7 @@
 import { useFrame, useThree, type ThreeEvent } from '@react-three/fiber';
 import { createContext, useContext, useMemo, useRef } from 'react';
 import { Quaternion, Vector3, type Group, type Material, type PerspectiveCamera } from 'three';
-import { ease, easeOut, lerp } from '../core/arrival';
+import { ease, easeOut, lerp } from '../core/math';
 import { ITEM_POSES } from '../core/constants';
 import { isBodyId, type ItemId } from '../core/ids';
 import type { FrameState } from '../core/store';

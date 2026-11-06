@@ -10,6 +10,7 @@ import {
 } from '../core/bodies';
 import { DESK } from '../core/constants';
 import { BODY_IDS, isDecorBodyId, type BodyId } from '../core/ids';
+import { clamp } from '../core/math';
 import type { PhysicsControl, PhysicsEvents } from '../core/physicsControl';
 import { DECOR_BODY_SPECS } from './decorShapes';
 import {
@@ -169,8 +170,6 @@ function fromEuler(ax: number, ay: number, az: number) {
     w: c1 * c2 * c3 - s1 * s2 * s3,
   };
 }
-
-const clamp = (value: number, min: number, max: number) => Math.min(max, Math.max(min, value));
 
 const yawQuat = (ry: number) => ({ x: 0, y: Math.sin(ry / 2), z: 0, w: Math.cos(ry / 2) });
 

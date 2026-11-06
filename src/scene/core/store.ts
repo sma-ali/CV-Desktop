@@ -28,6 +28,7 @@ import { EMPTY_LOAD, type LoadProgress, type LoadStep } from './loading';
 import { createClock, type Clock } from './clock';
 import { ARRIVAL, SETTLE, TYPING_END_DEFAULT } from './constants';
 import type { BodyId, ItemId, MoodId } from './ids';
+import { clamp } from './math';
 import { moodValues, type MoodValues } from './mood-values';
 import type { TestDrag, TestParams } from './params';
 import { createSilentSound, type SoundPlayer } from './sound';
@@ -533,7 +534,7 @@ export function createSceneStore(
     },
 
     setDisorder(score) {
-      const next = Math.min(1, Math.max(0, score));
+      const next = clamp(score, 0, 1);
       if (Math.abs(next - get().disorder) >= 0.01 || (next === 0 && get().disorder !== 0)) {
         set({ disorder: next });
       }

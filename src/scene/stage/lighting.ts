@@ -1,4 +1,4 @@
-import { clamp, lerp, seg, smooth } from '../core/arrival';
+import { clamp, lerp, seg, smooth } from '../core/math';
 import { legacyIntensity, legacyPointIntensity } from '../core/constants';
 import type { MoodId } from '../core/ids';
 

@@ -1,4 +1,5 @@
 import type { DeskPose } from '../core/bodies';
+import { clamp, ease } from '../core/math';
 
 // Le trajet d'un corps qui rentre à sa place : il
 // monte presque à la verticale, passe au-dessus du bureau, puis descend à
@@ -23,8 +24,7 @@ export type FlightPose = DeskPose & { qx: number; qy: number; qz: number; qw: nu
 
 /** Adoucie au début et à la fin (cubique). */
 export function easeInOut(u: number): number {
-  const k = Math.min(1, Math.max(0, u));
-  return k < 0.5 ? 4 * k * k * k : 1 - Math.pow(-2 * k + 2, 3) / 2;
+  return ease(clamp(u, 0, 1));
 }
 
 /** Le quaternion d'un cap (rotation autour de y). */

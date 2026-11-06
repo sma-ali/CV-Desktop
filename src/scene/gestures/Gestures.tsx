@@ -5,6 +5,7 @@ import { useEffect, useRef } from 'react';
 import { Plane, Raycaster, Vector2, Vector3, type Camera } from 'three';
 import type { DeskBodies } from '../core/bodies';
 import type { BodyId } from '../core/ids';
+import { damp } from '../core/math';
 import type { PhysicsControl } from '../core/physicsControl';
 import type { SceneStore } from '../core/store';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
@@ -37,6 +38,8 @@ import { GESTURES_PRIORITY } from './priorities';
 const KEEP_TOUR_OFF = 1;
 /** ?glisse : le corps est lâché arrivé, bloqué depuis 0.4 s, ou au bout de 3 s (sous &fige : playFrozen). */
 const PLAYBACK = { close: 0.02, stuck: 0.4, timeout: 3 };
+/** Lissage du pointeur que l'objet tenu suit : part de l'écart qui reste après une seconde (voir damp). */
+const POINTER_SMOOTHING = 0.004;
 
 const plane = new Plane(new Vector3(0, 1, 0), 0);
 const raycaster = new Raycaster();
@@ -225,7 +228,7 @@ export function Gestures() {
 
     // Le pointeur que l'objet tenu suit, lissé (immobile en mouvement réduit).
     const pointer = hub.pointer;
-    const k = reduced ? 1 : 1 - Math.pow(0.004, frame.dt);
+    const k = reduced ? 1 : damp(POINTER_SMOOTHING, frame.dt);
     pointer.x += ((reduced ? 0 : pointer.targetX) - pointer.x) * k;
     pointer.y += ((reduced ? 0 : pointer.targetY) - pointer.y) * k;
 

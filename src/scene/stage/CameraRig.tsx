@@ -3,7 +3,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import type { PerspectiveCamera } from 'three';
-import { lerp } from '../core/arrival';
+import { damp, lerp } from '../core/math';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import {
   arrivalPose,
@@ -74,7 +74,7 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
     const wantScreen = presented === 'monitor' ? 1 : 0;
     shared.screenFocus = exact
       ? wantScreen
-      : lerp(shared.screenFocus, wantScreen, 1 - Math.pow(SCREEN_SMOOTHING, frame.dt));
+      : lerp(shared.screenFocus, wantScreen, damp(SCREEN_SMOOTHING, frame.dt));
     if (shared.screenFocus > 0.001) blendPose(pose, screen, shared.screenFocus);
 
     const { smoothed } = rig;
@@ -83,7 +83,7 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
       smoothed.target.copy(pose.target);
       rig.ready = true;
     } else {
-      const a = 1 - Math.pow(CAMERA_SMOOTHING, frame.dt);
+      const a = damp(CAMERA_SMOOTHING, frame.dt);
       smoothed.position.lerp(pose.position, a);
       smoothed.target.lerp(pose.target, a);
     }

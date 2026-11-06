@@ -2,7 +2,7 @@
 
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useRef } from 'react';
-import { smooth } from './arrival';
+import { smooth } from './math';
 import { MOOD_TRANSITION, PORTRAIT_MAX_ASPECT } from './constants';
 import { clockHold } from './loading';
 import type { MoodId } from './ids';

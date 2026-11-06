@@ -96,9 +96,15 @@ export function ContactForm({
     shownAt.current = Date.now();
   }, []);
 
-  // Arrivé par le lien du contact (#contact), le formulaire replié s'ouvre.
+  // Arrivé par le lien du contact (#contact), à l'ouverture de la page ou
+  // plus tard (ancre suivie dans la page), le formulaire replié s'ouvre.
   useEffect(() => {
-    if (details.current && window.location.hash === '#contact') details.current.open = true;
+    const openOnContact = () => {
+      if (details.current && window.location.hash === '#contact') details.current.open = true;
+    };
+    openOnContact();
+    window.addEventListener('hashchange', openOnContact);
+    return () => window.removeEventListener('hashchange', openOnContact);
   }, []);
 
   const fieldId = (field: ContactField) => `${id}-${field}`;

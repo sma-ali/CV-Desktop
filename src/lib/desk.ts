@@ -27,7 +27,7 @@ export interface DeskStep {
 }
 
 /** Une fiche telle que le HUD l'affiche : celle du contenu, plus le lien du dépôt s'il est public. */
-export interface DeskSheet extends SheetContent {
+interface DeskSheet extends SheetContent {
   /** Le dépôt GitHub du projet, seulement s'il est public (repository.public). */
   repository: { label: string; href: string } | null;
 }

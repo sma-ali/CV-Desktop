@@ -27,7 +27,7 @@ import { bodyExtent, fixedExtent, restLimits, screenShare } from './framing';
 const EVERY = 12;
 
 /** Priorité : après les gestes (-12) et la caméra, avant le rendu. */
-export const OFFSCREEN_PRIORITY = -8;
+const OFFSCREEN_PRIORITY = -8;
 
 /** Tolérance en coordonnées normalisées : un coin posé sur le bord compte comme dedans. */
 const EDGE = 1.002;

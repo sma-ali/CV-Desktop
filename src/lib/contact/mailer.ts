@@ -43,7 +43,7 @@ export interface Logger {
 }
 
 export const MAILJET_SEND_URL = 'https://api.mailjet.com/v3.1/send';
-export const MAILJET_TIMEOUT_MS = 8000;
+const MAILJET_TIMEOUT_MS = 8000;
 
 export interface MailjetOptions {
   apiKey: string;
@@ -81,10 +81,7 @@ export function contactText({ name, email, message, locale }: ContactMessage): s
  * From et ReplyTo en { Email, Name }, To en tableau. Texte seul (TextPart,
  * aucune partie HTML), sans suivi des ouvertures ni des clics.
  */
-export function mailjetPayload(
-  message: ContactMessage,
-  { to, from }: { to: string; from: string },
-) {
+function mailjetPayload(message: ContactMessage, { to, from }: { to: string; from: string }) {
   return {
     Messages: [
       {

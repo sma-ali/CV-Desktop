@@ -48,7 +48,7 @@ const factorySchema = z.object({
 });
 
 /** Le JSON public, champ par champ (sans sample, que le serveur pose lui-même). */
-export const publicLifeSignsSchema = z.object({
+const publicLifeSignsSchema = z.object({
   running: count,
   lastActivityAt: instant,
   since: instant,
@@ -56,8 +56,6 @@ export const publicLifeSignsSchema = z.object({
   measuredAt: instant,
   factory: factorySchema.optional(),
 });
-
-export type PublicLifeSigns = z.infer<typeof publicLifeSignsSchema>;
 
 /**
  * Le JSON public validé à l'instant now (ms) : format, puis cohérence des

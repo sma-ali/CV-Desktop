@@ -72,7 +72,7 @@ export interface SceneSettings {
   scatter: boolean;
 }
 
-export const DEFAULT_SETTINGS: SceneSettings = {
+const DEFAULT_SETTINGS: SceneSettings = {
   reducedMotion: false,
   frozen: false,
   startAt: 0,
@@ -91,7 +91,7 @@ export const DEFAULT_SETTINGS: SceneSettings = {
  * demandé, en chargement, prêt, ou en échec (le bureau reste immobile, les
  * clics marchent toujours).
  */
-export type PhysicsStatus = 'off' | 'loading' | 'ready' | 'failed';
+type PhysicsStatus = 'off' | 'loading' | 'ready' | 'failed';
 
 /**
  * L'orientation que le visiteur donne à l'objet présenté (rotation libre,

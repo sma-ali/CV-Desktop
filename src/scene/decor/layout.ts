@@ -1,6 +1,5 @@
 import {
   ARRIVAL,
-  DECOR_BODY_HOMES,
   KEYBOARD,
   LAMP,
   TYPING_END_DEFAULT,
@@ -36,8 +35,8 @@ export const WINDOW_BACKSTOP = {
 // Le clavier
 // ------------------------------------------------------------------
 
-export const KEY_ROWS = 5;
-export const KEY_COLS = 15;
+const KEY_ROWS = 5;
+const KEY_COLS = 15;
 export const KEY_COUNT = KEY_ROWS * KEY_COLS;
 /** Hauteur d'une touche au repos (son centre), dans le repère du clavier. */
 export const KEY_Y = 0.18;
@@ -194,12 +193,7 @@ export function springPoints(
   return points;
 }
 
-/** Point à la fraction k du segment [a, b]. */
-export function lerp3(a: Vec3, b: Vec3, k: number): Vec3 {
-  return [a[0] + (b[0] - a[0]) * k, a[1] + (b[1] - a[1]) * k, a[2] + (b[2] - a[2]) * k];
-}
-
-export function cross([ax, ay, az]: Vec3, [bx, by, bz]: Vec3): Vec3 {
+function cross([ax, ay, az]: Vec3, [bx, by, bz]: Vec3): Vec3 {
   return [ay * bz - az * by, az * bx - ax * bz, ax * by - ay * bx];
 }
 
@@ -264,7 +258,7 @@ export function leafLayout(count: number = PLANT.leaves): LeafSpec[] {
 
 export const MANGA = { position: [4.55, 0, -2.2] as Vec3, ry: -0.12, count: 7 } as const;
 export const MANGA_SIZE = { w: 1.2, h: 0.13, d: 0.82, step: 0.132 } as const;
-export const MANGA_COVERS = [
+const MANGA_COVERS = [
   0xc2492f, 0x2f6f8f, 0xe7b84a, 0x3f7b5a, 0x20262f, 0xd7d0c0, 0x7a3e6e,
 ] as const;
 export const SPINE_PALETTE = [
@@ -333,14 +327,6 @@ export const FIGURES: readonly FigureSpec[] = [
 // Les petites choses posées : tasse, manette, bandes, kimono
 // ------------------------------------------------------------------
 
-/** La tasse et la manette glissent (étape 4) : leur place de repos vient du socle. */
-export const MUG = {
-  position: [DECOR_BODY_HOMES.mug.x, 0, DECOR_BODY_HOMES.mug.z] as Vec3,
-} as const;
-export const PAD = {
-  position: [DECOR_BODY_HOMES.pad.x, 0, DECOR_BODY_HOMES.pad.z] as Vec3,
-  ry: DECOR_BODY_HOMES.pad.ry,
-} as const;
 export const STEAM_COUNT = 6;
 
 /**
@@ -679,7 +665,7 @@ export const decorObstacles = (portrait: boolean): readonly DeskObstacle[] =>
  * pas seulement son pied. La lampe a ses propres points (FIXED_EXTENT,
  * stage/framing.ts).
  */
-export const DECOR_HEIGHTS: Readonly<Record<string, number>> = {
+const DECOR_HEIGHTS: Readonly<Record<string, number>> = {
   keyboard: 0.25,
   kimono: KIMONO_FOOTPRINT.height,
   mouse: 0.25,

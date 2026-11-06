@@ -6,7 +6,7 @@ import { LIFE_SIGNS_DAYS, minutesBetween, type LifeSigns } from './types';
 // (sheets.ui.live) ; {n}, {h}, {mm}, {days}, {values} y sont remplacés.
 
 /** Une forme au singulier et une au pluriel (règles d'Intl.PluralRules). */
-export interface PluralTexts {
+interface PluralTexts {
   one: string;
   other: string;
 }

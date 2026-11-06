@@ -90,7 +90,7 @@ function glassGeometry(): BufferGeometry {
  * Chaque sommet se déplace d'après sa seule position : les faces restent
  * jointives (géométrie non indexée).
  */
-export function brainGeometry(): BufferGeometry {
+function brainGeometry(): BufferGeometry {
   const geometry = new IcosahedronGeometry(1, 2);
   const position = geometry.attributes.position;
   if (position) {

@@ -14,7 +14,7 @@ export interface TagBox {
 }
 
 /** Écart gardé entre deux étiquettes, et marge au bord de la fenêtre (pixels). */
-export const TAG_GAP = 4;
+const TAG_GAP = 4;
 export const TAG_EDGE = 6;
 const ITERATIONS = 40;
 

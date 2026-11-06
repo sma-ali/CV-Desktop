@@ -91,14 +91,12 @@ export const BODY_FOOTPRINTS = {
 } as const satisfies Record<FootprintId, Footprint>;
 
 /** Places de repos de la tasse et de la manette (le décor les pose là). */
-export { DECOR_BODY_HOMES };
-
 /**
  * Les objets du CV qui ne glissent pas mais occupent le plateau : le pied de
  * l'écran et le support du casque. Le décor ajoute les siens
  * (DECOR_OBSTACLES dans src/scene/decor/layout.ts).
  */
-export const FIXED_ITEM_OBSTACLES: readonly DeskObstacle[] = [
+const FIXED_ITEM_OBSTACLES: readonly DeskObstacle[] = [
   {
     id: 'monitor-stand',
     x: MONITOR.position[0],
@@ -111,7 +109,7 @@ export const FIXED_ITEM_OBSTACLES: readonly DeskObstacle[] = [
 ];
 
 /** Les mêmes en portrait : le support du casque passe à droite de l'écran (HEADSET_PORTRAIT). */
-export const FIXED_ITEM_OBSTACLES_PORTRAIT: readonly DeskObstacle[] = FIXED_ITEM_OBSTACLES.map(
+const FIXED_ITEM_OBSTACLES_PORTRAIT: readonly DeskObstacle[] = FIXED_ITEM_OBSTACLES.map(
   (obstacle) => {
     if (obstacle.id !== 'headset-stand') return obstacle;
     const [x, , z] = headsetStand(true);
@@ -301,7 +299,7 @@ export function yawOf(qx: number, qy: number, qz: number, qw: number): number {
 }
 
 /** L'angle (radians) entre l'orientation d'un corps et sa pose d'origine. */
-export function angleFromHome(body: DeskBodyState, home: DeskPose): number {
+function angleFromHome(body: DeskBodyState, home: DeskPose): number {
   const hy = Math.sin(home.ry / 2);
   const hw = Math.cos(home.ry / 2);
   const dot = Math.abs(body.qy * hy + body.qw * hw);

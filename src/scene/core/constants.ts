@@ -263,19 +263,6 @@ export const BOUNDS_PORTRAIT = { x0: -3.75, x1: 3.95, z0: -3.2, z1: 4.3 } as con
 /** Les limites du plateau du format. */
 export const deskBounds = (portrait: boolean): DeskBounds => (portrait ? BOUNDS_PORTRAIT : BOUNDS);
 
-/**
- * La fiche (le bristol) à l'écran, pour que l'objet tenu reste visible :
- * en portrait, une feuille qui monte du bas, jamais plus haute que
- * portrait.maxHeight de la hauteur de la fenêtre (le cadrage pose l'objet
- * tenu au-dessus) ; en paysage, à droite, jamais plus large que
- * landscape.maxWidth pixels ni que landscape.maxFraction de la largeur
- * (l'objet tenu est à gauche du centre, HELD.landscape).
- */
-export const SHEET = {
-  portrait: { maxHeight: 0.42 },
-  landscape: { maxWidth: 400, maxFraction: 0.36 },
-} as const;
-
 // ------------------------------------------------------------------
 // Le temps : arrivée, mode auto
 // ------------------------------------------------------------------

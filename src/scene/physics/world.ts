@@ -41,13 +41,13 @@ export type RapierModule = (typeof import('@dimforge/rapier3d-compat'))['default
 export const FIXED_STEP = 1 / 60;
 
 /** Au plus tant de pas par image : une image lente ralentit le monde au lieu de le faire sauter. */
-export const MAX_STEPS_PER_FRAME = 4;
+const MAX_STEPS_PER_FRAME = 4;
 
 /** La pesanteur, en unités du bureau (environ 10 cm) par seconde carrée : un peu moins que la vraie, plus lisible. */
 export const GRAVITY = 60;
 
 /** Réglages du glisser : hauteur au-dessus de ce qu'il survole, raideur, vitesses bornées. */
-export const GRAB = {
+const GRAB = {
   /** Hauteur du corps glissé au-dessus de ce qu'il survole. */
   lift: 0.12,
   /** Raideur de la poursuite du pointeur (1/s) et de la remise droite. */
@@ -182,7 +182,7 @@ const clamp = (value: number, min: number, max: number) => Math.min(max, Math.ma
 const yawQuat = (ry: number) => ({ x: 0, y: Math.sin(ry / 2), z: 0, w: Math.cos(ry / 2) });
 
 /** La description d'un corps. */
-export function bodySpec(id: BodyId): BodySpec {
+function bodySpec(id: BodyId): BodySpec {
   return isDecorBodyId(id) ? DECOR_BODY_SPECS[id] : ITEM_BODY_SPECS[id];
 }
 
@@ -220,7 +220,7 @@ export interface PhysicsControl {
 }
 
 /** Un corps presque immobile (vitesse, rotation) pendant seconds s'endort. */
-export const CALM = { speed: 0.06, spin: 0.12, seconds: 0.4 } as const;
+const CALM = { speed: 0.06, spin: 0.12, seconds: 0.4 } as const;
 
 /** Le monde physique du bureau. */
 export class DeskPhysics implements PhysicsControl {
@@ -653,7 +653,7 @@ export class DeskPhysics implements PhysicsControl {
 }
 
 /** Recopie la pose d'un corps Rapier dans son état du plateau. */
-export function writePose(state: DeskBodyState, body: RigidBody, home: DeskPose): void {
+function writePose(state: DeskBodyState, body: RigidBody, home: DeskPose): void {
   const t = body.translation();
   const r = body.rotation();
   state.x = t.x;

@@ -11,7 +11,7 @@ import { useSceneStoreApi } from './store-context';
 import { updateFrame } from './store';
 
 /** Priorité du useFrame du socle : avant tous les autres (négative, elle garde le rendu automatique). */
-export const CLOCK_PRIORITY = -100;
+const CLOCK_PRIORITY = -100;
 
 /** Images dessinées avant d'annoncer la scène prête. */
 const READY_AFTER_FRAMES = 2;

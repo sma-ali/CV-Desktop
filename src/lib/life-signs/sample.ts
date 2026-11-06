@@ -21,7 +21,7 @@ export const SAMPLE_LIFE_SIGNS = {
 } as const;
 
 /** Les chiffres d'exemple de l'usine (maquette du 04/11/2026). */
-export const SAMPLE_FACTORY: FactoryStats = {
+const SAMPLE_FACTORY: FactoryStats = {
   channels: 7,
   videos: 412,
   perDay: 5,

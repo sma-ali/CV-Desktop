@@ -15,7 +15,7 @@ type Ctx = CanvasRenderingContext2D;
 export type Painter = (ctx: Ctx, width: number, height: number, fonts: SceneFonts) => void;
 
 /** Coupe un texte en lignes qui tiennent dans maxWidth, avec la police déjà réglée. */
-export function wrapText(ctx: Ctx, text: string, maxWidth: number): string[] {
+function wrapText(ctx: Ctx, text: string, maxWidth: number): string[] {
   const lines: string[] = [];
   let line = '';
   for (const word of text.split(' ')) {

@@ -110,7 +110,7 @@ export function windowLevel(t: number): number {
 }
 
 /** La lumière d'ambiance pendant la chute des objets, avant la lampe (0 à 1). */
-export const DUSK_AMBIENT = 0.4;
+const DUSK_AMBIENT = 0.4;
 
 /**
  * La lumière d'ambiance (hémisphère), de 0 à 1 : une pénombre dès le début,

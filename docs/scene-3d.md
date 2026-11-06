@@ -139,7 +139,7 @@ La CSP du site n'a ni `unsafe-eval`, ni workers en `blob:`, ni d'autre origine q
 - pas de `<Text>` ni de `<Text3D>` de drei (troika passe par des workers en `blob:`) : le texte se peint dans une texture de canvas ;
 - pas de `useGLTF` avec Draco ou Meshopt (décodeurs en worker ou chargés d'un CDN), pas d'`<Environment preset>` (fichiers HDR sur un CDN), pas de `<Stats>` ;
 - aucun fichier chargé d'une autre origine : tout modèle ou image vit dans le dépôt ;
-- `<Html>` de drei et `@react-three/postprocessing` sont permis. Les étiquettes n'utilisent pas `<Html>` : c'est une couche DOM maison (`TagLayer`). À la fin de l'étape 3, drei est installé mais aucun fichier ne l'importe.
+- `<Html>` de drei et `@react-three/postprocessing` sont permis. Les étiquettes n'utilisent pas `<Html>` : c'est une couche DOM maison (`TagLayer`). drei a été retiré le 06/11/2026 : aucun fichier ne l'importait.
 
 Un test E2E vérifie la CSP du bureau et l'absence d'erreur dans la console. La console garde un avertissement qui ne vient pas du dépôt : « THREE.Clock: This module has been deprecated », émis par React Three Fiber 9 (son store crée un `THREE.Clock`) avec three 0.186 ; il partira avec une version de R3F qui passe à `THREE.Timer`.
 

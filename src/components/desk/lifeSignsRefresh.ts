@@ -19,7 +19,7 @@ export const LIFE_SIGNS_STALE_MS = 10 * 60_000;
 /** Après un essai, échoué ou non, pas de nouvel essai avant ce délai. */
 export const LIFE_SIGNS_RETRY_MS = 60_000;
 /** Délai maximal de la requête du navigateur. */
-export const LIFE_SIGNS_CLIENT_TIMEOUT_MS = 5000;
+const LIFE_SIGNS_CLIENT_TIMEOUT_MS = 5000;
 
 const isInstant = (value: unknown): value is string =>
   typeof value === 'string' && Number.isFinite(Date.parse(value));

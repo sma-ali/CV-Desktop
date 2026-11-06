@@ -17,7 +17,7 @@ import { STAGE_PRIORITY } from './priorities';
 import { noRaycast } from './shaders';
 
 /** Nombre de grains, et leur taille (unités du monde, comme size de PointsMaterial). */
-export const DUST_COUNT = 260;
+const DUST_COUNT = 260;
 const DUST_SIZE = 0.06;
 const DUST_COLOR = 0xffd49a;
 

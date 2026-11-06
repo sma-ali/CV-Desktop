@@ -20,7 +20,7 @@ import type { Vec3 } from './constants';
 
 type MeshProps = Omit<ThreeElements['mesh'], 'geometry' | 'args'>;
 
-export const v3 = ([x, y, z]: Vec3) => new Vector3(x, y, z);
+const v3 = ([x, y, z]: Vec3) => new Vector3(x, y, z);
 
 /** Libère une géométrie créée avec useMemo quand elle change ou au démontage. */
 function useDisposable<T extends BufferGeometry>(geometry: T): T {

@@ -110,7 +110,7 @@ export function checkMessage(raw: string): FieldErrorCode | null {
   return null;
 }
 
-export const FIELD_CHECKS: Record<ContactField, (raw: string) => FieldErrorCode | null> = {
+const FIELD_CHECKS: Record<ContactField, (raw: string) => FieldErrorCode | null> = {
   name: checkName,
   email: checkEmail,
   message: checkMessage,

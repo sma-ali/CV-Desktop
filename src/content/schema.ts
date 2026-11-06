@@ -177,8 +177,3 @@ export const contentSchema = z.strictObject({
 
 export type Content = z.infer<typeof contentSchema>;
 export type Contact = Content['contact'];
-export type Experience = Content['experiences'][number];
-export type Project = Content['projects'][number];
-export type Education = Content['education'][number];
-export type Ui = Content['ui'];
-export type DeskUi = Content['desk'];

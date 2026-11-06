@@ -139,4 +139,4 @@ node scripts/capture.mjs /fr --params "t=11000&fige&auto=0&heure=14&prendre=book
 
 ## Pile
 
-Next.js 16 (App Router, `proxy.ts`), React 19, TypeScript strict, zod, CSS Modules, polices Fraunces, IBM Plex Mono et Caveat auto-hébergées (`next/font`, et `@fontsource` pour l'image de partage), Three.js, React Three Fiber, drei, postprocessing, Rapier (`@react-three/rapier`) et zustand pour la 3D, Vitest, Playwright avec axe (`@axe-core/playwright`), ESLint, Prettier, GitHub Actions.
+Next.js 16 (App Router, `proxy.ts`), React 19, TypeScript strict, zod, CSS Modules, polices Fraunces, IBM Plex Mono et Caveat auto-hébergées (`next/font`, et `@fontsource` pour l'image de partage), Three.js, React Three Fiber, postprocessing, Rapier (`@react-three/rapier`) et zustand pour la 3D, Vitest, Playwright avec axe (`@axe-core/playwright`), ESLint, Prettier, GitHub Actions.

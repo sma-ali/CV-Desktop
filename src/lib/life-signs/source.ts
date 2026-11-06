@@ -35,12 +35,12 @@ export const LIFE_SIGNS_CACHE_CONTROL = `public, max-age=0, s-maxage=${LIFE_SIGN
  */
 export const LIFE_SIGNS_FALLBACK_CACHE_CONTROL = 'public, max-age=0, s-maxage=30';
 /** Délai maximal de la lecture, en millisecondes. */
-export const LIFE_SIGNS_TIMEOUT_MS = 3000;
+const LIFE_SIGNS_TIMEOUT_MS = 3000;
 /** Taille maximale lue, en octets (le JSON attendu en fait quelques centaines). */
 export const LIFE_SIGNS_MAX_BYTES = 32 * 1024;
 
 /** Pourquoi la lecture a échoué (codes du journal). */
-export type LifeSignsFailure =
+type LifeSignsFailure =
   | 'missing_url'
   | 'invalid_url'
   | 'http_error'

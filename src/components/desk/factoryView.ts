@@ -15,14 +15,14 @@ import { chestLiveView, normalizeActivity, type ActivityBar } from './lifeSignsV
 
 export type FactoryTexts = SheetsContent['ui']['factory'];
 
-export interface FactoryFigure {
+interface FactoryFigure {
   value: string;
   label: string;
   /** Les vues et les j'aime prennent toute la largeur. */
   wide: boolean;
 }
 
-export interface FactoryGenreView {
+interface FactoryGenreView {
   id: FactoryGenreId;
   tab: string;
   title: string;

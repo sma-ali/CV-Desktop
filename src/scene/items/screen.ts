@@ -10,7 +10,7 @@ import type { SceneFonts } from '../core/fonts';
 export const SCREEN_TEXTURE = { width: 2048, height: 1152 } as const;
 
 /** Couleurs de la coloration syntaxique (celles du prototype). */
-export const SYNTAX = {
+const SYNTAX = {
   comment: '#8a7a66',
   string: '#b4c98f',
   number: '#f0956f',
@@ -21,7 +21,7 @@ export const SYNTAX = {
   punctuation: '#bba98e',
 } as const;
 
-export type TokenKind = keyof typeof SYNTAX;
+type TokenKind = keyof typeof SYNTAX;
 export type Token = readonly [text: string, kind: TokenKind];
 
 const KEYWORDS = new Set([
@@ -114,7 +114,7 @@ const HEADER = 76;
 const STATUS = 60;
 const PADDING = 26;
 /** Début de la barre d'état, à droite du post-it rose posé sur le cadre. */
-export const STATUS_LEFT = 104;
+const STATUS_LEFT = 104;
 
 /**
  * Plus grande police qui fait tenir toutes les lignes (code et ligne finale)

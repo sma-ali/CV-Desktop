@@ -198,7 +198,7 @@ export function deskExtent(portrait: boolean): Vec3[] {
 }
 
 /** Ce que demande un cadrage : une vue de départ, des points, des limites, un alignement. */
-export interface FitRequest {
+interface FitRequest {
   view: View;
   points: readonly Vec3[];
   limits: FitLimits;
@@ -217,7 +217,7 @@ const FIT_ITERATIONS = 24;
  * La plus petite distance qui fait tenir les points dans leurs limites, en
  * recentrant le point visé (layout() du prototype).
  */
-export function fitView({ view, points, limits, align }: FitRequest, aspect: number): View {
+function fitView({ view, points, limits, align }: FitRequest, aspect: number): View {
   const camera = new PerspectiveCamera(view.fov, aspect, 0.1, 90);
   camera.updateProjectionMatrix();
   const target = new Vector3();

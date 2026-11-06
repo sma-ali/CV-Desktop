@@ -24,7 +24,7 @@ export const RATES = { lift: 1.25, putBack: 1.6, flip: 1.15 } as const;
 
 /** Relèvement au survol (unités de la scène) et lueur des textures. */
 export const HOVER_LIFT = 0.08;
-export const GLOW = { held: 0.16, hover: 0.14 } as const;
+const GLOW = { held: 0.16, hover: 0.14 } as const;
 
 /** Avance value vers target d'au plus step, sans le dépasser. */
 export function stepToward(value: number, target: number, step: number): number {
@@ -191,7 +191,7 @@ export function deskRestPose(pose: Pick<ItemPose, 'x' | 'y' | 'z' | 'ry'>): Rest
 }
 
 /** Rotation de la dalle de l'écran (monTilt du prototype). */
-export function monitorTiltQuaternion(): Quaternion {
+function monitorTiltQuaternion(): Quaternion {
   return new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), MONITOR.tiltX);
 }
 

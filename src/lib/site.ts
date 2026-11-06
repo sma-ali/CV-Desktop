@@ -2,7 +2,7 @@ import type { Locale } from '@/content/locales';
 
 // Adresse publique du site : base des liens absolus (canonical, Open Graph,
 // sitemap, JSON-LD).
-export const SITE_URL = 'https://alismaani.fr';
+const SITE_URL = 'https://alismaani.fr';
 
 export const SITE_ORIGIN = new URL(SITE_URL);
 

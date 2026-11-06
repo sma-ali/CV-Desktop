@@ -13,7 +13,7 @@ concurrency:
 
 jobs:
   qualite:
-    name: Lint, types et tests unitaires
+    name: Lint, types, code mort et tests unitaires
     runs-on: ubuntu-latest
     timeout-minutes: 10
     steps:
@@ -26,6 +26,7 @@ jobs:
       - run: npm run lint
       - run: npm run format:check
       - run: npm run typecheck
+      - run: npm run knip
       - run: npm test
 
   e2e:

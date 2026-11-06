@@ -101,7 +101,7 @@ export function alignY(direction: Vec3): Quaternion {
 // ------------------------------------------------------------------
 
 /** On ne touche à rien pendant la première seconde de l'arrivée (noir complet). */
-export const INTERACT_FROM = 1.2;
+const INTERACT_FROM = 1.2;
 
 /**
  * Un élément du décor qui réagit au clic : ses gestionnaires d'événements, et

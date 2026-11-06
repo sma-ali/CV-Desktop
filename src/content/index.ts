@@ -4,10 +4,8 @@ import { locales, type Locale } from './locales';
 import { contentSchema, type Content } from './schema';
 
 export * from './locales';
-export type { Content, DeskUi, Education, Experience, Project, Ui } from './schema';
+export type { Content } from './schema';
 export type { ContactFormContent } from './contact/schema';
-export type { LegalContent } from './legal/schema';
-export type { SceneContent } from './scene/schema';
 export type { SheetContent, SheetsContent } from './sheets/schema';
 
 // Validation au chargement du module : un contenu invalide fait échouer le

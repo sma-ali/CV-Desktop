@@ -9,7 +9,7 @@ import { gestureHub } from './hub';
 export const GESTURES_AFTER = ARRIVAL.lampOn + 0.25;
 
 /** L'objet qui porte le gestionnaire est-il le plus proche sous le pointeur ? */
-export function isNearest(event: ThreeEvent<PointerEvent>): boolean {
+function isNearest(event: ThreeEvent<PointerEvent>): boolean {
   const first = event.intersections[0]?.object;
   for (let node: Object3D | null = first ?? null; node; node = node.parent) {
     if (node === event.eventObject) return true;

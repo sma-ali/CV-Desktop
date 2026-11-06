@@ -49,7 +49,7 @@ const STATUS: Record<ContactErrorCode, number> = {
 export const DRY_RUN_HEADER = 'X-Contact-Dry-Run';
 
 /** Méthodes acceptées, pour l'en-tête Allow des réponses 405. */
-export const ALLOWED_METHODS = 'POST';
+const ALLOWED_METHODS = 'POST';
 
 const JSON_HEADERS = {
   'Content-Type': 'application/json; charset=utf-8',

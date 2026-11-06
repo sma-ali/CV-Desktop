@@ -34,7 +34,7 @@ export interface ColoredPart {
  * sommet. Les pièces sont libérées. Si certaines sont indexées et d'autres
  * non (un tube et une boîte), toutes passent en triangles non indexés.
  */
-export function mergeColored(parts: readonly ColoredPart[]): BufferGeometry {
+function mergeColored(parts: readonly ColoredPart[]): BufferGeometry {
   const color = new Color();
   const indexed = parts.every(({ geometry }) => geometry.index !== null);
   const prepared = parts.map(({ geometry, color: hex }) => {
@@ -54,7 +54,7 @@ export function mergeColored(parts: readonly ColoredPart[]): BufferGeometry {
 }
 
 /** Fusionne des boîtes en une géométrie, avec leur couleur par sommet. */
-export function mergeBoxes(pieces: readonly BoxPiece[]): BufferGeometry {
+function mergeBoxes(pieces: readonly BoxPiece[]): BufferGeometry {
   return mergeColored(
     pieces.map(({ size, position, rotationY = 0, color }) => {
       const box = new BoxGeometry(...size);
@@ -68,7 +68,7 @@ export function mergeBoxes(pieces: readonly BoxPiece[]): BufferGeometry {
 const materials = new Map<string, MeshStandardMaterial>();
 
 /** Matériau à couleurs par sommet, partagé (ne jamais le modifier). */
-export function vertexColorMaterial(roughness = 0.8, metalness = 0): MeshStandardMaterial {
+function vertexColorMaterial(roughness = 0.8, metalness = 0): MeshStandardMaterial {
   const key = `${roughness}|${metalness}`;
   let material = materials.get(key);
   if (!material) {

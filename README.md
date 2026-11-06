@@ -56,7 +56,7 @@ Architecture, flux des données, choix techniques : [docs/architecture.md](docs/
 
 ## Statut
 
-En production sur alismaani.fr depuis novembre 2026 : bureau 3D, version express, FR et EN, formulaire de contact, mentions légales. Reste à brancher la source publique des signes de vie (l'usine affiche pour l'instant ses données d'exemple).
+En production sur alismaani.fr depuis novembre 2026 : bureau 3D, version express, FR et EN, formulaire de contact, mentions légales, signes de vie de l'usine mis à jour chaque jour.
 
 ## Pile
 

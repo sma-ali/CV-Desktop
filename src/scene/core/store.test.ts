@@ -6,7 +6,8 @@ import { homePlace, homePose } from './bodies';
 import { createSilentSound } from './sound';
 import { DROP } from './constants';
 import { dropStart, DROP_END, DROP_ORDER } from './drop';
-import { createSceneStore, REDUCED_START, settingsFromParams, updateFrame } from './store';
+import { updateFrame } from './frame';
+import { createSceneStore, REDUCED_START, settingsFromParams } from './store';
 
 function started(search = '', reduced = false) {
   const store = createSceneStore();

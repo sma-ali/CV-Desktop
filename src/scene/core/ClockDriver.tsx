@@ -9,7 +9,7 @@ import { clockHold } from './loading';
 import type { MoodId } from './ids';
 import { blendMoodValues, copyMoodValues, moodValues, type MoodValues } from './mood-values';
 import { useSceneStoreApi } from './store-context';
-import { updateFrame } from './store';
+import { updateFrame } from './frame';
 
 /** Priorité du useFrame de l'horloge : avant tous les autres (négative, elle garde le rendu automatique). */
 const CLOCK_PRIORITY = -100;

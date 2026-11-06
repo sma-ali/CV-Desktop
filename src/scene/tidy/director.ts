@@ -1,7 +1,7 @@
 import { homePose, setHomePose, type DeskBodies, type DeskPose } from '../core/bodies';
 import { BODY_IDS, type BodyId } from '../core/ids';
 import { rng } from '../core/rng';
-import type { PhysicsControl } from '../physics/world';
+import type { PhysicsControl } from '../core/physicsControl';
 import { tiltOf } from './disorder';
 import { DESK, DESK_PORTRAIT_Z1, DESK_THICKNESS } from '../core/constants';
 import {

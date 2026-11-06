@@ -5,7 +5,7 @@ import { useEffect, useRef } from 'react';
 import { Plane, Raycaster, Vector2, Vector3, type Camera } from 'three';
 import type { DeskBodies } from '../core/bodies';
 import type { BodyId } from '../core/ids';
-import type { PhysicsControl } from '../physics/world';
+import type { PhysicsControl } from '../core/physicsControl';
 import type { SceneStore } from '../core/store';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import { DRAG_THRESHOLD, gestureHub } from './hub';

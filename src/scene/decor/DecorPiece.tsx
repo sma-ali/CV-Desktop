@@ -6,7 +6,7 @@ import type { Group } from 'three';
 import { usePortrait } from '../core/portrait';
 import { useSceneStoreApi } from '../core/store-context';
 import { claimBody } from '../gestures/pointer';
-import { DECOR_ANCHORS, decorPlacement, type DecorPieceId } from './layout';
+import { DECOR_ANCHORS, decorPlacement, type DecorPieceId } from '../core/decorPlaces';
 
 // Un morceau du décor, corps du moteur physique : ses enfants,
 // dessinés à leur place en paysage (repère du monde), sont décalés de moins

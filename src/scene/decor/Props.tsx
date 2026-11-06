@@ -20,7 +20,7 @@ import {
 } from 'three';
 import { mergeGeometries } from 'three/examples/jsm/utils/BufferGeometryUtils.js';
 import { ARRIVAL } from '../core/constants';
-import { DeskBody } from '../gestures/DeskBody';
+import { DeskBody } from './DeskBody';
 import { useSceneStoreApi } from '../core/store-context';
 import { useCanvasTexture } from '../core/textures';
 import {

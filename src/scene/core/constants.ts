@@ -208,15 +208,6 @@ export const POSTIT_ON_MONITOR = {
   rotation: [Math.PI / 2, -0.1, 0] as Vec3,
 } as const;
 
-/**
- * Places de repos de la tasse et de la manette (dessinées dans leur propre
- * repère, contrairement aux autres morceaux du décor).
- */
-export const DECOR_BODY_HOMES = {
-  mug: { x: 4.55, z: -0.62, ry: 0 },
-  pad: { x: 5.1, z: 1.95, ry: 0.45 },
-} as const;
-
 /** Le support du casque, sur lequel le casque est posé. */
 export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
 

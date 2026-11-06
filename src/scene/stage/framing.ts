@@ -26,7 +26,9 @@ import {
   type Vec3,
   type View,
 } from '../core/constants';
-import { decorExtentPortrait, decorPlacement, placeDecorPoint, ROPE_EXTENT } from '../decor/layout';
+import { decorPlacement, placeDecorPoint } from '../core/decorPlaces';
+import { ROPE_EXTENT } from '../decor/layout';
+import { decorExtentPortrait } from '../decor/obstacles';
 
 // Le cadrage de la caméra, en fonctions pures (testées) : la vue de repos
 // calculée d'après le format de la fenêtre (layout() du prototype), la montée
@@ -160,7 +162,7 @@ export function screenShare(
 
 /**
  * Les points fixes du format : en portrait, la lampe est à
- * leur place du bureau resserré (decor/layout.ts, PORTRAIT_DECOR), et un
+ * leur place du bureau resserré (core/decorPlaces.ts, PORTRAIT_DECOR), et un
  * morceau caché n'a plus de points.
  */
 export function fixedExtent(

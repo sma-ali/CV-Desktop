@@ -1,6 +1,6 @@
 import type { BodyId, ItemId } from '../core/ids';
 import type { SceneStore } from '../core/store';
-import type { PhysicsControl } from '../physics/world';
+import type { PhysicsControl } from '../core/physicsControl';
 
 // Ce que partagent les gestes (Gestures, posé à côté des objets dans
 // Scene.tsx), les objets qu'on prend (usePresentation, DecorPiece), le

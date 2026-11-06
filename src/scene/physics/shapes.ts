@@ -14,7 +14,7 @@ import type { ItemBodyId } from '../core/ids';
 // three ni Rapier : des boîtes, des cylindres, des boules et des gélules,
 // simples pour tenir sur téléphone. Chaque forme est dans le repère du
 // corps (son origine : celle du groupe de l'objet, ou l'ancre du morceau du
-// décor). Le décor a les siennes dans decor/colliders.ts (partie décor).
+// décor). Le décor a les siennes dans decorShapes.ts.
 
 /**
  * Une forme de collision, dans le repère du corps. rotation : angles d'Euler
@@ -36,7 +36,8 @@ export interface BodySpec {
   restitution?: number;
 }
 
-const box = (half: Vec3, at: Vec3 = [0, half[1], 0], rotation?: Vec3): ShapeSpec =>
+/** Une boîte de demi-côtés half, posée par défaut sur l'origine (son dessous en y = 0). */
+export const box = (half: Vec3, at: Vec3 = [0, half[1], 0], rotation?: Vec3): ShapeSpec =>
   rotation ? { kind: 'box', half, at, rotation } : { kind: 'box', half, at };
 
 /**

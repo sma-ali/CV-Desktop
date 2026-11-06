@@ -1,16 +1,13 @@
 import { LAMP, type Vec3 } from '../core/constants';
 import type { DecorBodyId } from '../core/ids';
-import type { BodySpec, ShapeSpec } from '../physics/shapes';
-import { KIMONO, KIMONO_FOOTPRINT, MANGA, MANGA_SIZE, MANGA_TOP } from './layout';
+import { KIMONO, KIMONO_FOOTPRINT, MANGA, MANGA_SIZE, MANGA_TOP } from '../decor/layout';
+import { box, type BodySpec } from './shapes';
 
 // Les formes de collision du décor : une boîte, un cylindre ou
 // quelques gélules par morceau, dans le repère du corps. L'origine d'un
 // morceau est son ancre (DECOR_ANCHORS) au ras du plateau ; la tasse et la
-// manette ont la leur (elles sont dessinées dans leur propre repère). La
-// partie décor les recale quand elle redessine un morceau.
-
-const box = (half: Vec3, at: Vec3 = [0, half[1], 0], rotation?: Vec3): ShapeSpec =>
-  rotation ? { kind: 'box', half, at, rotation } : { kind: 'box', half, at };
+// manette ont la leur (elles sont dessinées dans leur propre repère). Les
+// tailles viennent de decor/layout.ts : à recaler si un morceau change.
 
 /** Un point de la lampe, dans le repère de son pied. */
 const lampLocal = ([x, y, z]: Vec3): Vec3 => [x - LAMP.base[0], y, z - LAMP.base[2]];

@@ -101,7 +101,7 @@ export type ItemBodyId = (typeof ITEM_BODY_IDS)[number];
 /**
  * Les morceaux du décor qui sont des corps. Leurs enfants sont dessinés à
  * leur place en paysage (repère du monde) ; l'origine du corps est l'ancre
- * du morceau (DECOR_ANCHORS, decor/layout.ts), sauf la tasse et la manette,
+ * du morceau (DECOR_ANCHORS, core/decorPlaces.ts), sauf la tasse et la manette,
  * dessinées dans leur propre repère.
  */
 const DECOR_BODY_IDS = [

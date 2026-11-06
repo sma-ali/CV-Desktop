@@ -1,5 +1,5 @@
 import { describe, expect, it } from 'vitest';
-import { decorObstacles } from '../decor/layout';
+import { decorObstacles } from '../decor/obstacles';
 import {
   BODY_FOOTPRINTS,
   bodyHidden,

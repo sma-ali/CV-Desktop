@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { cameraProgress } from '../core/arrival';
 import { bodyObb, FOOTPRINT_IDS, homePlace } from '../core/bodies';
-import { decorExtentPortrait } from '../decor/layout';
+import { decorExtentPortrait } from '../decor/obstacles';
 import {
   ARRIVAL,
   HELD,

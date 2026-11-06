@@ -4,7 +4,7 @@ import { useFrame, type ThreeEvent } from '@react-three/fiber';
 import { useCallback, useRef, type ReactNode } from 'react';
 import type { Group } from 'three';
 import { useSceneStoreApi } from '../core/store-context';
-import { claimBody } from './pointer';
+import { claimBody } from '../gestures/pointer';
 
 // Un objet du décor dessiné dans son propre repère (la tasse, la manette) :
 // un groupe posé chaque image sur la pose de son corps (store.desk[id],

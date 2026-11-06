@@ -12,6 +12,55 @@ const serverOnlyContent = {
   message: 'Le navigateur reçoit ses textes en props : ni zod ni le module de contenu côté client.',
 };
 
+// Les couches de la scène (src/scene), de la plus basse à la plus haute. Un
+// dossier n'importe que des couches plus basses, jamais une voisine de la
+// même couche ni Scene.tsx, qui assemble le tout :
+// 1. core : le noyau (store, horloge, identifiants, constantes, corps du
+//    plateau, contrat du moteur physique, outils de dessin communs) ;
+// 2. gestures : le moyeu des gestes et l'appui sur un corps ;
+// 3. decor, items : ce qui se dessine, le décor et les objets du CV ;
+// 4. stage : la mise en scène (lumières, caméra, cadrage du décor) ;
+// 5. physics, rotation : le moteur physique, la rotation de l'objet tenu ;
+// 6. tidy : le rangement, qui pilote le moteur physique.
+// Les tests (*.test.ts) peuvent croiser les couches.
+const SCENE_LAYERS = [
+  ['core'],
+  ['gestures'],
+  ['decor', 'items'],
+  ['stage'],
+  ['physics', 'rotation'],
+  ['tidy'],
+];
+
+const sceneLayerRules = SCENE_LAYERS.flatMap((layer, index) => {
+  const above = SCENE_LAYERS.slice(index).flat();
+  return layer.map((folder) => {
+    const forbidden = above.filter((other) => other !== folder);
+    return {
+      files: [`src/scene/${folder}/**/*.{ts,tsx}`],
+      ignores: ['src/scene/**/*.test.ts'],
+      rules: {
+        'no-restricted-imports': [
+          'error',
+          {
+            patterns: [
+              serverOnlyContent,
+              {
+                group: [
+                  ...forbidden.flatMap((other) => [`../${other}/*`, `@/scene/${other}/*`]),
+                  '../Scene',
+                  '@/scene/Scene',
+                ],
+                message: `${folder}/ n'importe que les couches plus basses de la scène (voir SCENE_LAYERS).`,
+              },
+            ],
+          },
+        ],
+      },
+    };
+  });
+});
+
 export default defineConfig([
   ...nextVitals,
   ...nextTs,
@@ -28,6 +77,7 @@ export default defineConfig([
       'no-restricted-imports': ['error', { patterns: [serverOnlyContent] }],
     },
   },
+  ...sceneLayerRules,
   {
     // Le HUD part dans le JavaScript initial : pas de three, et seulement les
     // modules du socle qui n'en dépendent pas (jamais le fichier d'index).

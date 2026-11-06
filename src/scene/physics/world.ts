@@ -10,7 +10,8 @@ import {
 } from '../core/bodies';
 import { DESK } from '../core/constants';
 import { BODY_IDS, isDecorBodyId, type BodyId } from '../core/ids';
-import { DECOR_BODY_SPECS } from '../decor/colliders';
+import type { PhysicsControl, PhysicsEvents } from '../core/physicsControl';
+import { DECOR_BODY_SPECS } from './decorShapes';
 import {
   deskSlab,
   FIXED_SPECS,
@@ -66,14 +67,6 @@ const GRAB = {
  * ne roule pas des secondes sur le plateau).
  */
 const BODY = { friction: 0.7, restitution: 0.12, linearDamping: 0.3, angularDamping: 2 };
-
-/** Ce que le monde signale après avoir avancé. */
-export interface PhysicsEvents {
-  /** Le bureau vient de se poser : plus aucun corps éveillé (recopier les places). */
-  settled: boolean;
-  /** Chocs de l'image, de 0 à 1 (le son thud). Réutilisé d'une image à l'autre. */
-  thuds: number[];
-}
 
 /** Un glisser en cours. */
 interface Grab {
@@ -184,39 +177,6 @@ const yawQuat = (ry: number) => ({ x: 0, y: Math.sin(ry / 2), z: 0, w: Math.cos(
 /** La description d'un corps. */
 function bodySpec(id: BodyId): BodySpec {
   return isDecorBodyId(id) ? DECOR_BODY_SPECS[id] : ITEM_BODY_SPECS[id];
-}
-
-/**
- * Ce que les autres parties peuvent demander au monde (via gestureHub(store).physics) :
- * le glisser, le retour et le rangement.
- */
-export interface PhysicsControl {
-  /** Le format courant (le bureau resserré en portrait). */
-  readonly portrait: boolean;
-  /** Le corps glissé, ou null. */
-  readonly grabbed: BodyId | null;
-  /** Commence un glisser : le corps saisi au point (x, z) du plateau. false s'il n'est pas libre. */
-  grab(id: BodyId, x: number, z: number): boolean;
-  /** Le point du plateau que vise le pointeur. */
-  aim(x: number, z: number): void;
-  /** Lâche le corps glissé ; withThrow : il garde son élan (jamais en mouvement réduit). */
-  release(withThrow: boolean): void;
-  /** Le corps est-il éveillé (il bouge encore) ? */
-  isAwake(id: BodyId): boolean;
-  /**
-   * Reprend un corps en main (retour et rangement) : il ne subit
-   * plus rien et se déplace par drive(), jusqu'à handBack(). Sans effet sur
-   * le corps glissé ou présenté.
-   */
-  takeOver(id: BodyId): boolean;
-  /** Pose un corps repris en main (pose complète : place, hauteur, orientation). */
-  drive(id: BodyId, pose: DeskPose & { qx?: number; qy?: number; qz?: number; qw?: number }): void;
-  /** Rend un corps au monde ; asleep : endormi sur place (sa place d'origine). */
-  handBack(id: BodyId, asleep: boolean): void;
-  /** Remet aussitôt un corps à sa place d'origine, endormi. */
-  sendHome(id: BodyId): void;
-  /** Quelques pas d'un coup, hors de l'horloge (sous &fige : ?glisse joué en une image). */
-  stepMany(desk: DeskBodies, steps: number): PhysicsEvents;
 }
 
 /** Un corps presque immobile (vitesse, rotation) pendant seconds s'endort. */

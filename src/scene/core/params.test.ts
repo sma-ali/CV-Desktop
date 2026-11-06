@@ -1,6 +1,20 @@
 import { describe, expect, it } from 'vitest';
 import { DEFAULT_TEST_DRAG, parseTestParams } from './params';
 
+describe('?tourne', () => {
+  it('lit deux angles en radians', () => {
+    expect(parseTestParams('?t=11000&tourne=0.5,-1.2').turn).toEqual({ x: 0.5, y: -1.2 });
+    expect(parseTestParams('?tourne=2,3').turn).toEqual({ x: 2, y: 3 });
+  });
+
+  it('ignore une valeur absente ou illisible', () => {
+    expect(parseTestParams('?t=11000').turn).toBeNull();
+    expect(parseTestParams('?tourne').turn).toBeNull();
+    expect(parseTestParams('?tourne=a,b').turn).toBeNull();
+    expect(parseTestParams('?tourne=1').turn).toBeNull();
+  });
+});
+
 describe('paramètres de test', () => {
   it('donnent les valeurs par défaut sans paramètre', () => {
     expect(parseTestParams('')).toEqual({
@@ -16,6 +30,7 @@ describe('paramètres de test', () => {
       noShadow: false,
       noPost: false,
       scatter: false,
+      turn: null,
     });
   });
 

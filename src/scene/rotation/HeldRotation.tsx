@@ -16,7 +16,6 @@ import {
   easeShare,
   heldBall,
   keyRotation,
-  parseTurn,
   readSpin,
   rotationAngle,
   SPIN,
@@ -72,8 +71,7 @@ interface RotationState {
   upright: boolean;
   /** Dernier uprightRequests vu. */
   uprightSeen: number;
-  /** ?tourne (lu une fois), et déjà appliqué. */
-  turn: { x: number; y: number } | null;
+  /** ?tourne déjà appliqué. */
   turnDone: boolean;
 }
 
@@ -110,13 +108,8 @@ export function HeldRotation() {
     pending: new Quaternion(),
     upright: false,
     uprightSeen: 0,
-    turn: null,
     turnDone: false,
   });
-
-  useEffect(() => {
-    state.current.turn = parseTurn(window.location.search);
-  }, []);
 
   // Le glisser sur l'objet tenu. Ces écouteurs s'ajoutent après ceux de
   // Gestures (monté avant dans Scene.tsx) : press.travel est déjà à jour.
@@ -231,9 +224,10 @@ export function HeldRotation() {
 
     // ?tourne=x,y : une orientation donnée d'office à l'objet de ?prendre=
     // (captures, tests).
-    if (run.turn && !run.turnDone && scene.presentedBy === 'test') {
+    const turn = scene.settings.initialTurn;
+    if (turn && !run.turnDone && scene.presentedBy === 'test') {
       run.turnDone = true;
-      spin.premultiply(cameraToWorld(turnRotation(run.turn, delta), camera, world));
+      spin.premultiply(cameraToWorld(turnRotation(turn, delta), camera, world));
     }
 
     // L'inertie, une fois lâché.

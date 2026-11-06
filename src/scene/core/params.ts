@@ -31,6 +31,17 @@ export interface TestParams {
   noPost: boolean;
   /** ?desordre : tout le bureau dispersé dès que le moteur physique est prêt. */
   scatter: boolean;
+  /** ?tourne=0.5,-1.2 (avec ?prendre=) : une orientation donnée d'office à l'objet présenté. */
+  turn: TestTurn | null;
+}
+
+/**
+ * Les angles de ?tourne=x,y (radians) : x autour de l'axe horizontal de la
+ * vue, puis y autour de son axe vertical (rotation/trackball.ts, turnRotation).
+ */
+export interface TestTurn {
+  x: number;
+  y: number;
 }
 
 /** Un glisser demandé par l'adresse : quel corps, et vers quelle place (x, z). */
@@ -50,6 +61,13 @@ function parseDrag(value: string | null): TestDrag | null {
   if (!match) return null;
   const [, item = '', x = '', z = ''] = match;
   return isBodyId(item) ? { item, x: Number(x), z: Number(z) } : null;
+}
+
+function parseTurn(value: string | null): TestTurn | null {
+  if (value === null) return null;
+  const match = /^\s*(-?\d+(?:\.\d+)?)\s*,\s*(-?\d+(?:\.\d+)?)\s*$/.exec(value);
+  if (!match) return null;
+  return { x: Number(match[1]), y: Number(match[2]) };
 }
 
 function finite(value: string | null): number | null {
@@ -77,5 +95,6 @@ export function parseTestParams(search: string | URLSearchParams): TestParams {
     noShadow: query.has('noshadow'),
     noPost: query.has('nopost'),
     scatter: query.has('desordre'),
+    turn: parseTurn(query.get('tourne')),
   };
 }

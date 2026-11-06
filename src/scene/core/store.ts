@@ -15,7 +15,7 @@ import { ARRIVAL, SETTLE, TYPING_END_DEFAULT } from './constants';
 import type { BodyId, ItemId, MoodId } from './ids';
 import { clamp } from './math';
 import { moodValues, type MoodValues } from './mood-values';
-import type { TestDrag, TestParams } from './params';
+import type { TestDrag, TestParams, TestTurn } from './params';
 import { createSilentSound, type SoundPlayer } from './sound';
 
 // L'état partagé de la scène et du HUD (zustand, sans React : le store se
@@ -56,6 +56,8 @@ export interface SceneSettings {
   noPost: boolean;
   /** ?desordre : le bureau dispersé dès que le moteur est prêt. */
   scatter: boolean;
+  /** ?tourne= : l'orientation donnée d'office à l'objet de ?prendre= (HeldRotation). */
+  initialTurn: TestTurn | null;
 }
 
 const DEFAULT_SETTINGS: SceneSettings = {
@@ -70,6 +72,7 @@ const DEFAULT_SETTINGS: SceneSettings = {
   noShadow: false,
   noPost: false,
   scatter: false,
+  initialTurn: null,
 };
 
 /**
@@ -114,6 +117,7 @@ export function settingsFromParams(
     noShadow: params.noShadow,
     noPost: params.noPost,
     scatter: params.scatter,
+    initialTurn: params.turn,
   };
 }
 

@@ -3,6 +3,12 @@
   "version": "0.1.0",
   "private": true,
   "description": "Le CV d'Ali Smaani en bureau 3D low poly, avec une version express en HTML",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/sma-ali/CV-Desktop.git"
+  },
+  "homepage": "https://alismaani.fr",
   "engines": {
     "node": ">=22.12.0"
   },

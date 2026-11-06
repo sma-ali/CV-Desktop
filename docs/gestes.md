@@ -87,25 +87,25 @@ Outils : `homePlace(id, portrait)`, `bodyObb(id, place)`, `obbCorners(box)`, `ob
 
 Décision d'Ali du 29/10 : sur téléphone en portrait, et seulement là, les objets et le décor se rangent sur une zone plus étroite et plus profonde. C'est la largeur qui fixe l'échelle du cadrage : plus étroit, le bureau grandit à l'écran et la bande de mur vide disparaît. Tout format sous `PORTRAIT_MAX_ASPECT` (0.9) en profite, tablette en portrait comprise (768x1024). Le paysage (téléphone couché, tablette, ordinateur) ne change pas d'un pixel.
 
-- Zone des corps : `BOUNDS_PORTRAIT = { x0: -3.75, x1: 3.95, z0: -3.2, z1: 4.3 }` (7.7 de large au lieu de 12.35, 7.5 de profondeur au lieu de 6.25). Le plateau s'allonge vers le visiteur (`DESK_PORTRAIT_Z1` = 4.65, `decor/Room.tsx`).
-- Places des corps (`PORTRAIT_PLACES`) :
+- Zone des corps : `BOUNDS_PORTRAIT = { x0: -2.75, x1: 3.35, z0: -3.2, z1: 4.9 }` (6.1 de large au lieu de 12.35, à peine plus que l'écran ; 8.1 de profondeur au lieu de 6.25). Le plateau s'allonge vers le visiteur (`DESK_PORTRAIT_Z1` = 5.25, `decor/Room.tsx`).
+- Places des corps (`PORTRAIT_PLACES`, revues le 06/11, voir « Des objets plus gros sur téléphone ») :
 
-| Corps         | x, z, ry         | Où                          |
-| ------------- | ---------------- | --------------------------- |
-| `chest`       | -2.8, -0.45, 0.1 | à gauche du clavier         |
-| `book`        | -2.6, 2.05, 0.12 | à gauche, devant le coffret |
-| `pad`         | -2.75, 3.82, 0   | avant gauche                |
-| `netherbrain` | 0.35, 1.2        | devant le clavier           |
-| `badge`       | -0.75, 1.75      | devant le clavier, à gauche |
-| `card`        | -0.3, 3.6        | au bord avant, au milieu    |
-| `mug`         | 3.45, -1.35      | à droite, devant le casque  |
-| `homelab`     | 3.3, 0.75, -0.2  | à droite                    |
-| `laptop`      | 2.45, 2.55       | avant droit                 |
+| Corps         | x, z, ry          | Où                                       |
+| ------------- | ----------------- | ---------------------------------------- |
+| `chest`       | -1.75, -1.62, 0   | derrière le clavier, à gauche            |
+| `netherbrain` | -1.0, 0.85        | devant le clavier, à gauche              |
+| `homelab`     | 0.3, 0.9, 0       | devant le clavier, au milieu             |
+| `pad`         | 2.35, 0.75, 0     | devant le clavier, à droite              |
+| `book`        | -1.72, 2.85, 0.06 | à gauche                                 |
+| `badge`       | -0.13, 2.3, 0     | au milieu, entre le livre et le portable |
+| `laptop`      | 1.88, 2.45        | à droite                                 |
+| `card`        | 0.3, 4.25         | au bord avant, au milieu                 |
+| `mug`         | 2.4, 4.3          | au bord avant, à droite                  |
 
-- Le casque et son support passent à droite de l'écran (`HEADSET_PORTRAIT = { x: 3.5, z: -2.4, ry: -0.25 }`, décalé de 0.15 à l'étape 6 : un écouteur entrait dans la dalle de l'écran, `headsetStand(portrait)`, `headsetPose(portrait)`) : à gauche, l'abat-jour de la lampe le cachait.
-- Le décor (`decor/layout.ts`) se découpe en morceaux rigides (`DecorPieceId` : lampe, micro, pavé de boutons, souris, corde, bandes, plante, mangas, renard, voyageur). Chaque morceau tourne de `ry` autour de son ancre (`DECOR_ANCHORS`, sa place en paysage), puis l'ancre va en (x, z) : `PORTRAIT_DECOR`. `DecorPiece` (`decor/DecorPiece.tsx`) dessine cette transformation, l'identité exacte en paysage ; ses obstacles (`decorObstacles(true)`) et ses points de cadrage (`decorExtentPortrait()`) suivent la même transformation (testé contre three). Le spot de la lampe et son cône (`stage/Lights.tsx`, `stage/LampCone.tsx`) suivent la lampe.
-- En portrait : la lampe recule au fond à gauche (-2.4, -3.0, tournée de -0.75) ; la plante passe dans le coin du fond à gauche, où elle dépasse de l'abat-jour ; le pavé de boutons se pose derrière le clavier, à gauche de l'écran ; la souris se rapproche du clavier ; les mangas et le robot passent devant le clavier, à droite.
-- Cachés en portrait, faute de place (jamais un objet du CV) : le micro sur son bras (il encombrait le bord gauche et sortait du cadre), la corde à sauter, les bandes, le renard et le voyageur. Liste testée (`layout.test.ts`).
+- Le casque et son support passent à droite de l'écran, de profil (`HEADSET_PORTRAIT = { x: 3.2, z: -2.15, ry: 1.25 }`, `headsetStand(portrait)`, `headsetPose(portrait)`) : à gauche, l'abat-jour de la lampe le cachait ; de face, ses écouteurs élargissaient le bureau et le premier entrait dans la dalle. Le cadrage tient ses deux écouteurs, pas seulement le haut de l'arceau (`fixedExtent(true).headset`).
+- Le décor (`decor/layout.ts`) se découpe en morceaux rigides (`DecorPieceId` : lampe, clavier, kimono, souris, corde, bandes, plante, mangas, renard, voyageur). Chaque morceau tourne de `ry` autour de son ancre (`DECOR_ANCHORS`, sa place en paysage), puis l'ancre va en (x, z) : `PORTRAIT_DECOR`. `DecorPiece` (`decor/DecorPiece.tsx`) dessine cette transformation, l'identité exacte en paysage ; ses obstacles (`decorObstacles(true)`) et ses points de cadrage (`decorExtentPortrait()`) suivent la même transformation (testé contre three). Le spot de la lampe et son cône (`stage/Lights.tsx`, `stage/LampCone.tsx`) suivent la lampe.
+- En portrait : la lampe recule au fond à gauche (-2.4, -3.0, tournée de -0.75), sa tête peut sortir en partie du cadre ; le clavier avance de 0.13 et la souris le suit ; le kimono plié passe derrière le clavier, à droite ; la plante se pose devant le clavier, à gauche, derrière le livre.
+- Cachés en portrait, faute de place (jamais un objet du CV) : la corde à sauter, les bandes, les mangas et leur robot (depuis le 06/11), le renard et le voyageur. Liste testée (`layout.test.ts`, `bodies.test.ts`).
 - Changement d'orientation (`DragSim.reframe(world, desk, portrait)`, appelé par `Gestures`) : le monde du solveur passe à `deskWorld(portrait)` ; les corps jamais déplacés vont à leur place du format (`syncDeskBodies`) ; les corps déplacés gardent la leur, et le solveur range le plateau en les écartant d'abord, puis tous les corps. En dernier recours, un corps déplacé qui reste en recouvrement ou hors du plateau retourne à sa place du format. `drag.test.ts` tourne le téléphone dans les deux sens, avec des corps poussés aux bords et au hasard : jamais de recouvrement ni rien hors du plateau.
 - Cadrage : `restPoints(true)` = les coins de `BOUNDS_PORTRAIT` (un corps glissé au bord reste à l'écran), le haut de l'écran, le bureau utile et le décor posé. `PORTRAIT_HUD.bottom` passe de 205 à 222 px : le haut de l'indication du HUD est à 211 à 218 px du bas, et la rangée avant passait dessous.
 - Mesure : `OffscreenProbe` écrit `data-desk-share` sur le canvas, la part de la hauteur libre entre les bandes du HUD (`restLimits`) que couvre le bureau utile au repos (`screenShare`). `framing.test.ts` l'exige au-dessus de 0.65 sur sept portraits, avec le décor dans le cadre ; `scene-projets.spec.ts` la vérifie sur le profil téléphone en 390x844, 360x740 et 412x915.
@@ -120,6 +120,21 @@ Avant et après, au repos (bande : du bas de l'identité du HUD, à 112 px, au h
 | 768x1024 (tab.) |              |             | 0.59       | 677 px       | 12 px       | 0.98       |
 
 Ce qui reste de bande en 390x844 et 412x915 sert de scène à l'objet tenu ; sur ces fenêtres plus hautes, c'est encore la largeur qui fixe l'échelle.
+
+### Des objets plus gros sur téléphone (06/11)
+
+Testé sur son téléphone, Ali trouvait le bureau « un peu compact » : tous les objets étaient petits. Son choix : des objets plus gros, en resserrant encore la disposition du portrait. Rendre la vue plus plongeante ne gagnait presque rien, puisque c'est la largeur qui fixe l'échelle : la zone des corps passe de 7.7 à 6.1 de large (x de -2.75 à 3.35, à peine plus que l'écran) et gagne 0.6 de profondeur vers le visiteur. Les objets se rangent en rangées autour de l'écran et du clavier (tableau plus haut) ; juste derrière un objet étiqueté, là où son étiquette se pose à l'écran, il n'y a que du décor (la plante derrière le livre, la manette derrière le portable, le clavier derrière le bocal et la baie). Les mangas et leur robot sont cachés en portrait, la lampe peut sortir en partie du cadre ; les objets du CV, leurs étiquettes et un corps glissé jusqu'au bord de la zone restent entiers à l'écran.
+
+Gain, au repos : la distance de la caméra passe de 27.37 à 21.68 en 360x780 et de 28.56 à 22.62 en 412x915, soit des objets 26 % plus gros à l'écran (en 360x780, mesuré sur les captures : le livre passe d'environ 93 à 115 px de large, la carte de 80 à 102 px).
+
+| Fenêtre         | Bureau avant | Bande avant | Part avant | Bureau après | Bande après | Part après |
+| --------------- | ------------ | ----------- | ---------- | ------------ | ----------- | ---------- |
+| 390x844         | 375 px       | 134 px      | 0.74       | 489 px       | 66 px       | 0.88       |
+| 360x740         | 343 px       | 62 px       | 0.84       | 444 px       | 7 px        | 0.98       |
+| 412x915         | 398 px       | 182 px      | 0.69       | 520 px       | 106 px      | 0.83       |
+| 768x1024 (tab.) | 677 px       | 12 px       | 0.98       | 723 px       | 12 px       | 0.98       |
+
+La bande de mur au-dessus de l'écran rétrécit : l'objet tenu se présente au même endroit (`HELD.portrait`), devant le haut du bureau. Le paysage ne change pas.
 
 ## Le son (`src/scene/core/sound.ts`)
 

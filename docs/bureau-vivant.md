@@ -20,7 +20,7 @@ Ce document est le contrat de l'étape : ce que le socle a posé (branche `feat/
 - Tombé : un corps sous `FALLEN_Y` (-0.6) est « tombé » (`fallen`, `data-fallen`). Il reste par terre tant que la partie B ne le ramène pas.
 - Changement d'orientation (paysage et portrait) : tout revient à sa place d'origine du nouveau format.
 - Pour que le bureau se pose vite (et calcule peu sur téléphone) : un corps presque immobile pendant 0.4 s s'endort (`CALM`), les cylindres sont des prismes à 10 côtés (couchés, ils ne roulent pas sans fin), et un amortissement angulaire fort tient lieu de résistance au roulement.
-- En portrait, le casque et son support sont décalés de 0.15 vers la droite (`HEADSET_PORTRAIT.x` 3.5) : un écouteur entrait dans la dalle de l'écran.
+- En portrait, le casque et son support sont décalés de 0.15 vers la droite (`HEADSET_PORTRAIT.x` 3.5) : un écouteur entrait dans la dalle de l'écran. Depuis le 06/11, le casque est de profil en (3.2, -2.15) : voir [`gestes.md`](gestes.md), « Des objets plus gros sur téléphone ».
 - `data-penetration` sur le canvas : la plus grande profondeur de contact entre deux corps quand le bureau se pose (test E2E, sous 0.05). Effacé dès que le monde bouge de nouveau : la valeur lue est toujours celle du dernier posé.
 
 ### Le store (`core/store.ts`) : champs et actions de l'étape
@@ -130,7 +130,7 @@ Le solveur 2D (`gestures/solver.ts`) et la simulation du glisser (`gestures/drag
 
 - `decor/kimono.ts` décrit le paquet en pavés, sans three (testé par `kimono.test.ts`) ; `Kimono.tsx` les fusionne. Vu de dessus : trois couches étagées bleu marine (pantalon, veste, manches repliées, un ton plus clair dessus pour lire le pli), le col épais en V sur la moitié gauche avec une couture ton sur ton, et la ceinture crème qui fait le tour du paquet par le travers, nouée sur le dessus, ses deux pans en V vers le visiteur. Aucune marque, aucun écusson, aucune broderie : seules les couleurs de `KIMONO_COLORS`.
 - Taille : 1.5 x 1.02, 0.26 de haut (0.33 avec le nœud). Un vrai kimono plié serait deux fois plus grand que le livre : le bureau ne le porterait pas.
-- Places : en paysage, `KIMONO` (-2.72, -0.78), à gauche du clavier, sous la lampe, assez loin derrière le livre pour que sa tranche ne le cache pas. En portrait, (-1.3, -1.92), derrière le clavier, entre la lampe, le coffret et le pied de l'écran, remis d'équerre ; il ne chevauche plus le clavier (l'écart de 0.03 du socle est éliminé). Corps : une boîte à son encombrement (`KIMONO_FOOTPRINT`), nœud compris.
+- Places : en paysage, `KIMONO` (-2.72, -0.78), à gauche du clavier, sous la lampe, assez loin derrière le livre pour que sa tranche ne le cache pas. En portrait, (-1.3, -1.92), derrière le clavier, entre la lampe, le coffret et le pied de l'écran, remis d'équerre (depuis le 06/11, derrière le clavier à droite, en (1.95, -1.9)) ; il ne chevauche plus le clavier (l'écart de 0.03 du socle est éliminé). Corps : une boîte à son encombrement (`KIMONO_FOOTPRINT`), nœud compris.
 - La ceinture est crème (`0xd9d1bf`) et non blanc pur : sous le cône de la lampe, un blanc pur sature.
 - Cadrage paysage : `FIXED_EXTENT.edge` suit la corde à sauter et ses poignées (`ROPE_EXTENT`), le morceau du décor le plus à gauche depuis le retrait du micro. La vue ne bouge presque pas (capture 1440x900 comparée à l'œil).
 

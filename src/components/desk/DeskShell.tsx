@@ -69,6 +69,8 @@ export interface DeskShellProps {
   scene: SceneTexts;
   /** Les signes de vie du coffret, lus par le serveur (le JSON public, ou l'exemple). */
   lifeSigns: LifeSigns | null;
+  /** La classe de la police de l'interface (Pixelify Sans, --font-pixel). */
+  fontClassName: string;
   /** Le repli : la version express, rendue par le serveur. */
   children: ReactNode;
 }
@@ -80,7 +82,7 @@ export interface DeskShellProps {
 // montre le repli (@media (scripting: none)) ; sans WebGL, ou si la scène
 // plante ou perd son contexte, data-fallback le montre et cache le HUD et le
 // canvas : un seul h1 à la fois.
-export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
+export function DeskShell({ hud, scene, lifeSigns, fontClassName, children }: DeskShellProps) {
   const [store] = useState(() =>
     createSceneStore('afternoon', { sound: createWebAudioSound(), lifeSigns }),
   );
@@ -188,7 +190,7 @@ export function DeskShell({ hud, scene, lifeSigns, children }: DeskShellProps) {
 
   return (
     <SceneStoreProvider store={store}>
-      <div className={styles.desk} data-fallback={fallback ?? undefined}>
+      <div className={`${styles.desk} ${fontClassName}`} data-fallback={fallback ?? undefined}>
         <div className={styles.stage} data-visible={status === 'ready' ? 'true' : undefined}>
           {sceneMounted ? (
             <SceneBoundary onError={onCrash}>

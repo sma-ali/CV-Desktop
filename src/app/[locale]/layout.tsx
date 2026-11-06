@@ -1,5 +1,5 @@
 import type { Metadata, Viewport } from 'next';
-import { Caveat, Fraunces, IBM_Plex_Mono, Pixelify_Sans } from 'next/font/google';
+import { Caveat, Fraunces, IBM_Plex_Mono } from 'next/font/google';
 import { notFound } from 'next/navigation';
 import { getContent, isLocale, locales } from '@/content';
 import { SITE_ORIGIN } from '@/lib/site';
@@ -7,6 +7,7 @@ import { pageTitle } from '@/lib/metadata';
 import './globals.css';
 
 // Polices téléchargées au build et servies par le site lui-même (CSP font-src 'self').
+// Pixelify Sans, celle de l'interface du bureau, est chargée par sa page seule.
 const fraunces = Fraunces({
   subsets: ['latin'],
   style: ['normal', 'italic'],
@@ -20,14 +21,6 @@ const plexMono = IBM_Plex_Mono({
   weight: ['400', '500', '600'],
   display: 'swap',
   variable: '--font-plex-mono',
-});
-
-// Essai : Pixelify Sans pour toute l'interface.
-const pixel = Pixelify_Sans({
-  subsets: ['latin'],
-  weight: ['400', '500', '600', '700'],
-  display: 'swap',
-  variable: '--font-pixel',
 });
 
 // L'écriture à la main des textures du bureau (post-it, notes). Pas de
@@ -71,10 +64,7 @@ export default async function LocaleLayout({ children, params }: LayoutProps<'/[
   const { locale } = await params;
   if (!isLocale(locale)) notFound();
   return (
-    <html
-      lang={locale}
-      className={`${fraunces.variable} ${plexMono.variable} ${caveat.variable} ${pixel.variable}`}
-    >
+    <html lang={locale} className={`${fraunces.variable} ${plexMono.variable} ${caveat.variable}`}>
       <body>{children}</body>
     </html>
   );

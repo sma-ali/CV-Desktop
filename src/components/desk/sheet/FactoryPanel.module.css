@@ -95,10 +95,12 @@
   padding: 0;
 }
 
-/* Le libellé au-dessus du chiffre ; sur toute la largeur, à sa gauche. */
+/* Le libellé au-dessus du chiffre, les chiffres alignés en bas de la
+   ligne ; sur toute la largeur, le libellé à gauche du chiffre. */
 .figures > div {
   display: flex;
-  flex-direction: column-reverse;
+  flex-direction: column;
+  justify-content: flex-end;
   font-size: 10px;
   letter-spacing: 0.08em;
   text-transform: uppercase;
@@ -107,8 +109,8 @@
 
 .figures > div[data-wide] {
   grid-column: span 3;
-  flex-direction: row-reverse;
-  justify-content: flex-end;
+  flex-direction: row;
+  justify-content: flex-start;
   align-items: baseline;
   gap: 8px;
   padding-top: 4px;

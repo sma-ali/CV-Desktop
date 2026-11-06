@@ -63,8 +63,8 @@ export function FactoryPanel({ view, texts }: { view: FactoryView; texts: Factor
       <dl className={styles.figures}>
         {view.figures.map((figure) => (
           <div key={figure.label} data-wide={figure.wide ? '' : undefined}>
-            <dd>{figure.value}</dd>
             <dt>{figure.label}</dt>
+            <dd>{figure.value}</dd>
           </div>
         ))}
       </dl>
@@ -116,6 +116,9 @@ export function FactoryPanel({ view, texts }: { view: FactoryView; texts: Factor
       <div
         className={styles.tabPanel}
         role="tabpanel"
+        // Rien de focusable dans le panneau : il prend lui-même le focus,
+        // pour que Tab mène des onglets à leur contenu.
+        tabIndex={0}
         id={`${base}-panel`}
         aria-labelledby={`${base}-tab-${genre.id}`}
         data-panel={genre.id}

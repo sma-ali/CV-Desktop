@@ -6,7 +6,7 @@ import { PaperPage } from '@/components/paper/PaperPage';
 import { getContent, isLocale } from '@/content';
 import { buildProfilePageJsonLd, serializeJsonLd } from '@/lib/json-ld';
 import { buildExpressMetadata } from '@/lib/metadata';
-import { deskPath, expressPath, legalPath } from '@/lib/site';
+import { deskPath, expressPath, legalPath, makingOfPath } from '@/lib/site';
 import { displayUrl } from '@/lib/urls';
 import styles from './page.module.css';
 
@@ -53,6 +53,9 @@ export default async function ExpressPage({ params }: PageProps<'/[locale]/expre
               {profile.name} | <a href={contact.website}>{displayUrl(contact.website)}</a>
             </p>
             <span className={styles.footerLinks}>
+              <Link href={makingOfPath(locale)} className={styles.footerLink}>
+                {ui.makingOfLink}
+              </Link>
               <Link href={legalPath(locale)} className={styles.footerLink}>
                 {ui.legalLink}
               </Link>

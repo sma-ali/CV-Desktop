@@ -1,7 +1,8 @@
 import type { Metadata } from 'next';
 import type { Content } from '@/content';
 import { locales, type Locale } from '@/content/locales';
-import { absoluteUrl, deskPath, expressPath, legalPath } from './site';
+import type { TextPageContent } from '@/content/text-page';
+import { absoluteUrl, deskPath, expressPath, legalPath, makingOfPath } from './site';
 
 const openGraphLocales: Record<Locale, string> = { fr: 'fr_FR', en: 'en_US' };
 
@@ -33,22 +34,37 @@ export function buildExpressMetadata(content: Content, locale: Locale): Metadata
   return buildMetadata(content, locale, absoluteUrl(expressPath(locale)), expressAlternates());
 }
 
-// Adresses des mentions légales dans chaque langue, plus x-default (le français).
-export function legalAlternates(): Record<string, string> {
+// Adresses d'une page dans chaque langue, plus x-default (le français).
+function pageAlternates(pathFor: (locale: Locale) => string): Record<string, string> {
   return {
-    ...Object.fromEntries(locales.map((locale) => [locale, absoluteUrl(legalPath(locale))])),
-    'x-default': absoluteUrl(legalPath('fr')),
+    ...Object.fromEntries(locales.map((locale) => [locale, absoluteUrl(pathFor(locale))])),
+    'x-default': absoluteUrl(pathFor('fr')),
   };
 }
 
-// Métadonnées des mentions légales : leur propre titre, pas d'image de partage.
-export function buildLegalMetadata(content: Content, locale: Locale): Metadata {
-  const url = absoluteUrl(legalPath(locale));
-  const title = `${content.legal.title} | ${content.profile.name}`;
+// Adresses des mentions légales dans chaque langue, plus x-default (le français).
+export function legalAlternates(): Record<string, string> {
+  return pageAlternates(legalPath);
+}
+
+// Adresses de « Comment ce site est fait » dans chaque langue, plus x-default.
+export function makingOfAlternates(): Record<string, string> {
+  return pageAlternates(makingOfPath);
+}
+
+// Métadonnées d'une page de texte : son propre titre, pas d'image de partage.
+export function buildTextPageMetadata(
+  content: Content,
+  page: TextPageContent,
+  locale: Locale,
+  pathFor: (locale: Locale) => string,
+): Metadata {
+  const url = absoluteUrl(pathFor(locale));
+  const title = `${page.title} | ${content.profile.name}`;
   return {
     title,
-    description: content.legal.intro,
-    alternates: { canonical: url, languages: legalAlternates() },
+    description: page.intro,
+    alternates: { canonical: url, languages: pageAlternates(pathFor) },
     openGraph: { type: 'website', title, url, locale: openGraphLocales[locale] },
   };
 }

@@ -1,4 +1,4 @@
-import type { LegalContent } from './schema';
+import type { TextPageContent } from '../text-page';
 
 // Même contenu que fr.ts, en anglais.
 export const legalEn = {
@@ -53,4 +53,4 @@ export const legalEn = {
       paragraphs: ['The code of this site is public on GitHub: github.com/sma-ali/CV-Desktop.'],
     },
   ],
-} satisfies LegalContent;
+} satisfies TextPageContent;

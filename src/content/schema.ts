@@ -1,9 +1,9 @@
 import { z } from 'zod';
 import { contactFormSchema } from './contact/schema';
-import { legalSchema } from './legal/schema';
 import { sceneContentSchema } from './scene/schema';
 import { sheetsSchema } from './sheets/schema';
 import { text, texts } from './text';
+import { textPageSchema } from './text-page';
 
 const id = z.string().regex(/^[a-z0-9]+(-[a-z0-9]+)*$/, 'identifiant attendu en kebab-case');
 
@@ -112,6 +112,7 @@ const uiSchema = z.strictObject({
   backToTop: text,
   backToDesk: text,
   legalLink: text,
+  makingOfLink: text,
 });
 
 // Une ambiance de lumière : sa phrase (coin de l'heure).
@@ -174,7 +175,8 @@ export const contentSchema = z.strictObject({
   scene: sceneContentSchema,
   sheets: sheetsSchema,
   contactForm: contactFormSchema,
-  legal: legalSchema,
+  legal: textPageSchema,
+  makingOf: textPageSchema,
 });
 
 export type Content = z.infer<typeof contentSchema>;

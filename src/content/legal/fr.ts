@@ -1,4 +1,4 @@
-import type { LegalContent } from './schema';
+import type { TextPageContent } from '../text-page';
 
 // Faits vérifiés le 06/11/2026 : adresse de Vercel (vercel.com/legal/privacy-policy),
 // aucun cookie ni stockage dans le navigateur (recherche dans src), limite de
@@ -55,4 +55,4 @@ export const legalFr = {
       paragraphs: ['Le code du site est public sur GitHub : github.com/sma-ali/CV-Desktop.'],
     },
   ],
-} satisfies LegalContent;
+} satisfies TextPageContent;

@@ -236,7 +236,23 @@ test.describe("la fiche de l'usine", () => {
         locale === 'fr' ? "En marche | dernière vidéo aujourd'hui" : 'Running | last video today',
       );
       await expect(block).toContainText(factory.sample);
-      await expect(block.getByRole('listitem')).toHaveText(factory.circuit);
+
+      // Le circuit : une étape par onglet, la première ouverte ; les flèches
+      // et le clic passent d'une étape à l'autre et montrent ce qui s'y passe.
+      const steps = block.getByRole('tablist', { name: factory.circuitLabel }).getByRole('tab');
+      await expect(steps).toHaveText(factory.circuit.map((step) => step.label));
+      await expect(steps.first()).toHaveAttribute('aria-selected', 'true');
+      const stepPanel = block.locator('[data-step-panel]');
+      await expect(stepPanel).toHaveText(factory.circuit[0]!.detail);
+      await steps.first().focus();
+      await page.keyboard.press('ArrowRight');
+      await expect(steps.nth(1)).toBeFocused();
+      await expect(stepPanel).toHaveText(factory.circuit[1]!.detail);
+      await steps.nth(2).click();
+      await expect(steps.nth(2)).toHaveAttribute('aria-selected', 'true');
+      await expect(stepPanel).toHaveText(factory.circuit[2]!.detail);
+      await page.keyboard.press('End');
+      await expect(stepPanel).toHaveText(factory.circuit[4]!.detail);
       await expect(block).toContainText(factory.figures.views);
       await expect(block.locator('[data-factory-since]')).toHaveText(
         locale === 'fr' ? /^depuis \p{L}+ \d{4}$/u : /^since \p{L}+ \d{4}$/u,
@@ -252,10 +268,10 @@ test.describe("la fiche de l'usine", () => {
       await expect(chart.locator('i')).toHaveCount(14);
 
       // Un onglet par genre ; les flèches passent de l'un à l'autre.
-      const tabs = block.getByRole('tab');
+      const tabs = block.getByRole('tablist', { name: factory.tabsLabel }).getByRole('tab');
       await expect(tabs).toHaveCount(4);
       await expect(tabs.first()).toHaveAttribute('aria-selected', 'true');
-      const panel = block.getByRole('tabpanel');
+      const panel = block.locator('[data-panel]');
       await expect(panel).toContainText(factory.genres.fantasy.title);
       await tabs.first().focus();
       await page.keyboard.press('ArrowRight');

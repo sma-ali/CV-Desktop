@@ -54,37 +54,79 @@
   flex-wrap: wrap;
   align-items: center;
   gap: 4px 0;
-  margin: 10px 0 12px;
-  padding: 0;
-  list-style: none;
+  margin: 10px 0 0;
   font-size: 0.75rem;
 }
 
-.circuit li {
+/* Une étape : un onglet, la flèche avant elle hors du cadre. */
+.circuit button {
   display: flex;
   align-items: center;
+  padding: 0;
+  border: none;
+  background: none;
+  color: var(--sheet-ink);
+  font: inherit;
   white-space: nowrap;
+  cursor: pointer;
 }
 
-/* La flèche entre deux étapes, hors du cadre. */
-.circuit li + li::before {
+.circuit button + button::before {
   content: '›';
   padding: 0 4px;
   color: var(--sheet-muted);
 }
 
 .circuit span {
-  padding: 2px 5px;
+  padding: 4px 6px;
   border: 1px solid var(--sheet-line);
   border-radius: 2px;
   background: rgb(255 255 255 / 0.25);
+  transition:
+    background-color 0.15s ease,
+    color 0.15s ease;
+}
+
+.circuit button:hover span {
+  border-color: var(--sheet-ink);
 }
 
 /* La validation humaine, mise en avant. */
-.circuit li[data-human] span {
+.circuit button[data-human] span {
   border-color: var(--brick);
   color: var(--brick);
   font-weight: 700;
+}
+
+/* L'étape choisie : pleine. */
+.circuit button[aria-selected='true'] span {
+  border-color: var(--sheet-ink);
+  background: var(--sheet-ink);
+  color: var(--sheet-paper);
+}
+
+.circuit button[data-human][aria-selected='true'] span {
+  border-color: var(--brick);
+  background: var(--brick);
+}
+
+.circuit button:focus-visible {
+  outline: none;
+}
+
+.circuit button:focus-visible span {
+  outline: 2px solid var(--sheet-ink);
+  outline-offset: 2px;
+}
+
+/* Ce qui se passe à l'étape choisie : même hauteur pour toutes les étapes. */
+.stepPanel {
+  min-height: 5.6em;
+  margin: 8px 0 12px;
+  padding-left: 8px;
+  border-left: 2px solid var(--sheet-line);
+  font-size: 0.78125rem;
+  line-height: 1.5;
 }
 
 .figures {
@@ -241,5 +283,9 @@
 @media (prefers-reduced-motion: reduce) {
   .head i {
     animation: none;
+  }
+
+  .circuit span {
+    transition: none;
   }
 }

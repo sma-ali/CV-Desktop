@@ -18,11 +18,31 @@ export const sheetsFr = {
     factory: {
       circuitLabel: 'Le circuit',
       circuit: [
-        'Création',
-        'Relecture par agents',
-        'Validation humaine',
-        'Publication',
-        'Statistiques',
+        {
+          label: 'Création',
+          detail:
+            "Des agents spécialisés se partagent le travail : sujet, script, images, voix, montage. Chacun a le modèle qui convient à sa tâche, et les coûts sont suivis. Si les crédits d'API s'épuisent, le circuit passe seul sur l'abonnement.",
+        },
+        {
+          label: 'Relecture par agents',
+          detail:
+            'Un agent juge regarde la vidéo montée. Ce qui coince repart en réparation, sans tout refaire.',
+        },
+        {
+          label: 'Validation humaine',
+          detail:
+            'Je valide moi-même les récits et la philosophie avant chaque envoi. Les billes et les quiz partent seuls.',
+        },
+        {
+          label: 'Publication',
+          detail:
+            'Les envois automatiques partent à heure fixe depuis mon serveur, plusieurs fois par jour.',
+        },
+        {
+          label: 'Statistiques',
+          detail:
+            "Les vues et les j'aime de chaque vidéo sont relevés automatiquement. Cette fiche en lit un résumé public, arrondi, mis à jour chaque matin.",
+        },
       ],
       status: 'En marche',
       sample: "Données d'exemple",

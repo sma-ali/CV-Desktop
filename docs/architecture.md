@@ -111,7 +111,7 @@ L'usine est l'objet des projets personnels : une petite halle en brique, une che
 Sa fiche (`components/desk/sheet/FactoryPanel.tsx`, vue calculée par `factoryView.ts`) montre :
 
 - l'état (« En marche | dernière vidéo aujourd'hui », « hier », « il y a N jours ») en jours UTC, jamais d'heure ;
-- le circuit en cinq étapes : création, relecture par agents, validation humaine, publication, statistiques ;
+- le circuit en cinq étapes (création, relecture par agents, validation humaine, publication, statistiques), en onglets : chaque étape dit ce qui s'y passe (agents, choix du modèle, suivi des coûts, planification, relevé des chiffres) ;
 - des chiffres globaux arrondis vers le bas (« plus de N »), le début en mois et année, et un graphique global sur 14 jours (`role="img"`, avec son texte équivalent) ;
 - un genre par onglet (récits de fantasy, philosophie, billes 3D, quiz), avec son texte, sans aucun chiffre ni graphique : un genre peut ne compter qu'un projet, et ses chiffres permettraient de le retrouver.
 

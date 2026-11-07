@@ -16,7 +16,32 @@ export const sheetsEn = {
     repository: 'View the repository',
     factory: {
       circuitLabel: 'The pipeline',
-      circuit: ['Creation', 'Agent review', 'Human approval', 'Publishing', 'Analytics'],
+      circuit: [
+        {
+          label: 'Creation',
+          detail:
+            'Specialised agents share the work: topic, script, images, voice, editing. Each one runs the model that fits its task, and costs are tracked. If the API credits run out, the pipeline switches to the subscription on its own.',
+        },
+        {
+          label: 'Agent review',
+          detail:
+            'A judge agent watches the edited video. Whatever falls short goes back for repair, without redoing everything.',
+        },
+        {
+          label: 'Human approval',
+          detail:
+            'I approve the stories and the philosophy videos myself before each upload. The marbles and the quizzes go out on their own.',
+        },
+        {
+          label: 'Publishing',
+          detail: 'Automatic uploads leave my server at fixed times, several times a day.',
+        },
+        {
+          label: 'Analytics',
+          detail:
+            'Views and likes for every video are collected automatically. This card reads a rounded public summary, updated every morning.',
+        },
+      ],
       status: 'Running',
       sample: 'Sample data',
       last: 'last video {ago}',

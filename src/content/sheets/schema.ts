@@ -54,8 +54,11 @@ const genreSchema = z.strictObject({
 // aucun chiffre par genre.
 const factorySchema = z.strictObject({
   circuitLabel: text,
-  /** Les cinq étapes ; la troisième, la validation humaine, est mise en avant. */
-  circuit: z.array(text).length(5),
+  /**
+   * Les cinq étapes, chacune avec ce qui s'y passe (affiché quand on la
+   * choisit) ; la troisième, la validation humaine, est mise en avant.
+   */
+  circuit: z.array(z.strictObject({ label: text, detail: text })).length(5),
   status: text,
   /** La mention des données d'exemple. */
   sample: text,

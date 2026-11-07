@@ -21,7 +21,7 @@ export const sheetsFr = {
         {
           label: 'Création',
           detail:
-            "Des agents spécialisés se partagent le travail : sujet, script, images, voix, montage. Chacun a le modèle qui convient à sa tâche, et les coûts sont suivis. Si les crédits d'API s'épuisent, le circuit passe seul sur l'abonnement.",
+            "Des agents spécialisés se partagent le travail : sujet, script, images, voix pour certaines chaînes. Le montage est automatique. Chacun a le modèle qui convient à sa tâche, et les coûts sont suivis. Si les crédits d'API s'épuisent, le circuit passe seul sur l'abonnement.",
         },
         {
           label: 'Relecture par agents',
@@ -36,7 +36,7 @@ export const sheetsFr = {
         {
           label: 'Publication',
           detail:
-            'Les envois automatiques partent à heure fixe depuis mon serveur, plusieurs fois par jour.',
+            'Une fois prêtes ou validées, les vidéos partent seules depuis mon serveur, à heure fixe, plusieurs fois par jour.',
         },
         {
           label: 'Statistiques',

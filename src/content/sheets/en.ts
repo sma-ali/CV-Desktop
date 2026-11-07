@@ -20,7 +20,7 @@ export const sheetsEn = {
         {
           label: 'Creation',
           detail:
-            'Specialised agents share the work: topic, script, images, voice, editing. Each one runs the model that fits its task, and costs are tracked. If the API credits run out, the pipeline switches to the subscription on its own.',
+            'Specialised agents share the work: topic, script, images, and voice for some channels. Editing is automatic. Each one runs the model that fits its task, and costs are tracked. If the API credits run out, the pipeline switches to the subscription on its own.',
         },
         {
           label: 'Agent review',
@@ -34,7 +34,8 @@ export const sheetsEn = {
         },
         {
           label: 'Publishing',
-          detail: 'Automatic uploads leave my server at fixed times, several times a day.',
+          detail:
+            'Once ready or approved, videos leave my server on their own, at fixed times, several times a day.',
         },
         {
           label: 'Analytics',

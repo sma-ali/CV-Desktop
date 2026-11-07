@@ -179,6 +179,8 @@ export const fr = {
     kickerDetail: 'Le CV en une page',
     skipToContent: 'Aller au contenu',
     print: 'Imprimer',
+    pdf: 'CV en PDF',
+    pdfFileName: 'Ali Smaani - CV.pdf',
     languageNav: 'Langue',
     emailLabel: 'E-mail',
     linkedinLabel: 'LinkedIn',

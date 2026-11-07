@@ -101,6 +101,8 @@ const uiSchema = z.strictObject({
   kickerDetail: text,
   skipToContent: text,
   print: text,
+  pdf: text,
+  pdfFileName: text,
   languageNav: text,
   emailLabel: text,
   linkedinLabel: text,

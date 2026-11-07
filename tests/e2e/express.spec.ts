@@ -12,6 +12,7 @@ const expected = {
       { role: 'Développeur Web', period: 'Sept. 2020 - Août 2023' },
     ],
     print: 'Imprimer',
+    pdf: { label: 'CV en PDF', path: '/cv/ali-smaani-cv-fr.pdf', file: 'Ali Smaani - CV.pdf' },
     skip: 'Aller au contenu',
     desk: 'Revenir au bureau',
     availability: 'Disponible immédiatement',
@@ -24,6 +25,11 @@ const expected = {
       { role: 'Web Developer', period: 'Sep 2020 - Aug 2023' },
     ],
     print: 'Print',
+    pdf: {
+      label: 'Resume (PDF)',
+      path: '/cv/ali-smaani-cv-en.pdf',
+      file: 'Ali Smaani - Resume.pdf',
+    },
     skip: 'Skip to content',
     desk: 'Back to the desk',
     availability: 'Available immediately',
@@ -156,6 +162,19 @@ for (const locale of locales) {
       await page.goto(path, { waitUntil: 'networkidle' });
       await expect(page.getByRole('button', { name: facts.print })).toBeVisible();
       expect(errors).toEqual([]);
+    });
+
+    test('propose le CV en PDF, servi par le site', async ({ page, request }) => {
+      await page.goto(path);
+      const link = page.getByRole('link', { name: facts.pdf.label });
+      await expect(link).toHaveAttribute('href', facts.pdf.path);
+      await expect(link).toHaveAttribute('download', facts.pdf.file);
+      const response = await request.get(facts.pdf.path);
+      expect(response.status()).toBe(200);
+      expect(response.headers()['content-type']).toBe('application/pdf');
+      const pdf = await response.body();
+      expect(pdf.subarray(0, 5).toString('latin1')).toBe('%PDF-');
+      expect(countPdfPages(pdf)).toBe(1);
     });
 
     test('annonce la disponibilité et ramène au bureau', async ({ page }) => {
@@ -311,6 +330,8 @@ test.describe('sans JavaScript', () => {
     }
     // Sans JavaScript, le bouton ne servirait à rien : il n'est pas affiché.
     await expect(page.getByRole('button', { name: expected.fr.print })).toHaveCount(0);
+    // Le lien du PDF, lui, marche sans JavaScript.
+    await expect(page.getByRole('link', { name: expected.fr.pdf.label })).toBeVisible();
   });
 });
 

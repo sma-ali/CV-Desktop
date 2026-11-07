@@ -2,6 +2,7 @@ import Link from 'next/link';
 import type { ReactNode } from 'react';
 import { getContent, localeNames, otherLocale, type Locale } from '@/content';
 import { Paper } from './Paper';
+import { cvPdfPath } from '@/lib/site';
 import { PrintButton } from './PrintButton';
 import styles from './PaperPage.module.css';
 
@@ -13,7 +14,7 @@ export interface PaperPageProps {
   links: ReadonlyArray<{ href: string; label: string }>;
   /** L'adresse de la même page dans une langue donnée (bascule de langue). */
   pathFor: (locale: Locale) => string;
-  /** Le bouton « Imprimer » après la bascule de langue (version express). */
+  /** Le lien du PDF et le bouton « Imprimer » après la bascule de langue (version express). */
   print?: boolean;
   /** L'id de l'en-tête, cible d'un lien « Haut de page » : il prend alors le focus. */
   barId?: string;
@@ -60,7 +61,13 @@ export function PaperPage({
               </Link>
             </nav>
             {print ? (
-              <PrintButton label={ui.print} className={`${styles.tool} ${styles.toolStrong}`} />
+              <>
+                {/* Lien simple : il marche aussi sans JavaScript. */}
+                <a href={cvPdfPath(locale)} download={ui.pdfFileName} className={styles.tool}>
+                  {ui.pdf}
+                </a>
+                <PrintButton label={ui.print} className={`${styles.tool} ${styles.toolStrong}`} />
+              </>
             ) : null}
           </div>
         </header>

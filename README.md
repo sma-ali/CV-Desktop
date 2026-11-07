@@ -40,6 +40,16 @@ npm run test:e2e                    # build de production, puis parcours Playwri
 
 Les tests de bout en bout tournent en dry run, sans aucune vraie clé (`CLES_DIR=/nonexistent`), sur le port 3100 (`E2E_PORT` en choisit un autre). Paramètres d'URL pour figer la scène et captures : [docs/architecture.md](docs/architecture.md#paramètres-de-test).
 
+## CV en PDF
+
+La version express propose le CV en PDF (`public/cv/`), imprimé par Chromium depuis la page elle-même : même contenu, une page A4. Après un changement du CV (contenu ou mise en page de la version express), le refaire :
+
+```bash
+npm run cv:pdf
+```
+
+Un test unitaire (`src/lib/cv-pdf.test.ts`) garde une empreinte de ce qui compose le PDF et échoue tant qu'il n'a pas été refait.
+
 ## Organisation
 
 ```

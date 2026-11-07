@@ -21,6 +21,12 @@ export function legalPath(locale: Locale): string {
   return `/${locale}/legal`;
 }
 
+// Chemin du CV en PDF dans une langue (« /cv/ali-smaani-cv-fr.pdf »), fichier
+// statique de public/ produit par scripts/cv-pdf.mjs depuis la version express.
+export function cvPdfPath(locale: Locale): string {
+  return `/cv/ali-smaani-cv-${locale}.pdf`;
+}
+
 // Adresse complète d'un chemin du site.
 export function absoluteUrl(path: string): string {
   return new URL(path, SITE_ORIGIN).toString();

@@ -41,6 +41,7 @@ Les pages `/fr`, `/en`, `/fr/express`, `/en/express` et les mentions légales so
 | `tests/unit/`                | vérifications sur tout le dépôt (typographie), sitemap et robots                                                                                         |
 | `tests/e2e/`                 | parcours Playwright sur le build de production                                                                                                           |
 | `scripts/capture.mjs`        | capture d'une page avec la 3D (Chromium sans écran, SwiftShader)                                                                                         |
+| `scripts/cv-pdf.mjs`         | le CV en PDF, imprimé depuis la version express vers `public/cv/` (`npm run cv:pdf`)                                                                     |
 | `prototype/`                 | le prototype en Three.js d'un seul fichier, référence visuelle                                                                                           |
 
 Les tests unitaires vivent à côté du code (`*.test.ts`) ; `tests/unit/` garde les tests qui portent sur tout le dépôt.

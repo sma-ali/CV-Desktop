@@ -58,7 +58,7 @@
   font-size: 0.75rem;
 }
 
-/* Une étape : un onglet, la flèche avant elle hors du cadre. */
+/* Une étape : un onglet, la flèche hors du cadre. */
 .circuit button {
   display: flex;
   align-items: center;
@@ -71,14 +71,16 @@
   cursor: pointer;
 }
 
-.circuit button + button::before {
+/* La flèche suit l'étape : à un retour à la ligne, elle reste en fin de
+   ligne et annonce la suite. */
+.circuit button:not(:last-child)::after {
   content: '›';
-  padding: 0 4px;
+  padding: 0 3px;
   color: var(--sheet-muted);
 }
 
 .circuit span {
-  padding: 4px 6px;
+  padding: 4px 5px;
   border: 1px solid var(--sheet-line);
   border-radius: 2px;
   background: rgb(255 255 255 / 0.25);

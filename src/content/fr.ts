@@ -38,7 +38,7 @@ export const fr = {
       period: { start: '2024-01', end: '2026-06' },
       highlights: [
         "Support applicatif N1/N2 d'un parc de ~300 utilisateurs en contexte à forte criticité : déploiement applicatif, habilitations, accès aux bases distantes (ODBC), environnements statistiques R / RStudio.",
-        "Sécurisation des échanges de données sensibles avec l'INSEE et France Travail (chiffrement via les bulles sécurisées du CASD) ; ~100 tickets/mois, du recueil du besoin métier à la validation.",
+        "Sécurisation des échanges de données sensibles avec l'INSEE et France Travail via les bulles sécurisées du CASD (boîtier SD-Box, carte, code et empreinte, environnement coupé d'Internet), support quotidien de leurs utilisateurs ; ~100 tickets/mois, du recueil du besoin métier à la validation.",
       ],
     },
     {

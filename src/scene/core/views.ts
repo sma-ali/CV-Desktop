@@ -125,6 +125,8 @@ export const PORTRAIT_PLACES: Partial<Record<BodyId, { x: number; z: number; ry?
   chest: { x: -1.75, z: -1.62, ry: 0 },
   netherbrain: { x: -1.0, z: 0.85 },
   homelab: { x: 0.3, z: 0.9, ry: 0 },
+  // Derrière le clavier, entre le coffret et le kimono, devant le pied de l'écran.
+  casd: { x: 0.45, z: -1.75, ry: 0 },
   mug: { x: 2.4, z: 4.3 },
   pad: { x: 2.35, z: 0.75, ry: 0 },
 };

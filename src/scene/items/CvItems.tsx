@@ -7,6 +7,7 @@ import type { SceneTexts } from '../core/texts';
 import { Badge } from './Badge';
 import { Book } from './Book';
 import { Card } from './Card';
+import { Casd } from './Casd';
 import { Factory } from './Factory';
 import { Headset } from './Headset';
 import { Homelab } from './Homelab';
@@ -19,10 +20,10 @@ import { TagAnchorsContext, TagLayer, type TagAnchors } from './TagLayer';
 import { PresentProgress, ProgressContext } from './usePresentation';
 
 // Les objets du CV posés sur le bureau : l'écran et son code, le livre et le
-// badge (DEFI-METIERS), le post-it et le casque (DARES), le bocal de
-// Netherbrain et la baie du Homelab (projets 2026), le portable (la pile
-// technique), la carte de visite (contact) et le coffret scellé (projets
-// perso). Chacun se survole, se présente au clic et porte son étiquette.
+// badge (DEFI-METIERS), le post-it, le casque et le boîtier du CASD
+// (DARES), le bocal de Netherbrain et la baie du Homelab (projets 2026), le
+// portable (la pile technique), la carte de visite (contact) et l'usine,
+// un tapis roulant (projets perso). Chacun se survole, se présente au clic et porte son étiquette.
 // Un clic hors des objets repose celui qui est présenté.
 
 export function CvItems({ texts }: { texts: SceneTexts }) {
@@ -57,6 +58,7 @@ export function CvItems({ texts }: { texts: SceneTexts }) {
           <Badge texts={texts} />
           <PostIt texts={texts} />
           <Headset />
+          <Casd texts={texts} />
           <Laptop texts={texts} />
           <Card texts={texts} />
           <Factory texts={texts} />

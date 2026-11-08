@@ -37,7 +37,7 @@ export const en = {
       period: { start: '2024-01', end: '2026-06' },
       highlights: [
         'L1/L2 application support for ~300 users in a high-criticality environment: application deployment, access rights, remote database access (ODBC), statistical environments (R / RStudio).',
-        'Secured sensitive data exchanges with INSEE (national statistics) and France Travail (employment agency) through the CASD secure enclaves; ~100 tickets a month, from business requirements to validation.',
+        'Secured sensitive data exchanges with INSEE (national statistics) and France Travail (employment agency) through the CASD secure enclaves (SD-Box terminal, card, code and fingerprint, no Internet access), with day-to-day support for their users; ~100 tickets a month, from business requirements to validation.',
       ],
     },
     {

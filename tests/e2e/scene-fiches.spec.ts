@@ -123,6 +123,12 @@ test.describe('la fiche', () => {
     await page.keyboard.press('Tab');
     await page.keyboard.press('PageDown');
     await expect(sheet(page)).toHaveAttribute('data-sheet', 'headset');
+    // Puis le boîtier du CASD, l'autre objet de DARES.
+    await page.keyboard.press('PageDown');
+    await expect(sheet(page)).toHaveAttribute('data-sheet', 'casd');
+    await expect(
+      page.getByRole('complementary', { name: getContent('fr').sheets.items.casd.title }),
+    ).toBeVisible();
     await page.keyboard.press('Escape');
     await expect(sheet(page)).toHaveAttribute('data-open', 'false');
     await expect(hud(page)).toHaveAttribute('data-presented', '');

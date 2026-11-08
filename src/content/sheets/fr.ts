@@ -154,7 +154,19 @@ export const sheetsFr = {
         { term: 'Outils', value: 'R / RStudio' },
         { term: 'Accès', value: 'ODBC' },
       ],
-      body: "Déploiement applicatif, habilitations, accès aux bases distantes et environnements statistiques, en contexte à forte criticité. Les échanges de données sensibles avec l'INSEE et France Travail passent par les bulles sécurisées du CASD.",
+      body: 'Déploiement applicatif, habilitations, accès aux bases distantes et environnements statistiques, en contexte à forte criticité.',
+    },
+    casd: {
+      kicker: 'Janv. 2024 - Juin 2026',
+      step: 'Étape 2 sur 3',
+      title: 'Données sensibles | CASD',
+      meta: [
+        { term: 'Données', value: 'échanges de données sensibles' },
+        { term: 'Accès', value: 'boîtier SD-Box' },
+        { term: 'Authentification', value: 'carte, code et empreinte' },
+        { term: 'Environnement', value: "environnement coupé d'Internet" },
+      ],
+      body: "Les échanges de données sensibles avec l'INSEE et France Travail passent par les bulles sécurisées du CASD. Support au quotidien de leurs utilisateurs : boîtier SD-Box, authentification forte, environnement coupé d'Internet.",
     },
     netherbrain: {
       kicker: '2026',

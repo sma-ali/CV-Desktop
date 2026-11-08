@@ -58,6 +58,7 @@ export const ITEM_BODY_SPECS: Readonly<Record<ItemBodyId, BodySpec>> = {
     restitution: 0.25,
   },
   homelab: { shapes: [box([0.5, 0.49, 0.4])], density: 1.3 },
+  casd: { shapes: [box([0.42, 0.13, 0.3])], density: 1.5 },
   headset: {
     shapes: [
       box([0.5, 0.03, 0.1], [0, 0.47, 0]),

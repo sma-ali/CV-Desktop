@@ -143,6 +143,17 @@ export const ITEM_POSES = {
     mode: 'turn',
     tag: null,
   },
+  // Le boîtier d'accès au CASD (DARES), derrière le clavier, à droite du pied
+  // de l'écran, sous le post-it : les deux objets de DARES côte à côte.
+  casd: {
+    x: 2.1,
+    y: 0,
+    z: -1.85,
+    ry: -0.18,
+    hold: { w: 2.1, h: 1.6, oy: 0.18 },
+    mode: 'spin',
+    tag: null,
+  },
   laptop: {
     x: 2.95,
     y: 0,
@@ -272,6 +283,7 @@ export const IDLE_DELAY = 12;
 export const AUTO_SEQ = [
   'book',
   'postit',
+  'casd',
   'netherbrain',
   'homelab',
   'laptop',

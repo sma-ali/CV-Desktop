@@ -9,6 +9,7 @@ export const ITEM_IDS = [
   'badge',
   'postit',
   'headset',
+  'casd',
   'laptop',
   'card',
   'chest',
@@ -31,6 +32,8 @@ export const ITEM_STEP = {
   badge: 'defi-metiers',
   postit: 'dares',
   headset: 'dares',
+  // Le boîtier d'accès aux données sensibles (CASD).
+  casd: 'dares',
   // Le portable porte la pile technique (section compétences du CV), commune
   // à tous les projets : aucune puce ne lui correspond, comme l'écran.
   laptop: null,
@@ -63,6 +66,7 @@ export const SHEET_ORDER = [
   'badge',
   'postit',
   'headset',
+  'casd',
   'netherbrain',
   'homelab',
   'laptop',
@@ -93,6 +97,7 @@ export const ITEM_BODY_IDS = [
   'netherbrain',
   'homelab',
   'headset',
+  'casd',
 ] as const;
 
 /** Un objet du CV qui est un corps. */

@@ -9,7 +9,7 @@ import {
   MANGA_SIZE,
   MANGA_TOP,
   PLANT,
-  ROPE,
+  CRADLE,
 } from './layout';
 
 // Ce que le décor occupe sur le plateau, vu de dessus : un rectangle orienté
@@ -45,7 +45,7 @@ export const DECOR_OBSTACLES: readonly DeskObstacle[] = [
   },
   { id: 'mouse', x: 3.35, z: -0.48, ry: 0, hw: 0.24, hd: 0.34 },
   square('lamp', LAMP.base, 0.48),
-  { id: 'rope', x: ROPE.center[0], z: ROPE.center[2], ry: 0, hw: 0.55, hd: 0.48 },
+  { id: 'cradle', x: CRADLE.center[0], z: CRADLE.center[2], ry: 0, hw: CRADLE.hw, hd: CRADLE.hd },
   { id: 'wraps', x: 5.7, z: 0.75, ry: 0, hw: 0.4, hd: 0.4 },
   square('plant', PLANT.position, 0.36),
   {
@@ -67,7 +67,7 @@ const OBSTACLE_PIECES: Readonly<Record<string, DecorPieceId | null>> = {
   kimono: 'kimono',
   mouse: 'mouse',
   lamp: 'lamp',
-  rope: 'rope',
+  cradle: 'cradle',
   wraps: 'wraps',
   plant: 'plant',
   manga: 'manga',
@@ -121,7 +121,7 @@ const DECOR_HEIGHTS: Readonly<Record<string, number>> = {
   kimono: KIMONO_FOOTPRINT.height,
   mouse: 0.25,
   lamp: 0.3,
-  rope: 0.15,
+  cradle: CRADLE.top,
   wraps: 0.35,
   plant: 1.45,
   manga: MANGA_TOP + 0.55,

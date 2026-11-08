@@ -20,7 +20,7 @@ export const DECOR_PIECE_IDS = [
   'keyboard',
   'kimono',
   'mouse',
-  'rope',
+  'cradle',
   'wraps',
   'plant',
   'manga',
@@ -32,9 +32,9 @@ export const DECOR_PIECE_IDS = [
 export const DECOR_ANCHORS: Readonly<Record<DecorPieceId, readonly [number, number]>> = {
   lamp: [LAMP.base[0], LAMP.base[2]],
   keyboard: [KEYBOARD[0], KEYBOARD[2]],
-  kimono: [-2.72, -0.78],
+  kimono: [-3.45, -2.35],
   mouse: [3.35, -0.48],
-  rope: [-5.6, 2.35],
+  cradle: [-5.62, 2.35],
   wraps: [5.7, 0.75],
   plant: [3.45, -3.0],
   manga: [4.55, -2.2],
@@ -72,7 +72,7 @@ export interface DecorPlacement {
  * derrière le clavier, à droite, entre le pied de l'écran et le casque
  * (HEADSET_PORTRAIT) ; le clavier avance un peu (le coffret passe derrière
  * lui, à gauche) et la souris le suit ; la plante se pose devant le
- * clavier, à gauche, derrière le livre. La corde, les bandes, les mangas
+ * clavier, à gauche, derrière le livre. Le pendule, les bandes, les mangas
  * avec leur robot et deux figurines ne trouvent pas de place sans élargir
  * le bureau (la caméra reculerait et tous les objets rapetisseraient) ou
  * cacher un objet du CV : cachés en portrait.
@@ -84,7 +84,7 @@ export const PORTRAIT_DECOR: Readonly<
   keyboard: { x: KEYBOARD[0], z: KEYBOARD[2] + 0.13 },
   kimono: { x: 1.95, z: -1.9, ry: -0.1 },
   mouse: { x: 2.85, z: -0.4 },
-  rope: { ...pointXZ(DECOR_ANCHORS.rope), hidden: true },
+  cradle: { ...pointXZ(DECOR_ANCHORS.cradle), hidden: true },
   wraps: { ...pointXZ(DECOR_ANCHORS.wraps), hidden: true },
   plant: { x: -2.3, z: 0.95 },
   manga: { ...pointXZ(DECOR_ANCHORS.manga), hidden: true },

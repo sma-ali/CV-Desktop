@@ -8,10 +8,20 @@
  * Les sons du prototype (Snd) : prise et repose d'un objet, papier quand on
  * le retourne, choc quand il rebondit ou en heurte un autre (strength : la
  * force, 0 à 1), départ d'un glisser, lampe et son interrupteur, petits
- * clics du décor, coffret qui tremble, ronronnement de l'écran, bip du son.
+ * clics du décor, chocs des billes du pendule, coffret qui tremble, ronronnement de l'écran, bip du son.
  */
 export type SoundCue =
-  'pick' | 'putBack' | 'flip' | 'thud' | 'slide' | 'lampOn' | 'switch' | 'tick' | 'hum' | 'blip';
+  | 'pick'
+  | 'putBack'
+  | 'flip'
+  | 'thud'
+  | 'slide'
+  | 'lampOn'
+  | 'switch'
+  | 'tick'
+  | 'clack'
+  | 'hum'
+  | 'blip';
 
 export interface SoundPlayer {
   /** Le son est-il ouvert ? */

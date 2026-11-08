@@ -117,7 +117,7 @@ describe('les corps du plateau', () => {
       'manga',
       'fox',
       'wanderer',
-      'rope',
+      'cradle',
       'wraps',
     ]);
   });
@@ -131,10 +131,10 @@ describe('les corps du plateau', () => {
     expect(desk.chest).toMatchObject(homePose('chest', true));
     expect(desk.book.x).toBe(1);
     expect(movedPlaces(desk)).toEqual({ book: { x: 1, z: desk.book.z, ry: desk.book.ry } });
-    expect(desk.rope.hidden).toBe(true);
+    expect(desk.cradle.hidden).toBe(true);
     resetDeskBodies(desk, false);
     expect(desk.book).toMatchObject({ ...homePose('book', false), moved: false, fallen: false });
-    expect(desk.rope.hidden).toBe(false);
+    expect(desk.cradle.hidden).toBe(false);
     expect(movedPlaces(desk)).toEqual({});
   });
 

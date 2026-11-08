@@ -197,32 +197,103 @@ function cross([ax, ay, az]: Vec3, [bx, by, bz]: Vec3): Vec3 {
 }
 
 // ------------------------------------------------------------------
-// La corde à sauter enroulée (coin avant gauche)
+// Le pendule de Newton (coin avant gauche)
 // ------------------------------------------------------------------
 
-export const ROPE = { center: anchorPoint('rope'), turns: 2.6, radius: 0.42 } as const;
+/**
+ * Le pendule de Newton : un socle, un cadre de quatre montants et cinq
+ * billes d'acier pendues chacune par deux fils, alignées de gauche à droite
+ * (vues de face, elles se balancent dans le plan de l'image).
+ */
+export const CRADLE = {
+  center: anchorPoint('cradle'),
+  /** Demi-largeur et demi-profondeur du socle. */
+  hw: 0.5,
+  hd: 0.32,
+  /** Épaisseur du socle. */
+  base: 0.06,
+  /** Hauteur des barres d'où pendent les billes. */
+  top: 0.92,
+  balls: 5,
+  radius: 0.085,
+  /** Du point d'attache au centre d'une bille. */
+  length: 0.56,
+} as const;
+
+/** Le centre de la i-ème bille, au repos (x seulement : elles sont alignées). */
+export function cradleBallX(i: number): number {
+  return CRADLE.center[0] + (i - (CRADLE.balls - 1) / 2) * CRADLE.radius * 2;
+}
 
 /**
- * Les points extrêmes de la corde et de ses poignées (le bord gauche du
- * cadrage en paysage, FIXED_EXTENT.edge) : le coin gauche de la spirale,
- * le bout de la poignée du fond, l'avant de la spirale.
+ * Les points extrêmes du pendule (le bord gauche du cadrage en paysage,
+ * FIXED_EXTENT.edge) : les coins du socle et le haut du cadre.
  */
-export const ROPE_EXTENT: readonly Vec3[] = [
-  [ROPE.center[0] - 0.62, 0, ROPE.center[2] - 0.75],
-  [ROPE.center[0] - 0.55, 0.15, ROPE.center[2] + 0.48],
-  [ROPE.center[0] + 0.55, 0.15, ROPE.center[2] + 0.48],
+export const CRADLE_EXTENT: readonly Vec3[] = [
+  [CRADLE.center[0] - CRADLE.hw, 0, CRADLE.center[2] - CRADLE.hd],
+  [CRADLE.center[0] - CRADLE.hw, 0, CRADLE.center[2] + CRADLE.hd],
+  [CRADLE.center[0] + CRADLE.hw, 0, CRADLE.center[2] + CRADLE.hd],
+  [CRADLE.center[0] - CRADLE.hw, CRADLE.top, CRADLE.center[2] - CRADLE.hd],
+  [CRADLE.center[0] - CRADLE.hw, CRADLE.top, CRADLE.center[2] + CRADLE.hd],
 ];
 
-/** La corde en spirale, posée à plat, qui monte un peu à chaque tour. */
-export function ropeCoil(points = 80): Vec3[] {
-  const [cx, , cz] = ROPE.center;
-  const coil: Vec3[] = [];
-  for (let i = 0; i <= points; i++) {
-    const a = (i / points) * Math.PI * 2 * ROPE.turns;
-    const r = ROPE.radius + 0.06 * Math.sin(i * 0.7);
-    coil.push([cx + Math.cos(a) * r, 0.04 + i * 0.0011, cz + Math.sin(a) * r * 0.82]);
+/**
+ * Le mouvement du pendule après un clic : la bille de gauche se lève
+ * (lift), puis on la lâche ; elle frappe les autres, celle de droite part,
+ * revient, et ainsi de suite, de moins en moins haut.
+ */
+export const CRADLE_SWING = {
+  /** Angle de départ de la bille levée (radians). */
+  amplitude: 0.75,
+  /** Durée de la levée avant le lâcher (s). */
+  lift: 0.4,
+  /** Un aller-retour complet, gauche puis droite (s). */
+  period: 1.2,
+  /** Amortissement (par seconde). */
+  decay: 0.32,
+  /** Sous cet angle, tout s'arrête. */
+  rest: 0.03,
+} as const;
+
+/** L'amplitude du balancement, s secondes après le lâcher. */
+const cradleAmplitude = (s: number) => CRADLE_SWING.amplitude * Math.exp(-CRADLE_SWING.decay * s);
+
+/**
+ * L'angle du balancement (radians) : négatif, la bille de gauche est levée
+ * vers la gauche ; positif, celle de droite vers la droite ; 0 au repos.
+ */
+export function cradleSwing(t: number, at: number | null, reduced: boolean): number {
+  if (at === null || reduced) return 0;
+  const { amplitude, lift, period, rest } = CRADLE_SWING;
+  const s = t - at;
+  if (s <= 0) return 0;
+  if (s < lift) {
+    const k = s / lift;
+    return -amplitude * k * k * (3 - 2 * k);
   }
-  return coil;
+  const a = cradleAmplitude(s - lift);
+  if (a < rest) return 0;
+  return -a * Math.cos((2 * Math.PI * (s - lift)) / period);
+}
+
+/**
+ * Les chocs depuis le lâcher (un par passage au point bas), et la force du
+ * dernier (0 à 1) : chaque nouveau choc fait « clac ».
+ */
+export function cradleHits(
+  t: number,
+  at: number | null,
+  reduced: boolean,
+): { count: number; strength: number } {
+  if (at === null || reduced) return { count: 0, strength: 0 };
+  const { amplitude, decay, lift, period, rest } = CRADLE_SWING;
+  const half = period / 2;
+  const s = t - at - lift - period / 4;
+  if (s < 0) return { count: 0, strength: 0 };
+  // Le dernier choc avant l'arrêt (amplitude encore au-dessus de rest).
+  const lastHit = Math.floor((Math.log(amplitude / rest) / decay - period / 4) / half);
+  const last = Math.min(Math.floor(s / half), lastHit);
+  return { count: last + 1, strength: cradleAmplitude(period / 4 + last * half) / amplitude };
 }
 
 // ------------------------------------------------------------------

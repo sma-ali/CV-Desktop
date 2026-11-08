@@ -22,7 +22,11 @@ import {
   keyLayout,
   leafLayout,
   mangaStack,
-  ropeCoil,
+  CRADLE,
+  CRADLE_SWING,
+  cradleBallX,
+  cradleHits,
+  cradleSwing,
   rumble,
   shake,
   spineSpec,
@@ -127,6 +131,9 @@ describe('les petites animations', () => {
     expect(hop(11.3, 11, true)).toEqual({ y: 0, spin: 0 });
     expect(shake(11.3, 11, true)).toBe(0);
     expect(rumble(11.3, 11, true)).toBe(0);
+    expect(cradleSwing(11.3, 11, true)).toBe(0);
+    expect(cradleSwing(12, null, false)).toBe(0);
+    expect(cradleHits(13, 11, true).count).toBe(0);
     expect(sway(12, 1, 0, 0.1, true)).toBe(0);
   });
 
@@ -139,6 +146,31 @@ describe('les petites animations', () => {
     expect(shake(12.5, 11, false)).toBe(0);
     expect(rumble(11.1, 11, false)).toBeGreaterThan(0);
     expect(rumble(11.7, 11, false)).toBe(0);
+  });
+
+  it('lève la bille de gauche, puis la lâche sur les autres', () => {
+    const { amplitude, lift, period } = CRADLE_SWING;
+    expect(cradleSwing(11, 11, false)).toBe(0);
+    // Levée à gauche (angle négatif), au plus haut au lâcher.
+    expect(cradleSwing(11 + lift / 2, 11, false)).toBeLessThan(0);
+    expect(cradleSwing(11 + lift, 11, false)).toBeCloseTo(-amplitude);
+    // Un quart de période plus tard, le choc : la bille de droite part.
+    expect(cradleHits(11 + lift + period / 4 - 0.01, 11, false).count).toBe(0);
+    expect(cradleHits(11 + lift + period / 4 + 0.01, 11, false).count).toBe(1);
+    expect(cradleSwing(11 + lift + period / 2, 11, false)).toBeGreaterThan(0);
+    // Puis elle revient : deuxième choc, bille de gauche de nouveau levée.
+    expect(cradleHits(11 + lift + (3 * period) / 4 + 0.01, 11, false).count).toBe(2);
+    expect(cradleSwing(11 + lift + period, 11, false)).toBeLessThan(0);
+  });
+
+  it('s’amortit, frappe de moins en moins fort, puis s’arrête', () => {
+    const first = cradleHits(11 + 1, 11, false);
+    const later = cradleHits(11 + 5, 11, false);
+    expect(later.count).toBeGreaterThan(first.count);
+    expect(later.strength).toBeLessThan(first.strength);
+    expect(cradleSwing(40, 11, false)).toBe(0);
+    // À l'arrêt, plus aucun nouveau choc.
+    expect(cradleHits(40, 11, false).count).toBe(cradleHits(60, 11, false).count);
   });
 
   it('fait monter la vapeur seulement quand il y a de la lumière', () => {
@@ -175,7 +207,9 @@ describe('la place du décor', () => {
     for (const obstacle of DECOR_OBSTACLES) {
       expect(onDesk(obstacle.x, obstacle.z), obstacle.id).toBe(true);
     }
-    for (const [x, , z] of ropeCoil()) expect(onDesk(x, z, 0.05)).toBe(true);
+    for (let i = 0; i < CRADLE.balls; i++) {
+      expect(onDesk(cradleBallX(i), CRADLE.center[2], 0.05)).toBe(true);
+    }
   });
 
   // Que rien ne se chevauche (décor, objets du CV, tasse, manette), en
@@ -311,6 +345,6 @@ describe('le décor du bureau resserré (portrait)', () => {
 
   it('ne cache que du décor qui ne trouve pas sa place, jamais la lampe ni la plante', () => {
     const hidden = DECOR_PIECE_IDS.filter((id) => decorPlacement(id, true).hidden);
-    expect(hidden).toEqual(['rope', 'wraps', 'manga', 'fox', 'wanderer']);
+    expect(hidden).toEqual(['cradle', 'wraps', 'manga', 'fox', 'wanderer']);
   });
 });

@@ -29,7 +29,7 @@ import {
   type View,
 } from '../core/views';
 import { decorPlacement, placeDecorPoint } from '../core/decorPlaces';
-import { ROPE_EXTENT } from '../decor/layout';
+import { CRADLE_EXTENT } from '../decor/layout';
 import { decorExtentPortrait } from '../decor/obstacles';
 
 // Le cadrage de la caméra, en fonctions pures (testées) : la vue de repos
@@ -143,9 +143,9 @@ export const FIXED_EXTENT: Readonly<
     [monitorX + monitorHalf, monitorTop, monitorZ],
   ],
   headset: [[HEADSET_STAND[0], ITEM_POSES.headset.y + 0.9, HEADSET_STAND[2]]],
-  // Le bord gauche du cadre en paysage : la corde à sauter enroulée et ses
-  // poignées, le morceau du décor le plus à gauche.
-  edge: ROPE_EXTENT,
+  // Le bord gauche du cadre en paysage : le pendule de Newton, le morceau
+  // du décor le plus à gauche.
+  edge: CRADLE_EXTENT,
   lamp: [LAMP.base, LAMP.head],
 };
 

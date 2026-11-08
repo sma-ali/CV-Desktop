@@ -26,7 +26,7 @@ export const DROP_ORDER = [
   'plant',
   'fox',
   'wanderer',
-  'rope',
+  'cradle',
   'wraps',
   'kimono',
   'lamp',

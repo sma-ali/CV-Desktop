@@ -120,7 +120,7 @@ function poseOf(desk: DeskBodies, id: BodyId): FullPose {
  * même désordre à chaque fois). Lâchés, ils tombent, se renversent,
  * s'empilent, et certains finissent par terre.
  */
-export function scatterPoses(seed = 7): Map<BodyId, FlightPose> {
+export function scatterPoses(seed = 9): Map<BodyId, FlightPose> {
   const random = rng(seed);
   const poses = new Map<BodyId, FlightPose>();
   const columns = 5;

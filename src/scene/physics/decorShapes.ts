@@ -1,6 +1,6 @@
 import { LAMP, type Vec3 } from '../core/constants';
 import type { DecorBodyId } from '../core/ids';
-import { KIMONO, KIMONO_FOOTPRINT, MANGA, MANGA_SIZE, MANGA_TOP } from '../decor/layout';
+import { CRADLE, KIMONO, KIMONO_FOOTPRINT, MANGA, MANGA_SIZE, MANGA_TOP } from '../decor/layout';
 import { box, type BodySpec } from './shapes';
 
 // Les formes de collision du décor : une boîte, un cylindre ou
@@ -55,8 +55,9 @@ export const DECOR_BODY_SPECS: Readonly<Record<DecorBodyId, BodySpec>> = {
   },
   fox: { shapes: [box([0.2, 0.22, 0.2])], density: 0.6 },
   wanderer: { shapes: [box([0.18, 0.3, 0.18])], density: 0.6 },
-  rope: { shapes: [box([0.55, 0.06, 0.46])], density: 0.5 },
-  wraps: { shapes: [box([0.38, 0.17, 0.38])], density: 0.5 },
+  // Le pendule : le socle et son cadre, d'un bloc.
+  cradle: { shapes: [box([CRADLE.hw, CRADLE.top / 2, CRADLE.hd])], density: 0.6 },
+  wraps: { shapes: [box([0.38, 0.17, 0.38])], density: 1.0 },
   // Le paquet plié, ceinture comprise (le nœud dépasse à peine).
   kimono: {
     shapes: [

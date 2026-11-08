@@ -13,7 +13,7 @@ import { bodyExtent, fixedExtent, restLimits, screenShare } from './framing';
 // ni de tenu, projette l'encombrement de chaque corps du plateau (les huit
 // coins de son rectangle, au ras du plateau et à sa hauteur, à sa place du
 // moment) et les points fixes du bureau utile (haut de l'écran, casque,
-// corde à sauter, lampe), et écrit dans store.offscreen ceux qui dépassent de la
+// pendule de Newton, lampe), et écrit dans store.offscreen ceux qui dépassent de la
 // fenêtre. Mêmes points que le cadrage de repos (fitRestView) : ce que le
 // cadrage fait tenir, le relevé le vérifie. Le HUD l'expose aux tests
 // (data-offscreen) ; le canvas compte les relevés faits

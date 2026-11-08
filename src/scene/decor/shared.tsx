@@ -53,7 +53,7 @@ export function MergedParts({
 // Briques de géométrie pour les pièces (créées puis fusionnées)
 // ------------------------------------------------------------------
 
-/** Le bois brun des poignées de la corde et du chapeau du voyageur. */
+/** Le bois brun du socle du pendule et du chapeau du voyageur. */
 export const WOOD = 0x6e4a2e;
 
 export const box = (w: number, h: number, d: number): BufferGeometry => new BoxGeometry(w, h, d);
@@ -64,7 +64,7 @@ export const sph = (radius: number, detail = 0): BufferGeometry =>
 export const torus = (radius: number, tube: number, radial = 5, tubular = 14, arc = Math.PI * 2) =>
   new TorusGeometry(radius, tube, radial, tubular, arc);
 
-/** Tube le long de points (câble, corde, ressort). */
+/** Tube le long de points (câble, ressort). */
 export function tube(points: readonly Vec3[], radius: number, segments = 40, radial = 5) {
   const curve = new CatmullRomCurve3(points.map(([x, y, z]) => new Vector3(x, y, z)));
   return new TubeGeometry(curve, segments, radius, radial, false);

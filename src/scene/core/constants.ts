@@ -101,7 +101,7 @@ export interface ItemPose {
  * repli. Le coffret change de place en portrait (PORTRAIT_PLACES). Netherbrain
  * et Homelab prennent deux places libres : le bocal devant le
  * clavier, à droite de la lanière du badge ; la baie à l'avant gauche, entre
- * la corde, le coffret et le livre (bodies.test.ts vérifie qu'aucun
+ * le pendule, le coffret et le livre (bodies.test.ts vérifie qu'aucun
  * encombrement ne se chevauche).
  */
 export const ITEM_POSES = {
@@ -135,9 +135,9 @@ export const ITEM_POSES = {
     tag: { y: 0.05, z: 0.9 },
   },
   headset: {
-    x: -3.45,
+    x: -2.72,
     y: 1.08,
-    z: -2.35,
+    z: -0.78,
     ry: 0.25,
     hold: { w: 1.95, h: 1.95 },
     mode: 'turn',
@@ -218,7 +218,7 @@ export const POSTIT_ON_MONITOR = {
 } as const;
 
 /** Le support du casque, sur lequel le casque est posé. */
-export const HEADSET_STAND: Vec3 = [-3.45, 0, -2.35];
+export const HEADSET_STAND: Vec3 = [-2.72, 0, -0.78];
 
 /**
  * Le casque et son support en portrait (bureau resserré) : à droite de

@@ -9,7 +9,7 @@ import { Workspace } from './Workspace';
 
 // Le décor du bureau : la pièce (plateau en noyer, sol, mur et fenêtre), la
 // lampe d'architecte, le poste de travail (tapis, clavier, souris, câbles),
-// le kimono plié et sa ceinture, et les petites choses posées (corde,
+// le kimono plié et sa ceinture, et les petites choses posées (pendule,
 // bandes, plante, mangas, figurines, tasse, manette). Chaque morceau posé est
 // un corps du moteur physique (DecorPiece suit sa pose). Tout est inventé :
 // aucune marque, aucun logo, aucun jeu, anime ou

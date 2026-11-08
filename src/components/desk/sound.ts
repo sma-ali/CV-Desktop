@@ -171,6 +171,12 @@ const CUES: Record<SoundCue, (synth: Synth, strength: number) => void> = {
     tone(s, 1200 + i * 90, 0.07, 0.08, 'sine');
     tone(s, 2400 + i * 120, 0.03, 0.03, 'triangle');
   },
+  clack: (s, v) => {
+    // Deux billes d'acier qui se heurtent : un claquement bref et métallique.
+    noise(s, 0.025, 4200, 4, 0.35 * v, 'bandpass');
+    tone(s, 3100, 0.05, 0.05 * v, 'triangle');
+    tone(s, 5300, 0.03, 0.025 * v, 'sine');
+  },
   hum: (s) => {
     tone(s, 220, 1.4, 0.05, 'sine', 0, 180);
     tone(s, 330, 1.4, 0.03, 'sine', 0.05, 280);

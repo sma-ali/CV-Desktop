@@ -1,6 +1,7 @@
 import type { BodyId, ItemId } from '../core/ids';
 import type { SceneStore } from '../core/store';
 import type { PhysicsControl } from '../core/physicsControl';
+import type { DeskZoom } from './zoomLevels';
 
 // Ce que partagent les gestes (Gestures, posé à côté des objets dans
 // Scene.tsx), les objets qu'on prend (usePresentation, DecorPiece), le
@@ -47,6 +48,16 @@ export class GestureHub {
   readonly progress = new Map<ItemId, number>();
   /** Le prochain clic sur le canvas vient d'un glisser : personne ne doit le voir. */
   swallowClick = false;
+  /**
+   * Le zoom du visiteur (gestures/zoomLevels.ts) : celui du bureau, centré sur
+   * center (la cible de la vue de repos, écrite par la caméra), et celui de
+   * l'objet tenu, remis à 1 à chaque nouvel objet.
+   */
+  readonly zoom: { desk: DeskZoom; held: number; center: { x: number; z: number } } = {
+    desk: { zoom: 1, x: 0, z: 0 },
+    held: 1,
+    center: { x: 0, z: 0 },
+  };
 
   /**
    * Un appui commence (écouteur du canvas, puis l'objet sous le pointeur
@@ -91,6 +102,8 @@ export class GestureHub {
   reset(): void {
     this.press = null;
     this.swallowClick = false;
+    this.zoom.desk = { zoom: 1, x: 0, z: 0 };
+    this.zoom.held = 1;
   }
 }
 

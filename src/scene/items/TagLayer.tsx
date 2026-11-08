@@ -152,7 +152,9 @@ class TagOverlay {
       let shown = false;
       if (anchor && visible && progress.get(tag.id) < 0.02) {
         anchor.getWorldPosition(projected).project(camera);
-        shown = projected.z < 1;
+        // Hors du cadre (bureau zoomé) : l'étiquette se cache, au lieu de
+        // rester collée au bord de la fenêtre.
+        shown = projected.z < 1 && Math.abs(projected.x) <= 1 && Math.abs(projected.y) <= 1;
         if (shown) {
           // Mesurée une fois, quand elle se montre.
           if (!tag.measured) {

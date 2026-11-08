@@ -119,7 +119,7 @@ const DECOR_BODY_IDS = [
   'manga',
   'fox',
   'wanderer',
-  'rope',
+  'cradle',
   'wraps',
   'kimono',
 ] as const;

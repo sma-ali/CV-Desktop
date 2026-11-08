@@ -119,9 +119,10 @@ export function layoutLaptopChips(
   right: number,
   top: number,
 ): { placed: ScreenChip[]; bottom: number } {
-  const row = Math.round(size * 1.9);
-  const pad = Math.round(size * 0.55);
-  const gap = Math.round(size * 0.45);
+  // De l'air entre les pastilles, dans la ligne comme d'une ligne à l'autre.
+  const row = Math.round(size * 2.3);
+  const pad = Math.round(size * 0.6);
+  const gap = Math.round(size * 0.8);
   const placed: ScreenChip[] = [];
   let y = top;
   for (const group of groups) {
@@ -138,7 +139,7 @@ export function layoutLaptopChips(
       placed.push({ kind: 'chip', text: item, x, y, width });
       x += width + gap;
     }
-    y += row + Math.round(size * 0.35);
+    y += row + Math.round(size * 0.9);
   }
   return { placed, bottom: y };
 }
@@ -148,9 +149,9 @@ export const LAPTOP_SCREEN = { width: 800, visible: 560 } as const;
 /** Taille du texte des compétences sur l'écran du portable. */
 const CHIP_SIZE = 22;
 /** Haut de la première ligne de compétences, sous l'en-tête et « const … = { ». */
-const CHIPS_TOP = 150;
+const CHIPS_TOP = 158;
 const CHIPS_LEFT = 58;
-const CHIPS_RIGHT = LAPTOP_SCREEN.width - 26;
+const CHIPS_RIGHT = LAPTOP_SCREEN.width - 44;
 
 /** Largeur d'un texte dans la police à chasse fixe (0.6 de la taille par caractère). */
 const monoWidth = (size: number) => (text: string) => text.length * size * 0.6;
@@ -225,7 +226,7 @@ export function paintLaptopScreen(scene: SceneContent, skills: readonly SkillGro
       roundRect(c, item.x, item.y, item.width, chipHeight, 5);
       c.stroke();
       c.fillStyle = '#7fc4bb';
-      c.fillText(item.text, item.x + size * 0.55, item.y + size * 1.08);
+      c.fillText(item.text, item.x + Math.round(size * 0.6), item.y + size * 1.08);
     }
     c.font = `500 22px ${F.mono}`;
     c.fillStyle = '#f3e9d4';

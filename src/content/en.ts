@@ -131,12 +131,33 @@ export const en = {
         'Anthropic API',
         'OpenAI SDK',
         'Ollama',
+        'AI agents',
+        'Multi-agent systems',
         'Tool calling',
         'Structured outputs',
-        'AI agents',
         'RAG',
         'Prompt engineering',
+        'Prompt caching',
+        'LLM-as-judge',
+        'Benchmarking',
+        'Vision (multimodal)',
+        'Claude Code',
       ],
+    },
+    {
+      id: 'audio',
+      label: 'Voice & audio',
+      items: [
+        'Whisper (speech-to-text)',
+        'Forced alignment (MMS)',
+        'Text-to-speech (ElevenLabs)',
+        'ffmpeg',
+      ],
+    },
+    {
+      id: 'ml',
+      label: 'Machine learning',
+      items: ['PyTorch', 'Neural networks', 'Hyperparameter tuning'],
     },
     {
       id: 'devops',
@@ -156,7 +177,7 @@ export const en = {
     {
       id: 'other',
       label: 'Other',
-      items: ['SQL', 'PHP / Drupal', 'Agile / Scrum'],
+      items: ['SQL', 'PHP / Drupal', 'Agile / Scrum', 'Jira'],
     },
   ],
   softSkills: [

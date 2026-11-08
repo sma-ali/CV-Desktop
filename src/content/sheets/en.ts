@@ -207,14 +207,20 @@ export const sheetsEn = {
         {
           term: 'AI & LLM',
           value:
-            'Anthropic API, OpenAI SDK, Ollama, Tool calling, Structured outputs, AI agents, RAG, Prompt engineering',
+            'Anthropic API, OpenAI SDK, Ollama, AI agents, Multi-agent systems, Tool calling, Structured outputs, RAG, Prompt engineering, Prompt caching, LLM-as-judge, Benchmarking, Vision (multimodal), Claude Code',
         },
+        {
+          term: 'Voice & audio',
+          value:
+            'Whisper (speech-to-text), Forced alignment (MMS), Text-to-speech (ElevenLabs), ffmpeg',
+        },
+        { term: 'Machine learning', value: 'PyTorch, Neural networks, Hyperparameter tuning' },
         {
           term: 'DevOps & quality',
           value:
             'Docker Compose, GitHub Actions, CI/CD, Git, pytest, Vitest, Linux, Nginx, Proxmox',
         },
-        { term: 'Other', value: 'SQL, PHP / Drupal, Agile / Scrum' },
+        { term: 'Other', value: 'SQL, PHP / Drupal, Agile / Scrum, Jira' },
       ],
       body: 'The skills from the CV, from frontend to infrastructure.',
     },

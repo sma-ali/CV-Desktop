@@ -7,8 +7,8 @@ export const makingOfEn = {
   updated: 'Updated on 7 November 2026.',
   sections: [
     {
-      id: 'pile',
-      heading: 'The stack',
+      id: 'technologies',
+      heading: 'Technologies',
       paragraphs: [
         'Next.js (App Router) and strict TypeScript. The scene is built with React Three Fiber on three.js, with the Rapier physics engine in WebAssembly. The site is hosted on Vercel.',
         'Every text, in French and in English, lives in a single content module, validated by zod at build time. The desk, the express version and the PDF resume read the same source: invalid content fails the build.',

@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getContent } from '@/content';
 import { SHEET_ORDER } from '@/scene/core/ids';
-import { laptopChips, laptopSkills } from '@/scene/items/paint';
+import { laptopSkills } from '@/scene/items/paint';
 import { buildDeskSheets, buildDeskSteps, buildDeskTexts, buildSceneTexts } from './desk';
 
 describe('les étapes du bureau', () => {
@@ -84,16 +84,17 @@ describe('les textes du bureau', () => {
     expect(texts.content).toEqual(getContent('en').scene);
   });
 
-  it('donnent au portable une pile tirée de la section compétences du CV', () => {
+  it('donnent au portable toutes les compétences du CV, groupe par groupe', () => {
     for (const locale of ['fr', 'en'] as const) {
       const texts = buildSceneTexts(getContent(locale), locale);
-      expect(texts.skills).toEqual(getContent(locale).skills.flatMap((group) => group.items));
-      const chips = laptopChips(texts.content, texts.skills);
-      expect(chips.length).toBeGreaterThanOrEqual(5);
-      for (const chip of [...chips, ...laptopSkills(texts.content)]) {
+      expect(texts.skills).toEqual(
+        getContent(locale).skills.map(({ label, items }) => ({ label, items })),
+      );
+      const flat = texts.skills.flatMap((group) => group.items);
+      for (const sticker of laptopSkills(texts.content)) {
         expect(
-          texts.skills.some((skill) => skill === chip || skill.split(/\s*\/\s*/).includes(chip)),
-          chip,
+          flat.some((skill) => skill === sticker || skill.split(/\s*\/\s*/).includes(sticker)),
+          sticker,
         ).toBe(true);
       }
     }

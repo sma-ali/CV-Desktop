@@ -1,8 +1,9 @@
 import type { SceneContent } from '@/content/scene/schema';
 import { fitFont, grainy, roundRect } from '../../core/canvas2d';
+import type { SkillGroup } from '../../core/texts';
 import { type Painter, scaled } from './common';
 
-// Le portable (la pile : les compétences)
+// Le portable (les compétences)
 
 export const LAPTOP_TEXTURE = { width: 1200, height: 840 } as const;
 
@@ -24,8 +25,8 @@ const STICKER_STYLES: {
 ];
 
 /**
- * La pile du portable : les compétences du CV que porte le contenu de la
- * scène (la pile de l'écran, les autocollants), sans les noms des projets,
+ * Les autocollants du portable : les compétences du CV que porte le contenu
+ * de la scène (celles de l'écran, les autocollants), sans les noms des projets,
  * qui ont leurs propres objets (le bocal et la baie). Sans doublon, dans
  * l'ordre du contenu.
  */
@@ -35,23 +36,7 @@ export function laptopSkills(scene: SceneContent): string[] {
   return [...new Set(skills.filter((skill) => !projects.has(skill)))];
 }
 
-/**
- * Les pastilles de l'écran du portable : la pile, puis les technologies des
- * projets qui figurent dans la section compétences du CV (skills, à plat ;
- * « PostgreSQL / pgvector » compte pour pgvector). Une technologie propre à
- * un projet, absente des compétences (WireGuard), reste sur son objet.
- */
-export function laptopChips(scene: SceneContent, skills: readonly string[]): string[] {
-  const projects = new Set(scene.facts.projects.items.map((item) => item.name));
-  const known = new Set(skills.flatMap((skill) => [skill, ...skill.split(/\s*\/\s*/)]));
-  const chips = [
-    ...laptopSkills(scene),
-    ...scene.facts.projects.chips.filter((chip) => known.has(chip)),
-  ];
-  return [...new Set(chips.filter((chip) => !projects.has(chip)))];
-}
-
-/** Le couvercle fermé du portable, couvert d'autocollants : la pile. */
+/** Le couvercle fermé du portable, couvert d'autocollants de compétences. */
 export function paintLaptopStickers(scene: SceneContent): Painter {
   const stickers = laptopSkills(scene);
   return scaled(800, (c, w, h, F) => {
@@ -112,15 +97,61 @@ export function paintLaptopStickers(scene: SceneContent): Painter {
   });
 }
 
+/** Une ligne de l'écran du portable : l'intitulé d'un groupe, ou une pastille. */
+interface ScreenChip {
+  kind: 'label' | 'chip';
+  text: string;
+  x: number;
+  y: number;
+  width: number;
+}
+
 /**
- * L'écran du portable, vu quand il s'ouvre devant la caméra : la pile en
- * code (« const pile = [ ... ] »), en pastilles.
+ * Range les compétences en lignes, groupe par groupe : chaque groupe ouvre
+ * une ligne par son intitulé, ses pastilles suivent et passent à la ligne au
+ * bord droit. Renvoie les éléments placés et le bas de la dernière ligne.
  */
-export function paintLaptopScreen(scene: SceneContent, skills: readonly string[]): Painter {
+export function layoutLaptopChips(
+  groups: readonly SkillGroup[],
+  measure: (text: string) => number,
+  size: number,
+  left: number,
+  right: number,
+  top: number,
+): { placed: ScreenChip[]; bottom: number } {
+  const row = Math.round(size * 1.9);
+  const pad = Math.round(size * 0.55);
+  const gap = Math.round(size * 0.45);
+  const placed: ScreenChip[] = [];
+  let y = top;
+  for (const group of groups) {
+    const label = `${group.label}:`;
+    const labelWidth = measure(label);
+    placed.push({ kind: 'label', text: label, x: left, y, width: labelWidth });
+    let x = left + labelWidth + gap * 2;
+    for (const item of group.items) {
+      const width = measure(item) + pad * 2;
+      if (x + width > right) {
+        x = left + size * 1.5;
+        y += row;
+      }
+      placed.push({ kind: 'chip', text: item, x, y, width });
+      x += width + gap;
+    }
+    y += row + Math.round(size * 0.35);
+  }
+  return { placed, bottom: y };
+}
+
+/**
+ * L'écran du portable, vu quand il s'ouvre devant la caméra : toutes les
+ * compétences du CV en code (« const competences = { ... } »), en pastilles
+ * rangées par groupe, à la plus grande taille qui tient.
+ */
+export function paintLaptopScreen(scene: SceneContent, skills: readonly SkillGroup[]): Painter {
   const { path } = scene.laptop;
   const { mark, text } = scene.labels.laptop;
   const { stack } = scene.screen.words;
-  const chips = laptopChips(scene, skills);
   return scaled(800, (c, w, h, F) => {
     c.fillStyle = '#1a1512';
     c.fillRect(0, 0, w, h);
@@ -132,40 +163,51 @@ export function paintLaptopScreen(scene: SceneContent, skills: readonly string[]
     c.font = `500 15px ${F.mono}`;
     c.fillText(path, 20, 23);
     c.fillStyle = '#f2a94e';
-    fitFont(c, mark, w - 100, 96, 700, F.serif);
-    c.fillText(mark, 48, 140);
+    fitFont(c, mark, w - 100, 54, 700, F.serif);
+    c.fillText(mark, 40, 92);
     const markWidth = c.measureText(mark).width;
     c.fillStyle = '#a8977f';
-    fitFont(c, text, w - markWidth - 120, 34, 'italic 400', F.serif);
-    c.fillText(text, 48 + markWidth + 22, 140);
-    c.font = `500 26px ${F.mono}`;
+    fitFont(c, text, w - markWidth - 120, 28, 'italic 400', F.serif);
+    c.fillText(text, 40 + markWidth + 18, 92);
+    c.font = `500 22px ${F.mono}`;
     c.fillStyle = '#c792ea';
-    c.fillText('const', 52, 206);
+    c.fillText('const', 40, 134);
     const constWidth = c.measureText('const ').width;
     c.fillStyle = '#f3e9d4';
-    c.fillText(`${stack} = [`, 52 + constWidth, 206);
-    let x = 80;
-    let y = 236;
-    c.font = `600 24px ${F.mono}`;
-    for (const chip of chips) {
-      const tw = c.measureText(chip).width + 30;
-      if (x + tw > w - 40) {
-        x = 80;
-        y += 56;
+    c.fillText(`${stack} = {`, 40 + constWidth, 134);
+
+    // La plus grande taille qui fait tout tenir au-dessus de l'accolade finale.
+    const left = 58;
+    const right = w - 26;
+    const top = 150;
+    let size = 20;
+    let layout = layoutLaptopChips(skills, () => 0, size, left, right, top);
+    for (; size >= 9; size--) {
+      c.font = `600 ${size}px ${F.mono}`;
+      layout = layoutLaptopChips(skills, (s) => c.measureText(s).width, size, left, right, top);
+      if (layout.bottom <= h - 44) break;
+    }
+    const chipHeight = Math.round(size * 1.5);
+    for (const item of layout.placed) {
+      if (item.kind === 'label') {
+        c.font = `500 ${size}px ${F.mono}`;
+        c.fillStyle = '#a8977f';
+        c.fillText(item.text, item.x, item.y + size * 1.08);
+        continue;
       }
+      c.font = `600 ${size}px ${F.mono}`;
       c.strokeStyle = '#7fc4bb';
-      c.lineWidth = 2;
-      roundRect(c, x, y, tw, 42, 6);
+      c.lineWidth = 1.5;
+      roundRect(c, item.x, item.y, item.width, chipHeight, 5);
       c.stroke();
       c.fillStyle = '#7fc4bb';
-      c.fillText(chip, x + 15, y + 29);
-      x += tw + 12;
+      c.fillText(item.text, item.x + size * 0.55, item.y + size * 1.08);
     }
-    c.font = `500 26px ${F.mono}`;
+    c.font = `500 22px ${F.mono}`;
     c.fillStyle = '#f3e9d4';
-    c.fillText('];', 52, y + 90);
+    c.fillText('};', 40, layout.bottom + 22);
     c.fillStyle = '#ffcf8a';
-    c.fillRect(52 + c.measureText('];').width + 8, y + 70, 12, 24);
+    c.fillRect(40 + c.measureText('};').width + 8, layout.bottom + 4, 11, 22);
   });
 }
 

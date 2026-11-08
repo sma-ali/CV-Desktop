@@ -22,7 +22,7 @@ import { PresentProgress, ProgressContext } from './usePresentation';
 // Les objets du CV posés sur le bureau : l'écran et son code, le livre et le
 // badge (DEFI-METIERS), le post-it, le casque et le boîtier du CASD
 // (DARES), le bocal de Netherbrain et la baie du Homelab (projets 2026), le
-// portable (la pile technique), la carte de visite (contact) et l'usine,
+// portable (les compétences), la carte de visite (contact) et l'usine,
 // un tapis roulant (projets perso). Chacun se survole, se présente au clic et porte son étiquette.
 // Un clic hors des objets repose celui qui est présenté.
 

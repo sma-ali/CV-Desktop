@@ -2,11 +2,11 @@ import type { Content } from '../schema';
 
 // Le fichier TypeScript affiché sur l'écran du bureau, généré depuis le
 // contenu du CV : le parcours (périodes, organisations, intitulés exacts),
-// puis un objet `ali` (titre, pile tirée des compétences, localisation,
+// puis un objet `ali` (titre, compétences tirées du CV, localisation,
 // disponibilité). Fonction pure : le résultat est recopié dans fr.ts et en.ts
 // (screen.code), et scene.test.ts vérifie qu'il est à jour.
 //
-// Le code reste court pour être lisible de loin : 13 lignes, 50 caractères
+// Le code reste court pour être lisible de loin : 15 lignes, 50 caractères
 // au plus (le prototype en avait 16, de 50 caractères, et tombait à 8 px).
 
 /** Largeur visée des lignes ; un tableau trop long passe à la ligne. */

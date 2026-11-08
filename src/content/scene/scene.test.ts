@@ -127,7 +127,7 @@ describe.each(cases)('scène %s', (locale, content, scene) => {
     }
   });
 
-  it('étiquette les deux projets et la pile technique', () => {
+  it('étiquette les deux projets et les compétences', () => {
     const { labels } = scene;
     // Une étiquette par objet qui a un point d'accroche (TagLayer les pose d'office).
     expect(Object.keys(labels)).toEqual(ITEM_IDS.filter((id) => ITEM_POSES[id].tag !== null));

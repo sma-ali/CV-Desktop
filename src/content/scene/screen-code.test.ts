@@ -19,7 +19,10 @@ describe('buildScreenCode', () => {
       '];',
       'export const ali = {',
       "  titre: 'Dev FullStack | AI Engineer',",
-      "  pile: ['TypeScript', 'React', 'Python'],",
+      '  competences: [',
+      "    'TypeScript', 'React', 'Next.js', 'Python',",
+      "    'FastAPI', 'Agents IA', 'RAG', 'LLM-as-judge',",
+      '  ],',
       "  zone: 'Île-de-France · remote possible',",
       '  disponible: true,',
       '} as const;',
@@ -36,7 +39,10 @@ describe('buildScreenCode', () => {
       '];',
       'export const ali = {',
       "  title: 'Dev FullStack | AI Engineer',",
-      "  stack: ['TypeScript', 'React', 'Python'],",
+      '  skills: [',
+      "    'TypeScript', 'React', 'Next.js', 'Python',",
+      "    'FastAPI', 'AI agents', 'RAG', 'LLM-as-judge',",
+      '  ],',
       "  location: 'Paris, France · Open to remote',",
       '  available: true,',
       '} as const;',
@@ -48,7 +54,7 @@ describe('buildScreenCode', () => {
       buildScreenCode(fr, sceneFr.screen.words),
       buildScreenCode(en, sceneEn.screen.words),
     ]) {
-      expect(lines.length).toBeLessThanOrEqual(13);
+      expect(lines.length).toBeLessThanOrEqual(15);
       expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(SCREEN_CODE_WIDTH);
     }
   });

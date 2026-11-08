@@ -9,8 +9,8 @@ export const makingOfFr = {
   updated: 'Mis à jour le 7 novembre 2026.',
   sections: [
     {
-      id: 'pile',
-      heading: 'La pile',
+      id: 'technologies',
+      heading: 'Les technologies',
       paragraphs: [
         'Next.js (App Router) et TypeScript strict. La scène est en React Three Fiber, sur three.js, avec le moteur physique Rapier en WebAssembly. Le site est hébergé sur Vercel.',
         'Tous les textes, en français et en anglais, vivent dans un seul module de contenu, validé par zod au build. Le bureau, la version express et le CV en PDF lisent la même source : un contenu invalide fait échouer le build.',

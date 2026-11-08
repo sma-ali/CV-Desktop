@@ -102,7 +102,7 @@ describe.each(cases)('fiches %s', (locale, content, sheets) => {
     }
   });
 
-  it('donnent la pile technique du CV, groupe par groupe', () => {
+  it('donnent les compétences du CV, groupe par groupe', () => {
     expect(items.laptop.title).toBe(content.profile.headline);
     expect(items.laptop.kicker).toBe(content.sections.skills);
     expect(items.laptop.meta).toEqual(
@@ -142,7 +142,7 @@ describe.each(cases)('fiches %s', (locale, content, sheets) => {
     const text = cvText(content);
     const periods = [period(content, 'defi-metiers', locale), period(content, 'dares', locale)];
     // Le coffret ne dit rien de ce qu'il contient : aucun fait à comparer.
-    // La pile du portable a son propre test (groupe par groupe).
+    // Les compétences du portable ont leur propre test (groupe par groupe).
     const facts = SHEET_ORDER.filter((id) => id !== 'chest' && id !== 'laptop');
     for (const id of facts) {
       for (const { value } of items[id].meta) {

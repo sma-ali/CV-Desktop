@@ -39,7 +39,8 @@ describe('screenLayout', () => {
       const { width, height } = SCREEN_TEXTURE;
       const layout = screenLayout([...screen.code, screen.closing], width, height);
       // Part de la largeur de la texture occupée par la hauteur d'un caractère.
-      expect(layout.fontSize / width).toBeGreaterThan((23 / 1024) * 1.25);
+      // Deux lignes de compétences passent avant la marge : à peine plus gros.
+      expect(layout.fontSize / width).toBeGreaterThan((23 / 1024) * 1.02);
       // Tout tient : en hauteur...
       expect(layout.top + (screen.code.length + 1) * layout.lineHeight).toBeLessThanOrEqual(
         height - 60,

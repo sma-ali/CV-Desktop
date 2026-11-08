@@ -11,8 +11,14 @@ export interface SceneTexts {
   /** Textes peints dans la scène (src/content/scene). */
   content: SceneContent;
   /**
-   * Les compétences du CV (section compétences), à plat, dans l'ordre du CV :
-   * le portable, qui porte la pile, n'affiche que ce qui en fait partie.
+   * Les compétences du CV (section compétences), groupe par groupe, dans
+   * l'ordre du CV : l'écran du portable les montre toutes.
    */
-  skills: readonly string[];
+  skills: readonly SkillGroup[];
+}
+
+/** Un groupe de compétences : son intitulé et ses éléments. */
+export interface SkillGroup {
+  label: string;
+  items: readonly string[];
 }

@@ -442,7 +442,7 @@
   }
 
   .skillLabel {
-    margin-bottom: 1mm;
+    margin-bottom: 0.5mm;
   }
 
   .heading {
@@ -520,7 +520,26 @@
   }
 
   .skillGroup + .skillGroup {
-    margin-top: 2mm;
+    margin-top: 1mm;
+  }
+
+  /* Sur papier, les compétences sont une liste courante : elles sont trop
+     nombreuses pour tenir en pastilles sur une page. */
+  .skillGroup .chips {
+    display: block;
+    font-size: 7.5pt;
+    line-height: 1.28;
+  }
+
+  .skillGroup .chips li {
+    display: inline;
+    padding: 0;
+    border: 0;
+    font-size: 7.5pt;
+  }
+
+  .skillGroup .chips li:not(:last-child)::after {
+    content: ', ';
   }
 
   .heading {

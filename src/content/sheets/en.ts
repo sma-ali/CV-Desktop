@@ -230,7 +230,6 @@ export const sheetsEn = {
       title: 'The factory',
       meta: [{ term: 'Pipeline', value: 'end to end' }],
       body: 'Video channels produced end to end by AI agents, on my own server. I design the pipeline, the agents do the rest.',
-      note: 'The details of each pipeline are for the interview.',
     },
     card: {
       kicker: 'Business card',

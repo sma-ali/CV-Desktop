@@ -2,15 +2,7 @@
 
 import { useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
-import {
-  IcosahedronGeometry,
-  MeshBasicMaterial,
-  MeshStandardMaterial,
-  PlaneGeometry,
-  type Group,
-  type Mesh,
-  type PointLight,
-} from 'three';
+import { MeshBasicMaterial, PlaneGeometry, type Group, type Mesh, type PointLight } from 'three';
 import { ARRIVAL, ITEM_POSES, legacyPointIntensity, POINT_DECAY } from '../core/constants';
 import { Box, Cyl } from '../core/geometry';
 import { standardMaterial } from '../core/materials';
@@ -18,7 +10,7 @@ import { activityPulse, type LifeSigns } from '@/lib/life-signs/types';
 import { useSceneStoreApi } from '../core/store-context';
 import type { SceneTexts } from '../core/texts';
 import { heartbeat, type Pulse } from './beats';
-import { cassetteAt, CASSETTES, puffAt, PUFFS } from './factory';
+import { armAngles, cardAt, CARDS, isStamped, stationLevel, STATIONS } from './factory';
 import { TagAnchor } from './TagLayer';
 import { MergedBoxes, type BoxPiece } from './merged';
 import { paintPlaque, PLAQUE_TEXTURE } from './paint';
@@ -26,76 +18,100 @@ import { deskRestPose, ITEMS_PRIORITY, type PresentState } from './presentation'
 import { usePaintedMaterial } from './usePaintedMaterial';
 import { usePresentation } from './usePresentation';
 
-// L'usine (projets perso) : une mini usine low poly, à la place du coffret
-// scellé, sur le même encombrement (BODY_FOOTPRINTS
-// et la forme physique du coffret, id 'chest'). Une halle en brique à trois
-// toits, un bureau clair aux fenêtres allumées, une cheminée, et un tapis
-// roulant qui sort des cassettes. Elle se met en marche à ARRIVAL.chestLed ;
-// son rythme suit les signes de vie (activityPulse) : tapis plus rapide,
-// fumée plus dense, fenêtres qui battent. En mouvement réduit, rien ne
-// bouge : fenêtres allumées, tapis arrêté, une bouffée immobile.
+// L'usine (projets perso) : un tapis roulant automatique, sur l'encombrement
+// de l'ancien coffret (BODY_FOOTPRINTS et forme physique, id 'chest'). Il
+// suit le circuit de la fiche : des cartes vidéo sortent de la machine de
+// création, passent sous le scanner (la relecture par les agents), reçoivent
+// le tampon du bras robot (la validation humaine) et partent dans le tube
+// d'envoi (la publication) ; un petit écran montre les statistiques. Il se
+// met en marche à ARRIVAL.chestLed et son rythme suit les signes de vie
+// (activityPulse). En mouvement réduit, rien ne bouge : cartes posées, bras
+// levé, écran allumé.
 
-/** Portée de la lueur des fenêtres. */
+/** Portée de la lueur de l'écran. */
 const GLOW_DISTANCE = 2.4;
 /** L'usine recule dans son repère, comme le coffret : elle ne mord pas sur le livre. */
 const OFFSET_Z = -0.2;
 
-// La halle : à gauche, trois toits à deux pans.
-const HALL = { x: -0.25, w: 0.96, h: 0.42, d: 0.72, z: -0.04 } as const;
 const BASE_H = 0.06;
-const ROOF_R = HALL.w / 3 / Math.sqrt(3);
-// Le bureau : à droite, plus bas, avec la cheminée derrière.
-const OFFICE = { x: 0.5, w: 0.5, h: 0.3, d: 0.5, z: 0.06 } as const;
-const CHIMNEY = { x: 0.56, z: -0.3, r: 0.065, h: 0.62 } as const;
-// Le tapis : de la porte de la halle vers l'avant droit.
-const BELT = { x0: -0.55, x1: 0.62, y: 0.13, z: 0.47, w: 0.13 } as const;
+// Le tapis : de la machine de création (à gauche) au tube d'envoi (à droite).
+const BELT = { x0: -0.66, x1: 0.66, z: 0.17, w: 0.24, top: 0.25 } as const;
+/** Où une carte apparaît (u = 0) et où elle entre dans le tube (u = 1). */
+const RUN = { x0: -0.48, x1: 0.56 } as const;
+const runX = (u: number) => RUN.x0 + u * (RUN.x1 - RUN.x0);
+const CARD = { w: 0.13, h: 0.018, d: 0.17 } as const;
+const CARD_Y = BELT.top + CARD.h / 2;
+// Le scanner, une arche au-dessus du tapis.
+const SCAN_X = runX(STATIONS.scan);
+const ARCH = { y: 0.5, half: 0.17 } as const;
+// Le bras robot, derrière le tapis, au droit du tampon.
+const STAMP_X = runX(STATIONS.stamp);
+const ARM = { z: -0.21, shoulder: 0.31, upper: 0.32, lower: 0.3 } as const;
+/** Hauteur du tampon : levé, puis posé sur la carte. */
+// Le patin vert pend à 0.036 sous la main : posé, il effleure le dessus de la carte.
+const STAMP = { up: 0.45, down: CARD_Y + CARD.h / 2 + 0.038, size: 0.1 } as const;
+// Le tube d'envoi, debout au bout du tapis.
+const TUBE = { x: 0.69, r: 0.11, h: 0.74 } as const;
+// L'écran des statistiques, au fond à droite.
+const SCREEN = { x: 0.36, z: -0.38, y: 0.3, w: 0.36, h: 0.22 } as const;
+/** Les barres du graphique, de gauche à droite (part de la hauteur de l'écran). */
+const BARS = [0.35, 0.55, 0.45, 0.7, 0.62, 0.85] as const;
+/** Hauteur d'une barre pleine. */
+const BAR_FULL = SCREEN.h - 0.06;
 
 const STATIC_PIECES: BoxPiece[] = [
   // Le socle de béton.
-  { size: [1.64, BASE_H, 1.06], position: [0, BASE_H / 2, -0.02], color: 0x7d8274 },
-  // La halle et sa porte.
+  { size: [1.64, BASE_H, 1.06], position: [0, BASE_H / 2, 0], color: 0x7d8274 },
+  // Le châssis du tapis, sa bande et ses pieds.
   {
-    size: [HALL.w, HALL.h, HALL.d],
-    position: [HALL.x, BASE_H + HALL.h / 2, HALL.z],
-    color: 0xa5543a,
+    size: [BELT.x1 - BELT.x0, 0.05, BELT.w + 0.04],
+    position: [(BELT.x0 + BELT.x1) / 2, BELT.top - 0.032, BELT.z],
+    color: 0x55524e,
   },
   {
-    size: [0.26, 0.2, 0.02],
-    position: [HALL.x - 0.2, BASE_H + 0.1, HALL.z + HALL.d / 2 + 0.005],
-    color: 0x3b2a22,
-  },
-  // Le bureau.
-  {
-    size: [OFFICE.w, OFFICE.h, OFFICE.d],
-    position: [OFFICE.x, BASE_H + OFFICE.h / 2, OFFICE.z],
-    color: 0xdccaa0,
-  },
-  {
-    size: [OFFICE.w + 0.04, 0.035, OFFICE.d + 0.04],
-    position: [OFFICE.x, BASE_H + OFFICE.h + 0.017, OFFICE.z],
-    color: 0x5b6068,
-  },
-  // Le tapis roulant et ses pieds.
-  {
-    size: [BELT.x1 - BELT.x0, 0.025, BELT.w],
-    position: [(BELT.x0 + BELT.x1) / 2, BELT.y, BELT.z],
+    size: [BELT.x1 - BELT.x0, 0.012, BELT.w],
+    position: [(BELT.x0 + BELT.x1) / 2, BELT.top - 0.006, BELT.z],
     color: 0x2c2b2a,
   },
-  ...[BELT.x0 + 0.08, (BELT.x0 + BELT.x1) / 2, BELT.x1 - 0.08].map((x): BoxPiece => ({
-    size: [0.03, BELT.y - BASE_H, BELT.w * 0.8],
-    position: [x, BASE_H + (BELT.y - BASE_H) / 2, BELT.z],
-    color: 0x55524e,
+  ...[-0.35, 0, 0.35].flatMap((x) =>
+    [-1, 1].map((side): BoxPiece => ({
+      size: [0.03, BELT.top - BASE_H - 0.05, 0.03],
+      position: [x, BASE_H + (BELT.top - BASE_H - 0.05) / 2, BELT.z + side * (BELT.w / 2)],
+      color: 0x3d3b39,
+    })),
+  ),
+  // La machine de création, d'où sortent les cartes.
+  { size: [0.3, 0.36, 0.38], position: [-0.66, BASE_H + 0.18, BELT.z], color: 0xd9a74a },
+  { size: [0.32, 0.04, 0.4], position: [-0.66, BASE_H + 0.38, BELT.z], color: 0x8a6420 },
+  { size: [0.02, 0.06, 0.2], position: [-0.505, BELT.top + 0.03, BELT.z], color: 0x1d1b19 },
+  // L'arche du scanner.
+  ...[-1, 1].map((side): BoxPiece => ({
+    size: [0.05, ARCH.y - BELT.top + 0.03, 0.05],
+    position: [SCAN_X, BELT.top + (ARCH.y - BELT.top) / 2, BELT.z + side * ARCH.half],
+    color: 0x5b6068,
   })),
+  {
+    size: [0.08, 0.05, ARCH.half * 2 + 0.07],
+    position: [SCAN_X, ARCH.y + 0.02, BELT.z],
+    color: 0x5b6068,
+  },
+  // Le panneau de la plaque, au fond à gauche.
+  { size: [0.58, 0.26, 0.04], position: [-0.36, BASE_H + 0.13, -0.42], color: 0x4e535b },
+  // L'écran des statistiques et son pied.
+  {
+    size: [0.04, SCREEN.y - BASE_H, 0.04],
+    position: [SCREEN.x, BASE_H + (SCREEN.y - BASE_H) / 2, SCREEN.z],
+    color: 0x3d3b39,
+  },
+  {
+    size: [SCREEN.w + 0.04, SCREEN.h + 0.04, 0.04],
+    position: [SCREEN.x, SCREEN.y + SCREEN.h / 2 - 0.02, SCREEN.z],
+    color: 0x2b2927,
+  },
 ];
 
-/** Les fenêtres du bureau, en façade, qui s'allument. */
-const WINDOWS: [number, number][] = [
-  [OFFICE.x - 0.12, BASE_H + 0.19],
-  [OFFICE.x + 0.12, BASE_H + 0.19],
-];
-
-/** Couleurs des cassettes, à tour de rôle. */
-const CASSETTE_COLORS = [0xd9a74a, 0x8d2a20, 0xe9dcbd] as const;
+/** Couleurs des cartes vidéo, à tour de rôle. */
+const CARD_COLORS = [0x8d2a20, 0x4f7a8a, 0xe9dcbd, 0xd9a74a] as const;
 
 /** Le battement retenu pour des signes de vie donnés (calculé une fois par objet reçu). */
 function pulseFor(signs: LifeSigns | null, cache: { signs?: LifeSigns | null; pulse?: Pulse }) {
@@ -111,43 +127,32 @@ export function Factory({ texts }: { texts: SceneTexts }) {
   const glowLight = useRef<PointLight>(null);
   const held = useRef<PresentState | null>(null);
   const pulse = useRef<{ signs?: LifeSigns | null; pulse?: Pulse }>({});
-  const cassettes = useRef<(Mesh | null)[]>([]);
-  const puffs = useRef<(Mesh | null)[]>([]);
-  const smoke = useRef<Group>(null);
+  const cards = useRef<(Group | null)[]>([]);
+  const marks = useRef<(Mesh | null)[]>([]);
+  const bars = useRef<(Mesh | null)[]>([]);
+  const shoulder = useRef<Group>(null);
+  const elbow = useRef<Group>(null);
+  const hand = useRef<Group>(null);
+  const positions = useRef<number[]>(Array.from({ length: CARDS }, (_, i) => i / CARDS));
 
   const plaque = usePaintedMaterial(
     useMemo(() => paintPlaque(content), [content]),
     { ...PLAQUE_TEXTURE, redrawKey: locale, roughness: 0.35, metalness: 0.45 },
   );
   const plaqueGeometry = useMemo(() => new PlaneGeometry(0.5, 0.16), []);
-  const windowGeometry = useMemo(() => new PlaneGeometry(0.14, 0.1), []);
-  const puffGeometry = useMemo(() => new IcosahedronGeometry(1, 0), []);
-  const windowMaterial = useMemo(() => new MeshBasicMaterial({ color: 0x1a1612 }), []);
-  const puffMaterials = useMemo(
-    () =>
-      Array.from(
-        { length: PUFFS },
-        () =>
-          new MeshStandardMaterial({
-            color: 0xd8d4cc,
-            roughness: 1,
-            flatShading: true,
-            transparent: true,
-            opacity: 0,
-            depthWrite: false,
-          }),
-      ),
-    [],
-  );
+  const screenGeometry = useMemo(() => new PlaneGeometry(SCREEN.w, SCREEN.h), []);
+  const screenMaterial = useMemo(() => new MeshBasicMaterial({ color: 0x14201a }), []);
+  const scanMaterial = useMemo(() => new MeshBasicMaterial({ color: 0x1c2a22 }), []);
+  const barMaterial = useMemo(() => new MeshBasicMaterial({ color: 0x5fd18a }), []);
   useEffect(
     () => () => {
       plaqueGeometry.dispose();
-      windowGeometry.dispose();
-      puffGeometry.dispose();
-      windowMaterial.dispose();
-      for (const material of puffMaterials) material.dispose();
+      screenGeometry.dispose();
+      screenMaterial.dispose();
+      scanMaterial.dispose();
+      barMaterial.dispose();
     },
-    [plaqueGeometry, windowGeometry, puffGeometry, windowMaterial, puffMaterials],
+    [plaqueGeometry, screenGeometry, screenMaterial, scanMaterial, barMaterial],
   );
 
   const rest = useMemo(() => deskRestPose(ITEM_POSES.chest), []);
@@ -173,125 +178,219 @@ export function Factory({ texts }: { texts: SceneTexts }) {
     const current = pulseFor(scene.lifeSigns, pulse.current);
     const beat = reduced ? 0.25 : heartbeat(frame.t, current);
 
-    // Les fenêtres : éteintes avant la mise en marche, puis chaudes, au rythme de l'activité.
-    windowMaterial.color.setRGB(
-      0.1 + on * (0.75 + beat * 0.25),
-      0.09 + on * (0.5 + beat * 0.2),
-      0.07 + on * 0.18,
-    );
+    // Les cartes avancent de la création vers le tube, puis repartent.
+    const u = positions.current;
+    for (let i = 0; i < CARDS; i++) {
+      u[i] = on && !reduced ? cardAt(run, i, current) : i / CARDS + 0.06;
+      const card = cards.current[i];
+      if (card) {
+        card.position.x = runX(u[i] ?? 0);
+        // Elles sortent de la machine et rentrent dans le tube en rapetissant.
+        const edge = Math.min(1, (u[i] ?? 0) * 10, (1 - (u[i] ?? 0)) * 10);
+        card.scale.setScalar(Math.max(0.001, edge));
+      }
+      const mark = marks.current[i];
+      if (mark) mark.visible = isStamped(u[i] ?? 0);
+    }
 
-    // Le tapis : les cassettes avancent de la porte vers le bout, puis repartent.
-    cassettes.current.forEach((mesh, i) => {
-      if (!mesh) return;
-      const u = on ? cassetteAt(run, i, current) : i / CASSETTES;
-      mesh.position.x = BELT.x0 + 0.1 + u * (BELT.x1 - BELT.x0 - 0.2);
-      // Elles apparaissent à la porte et disparaissent au bout.
-      const edge = Math.min(1, u * 8, (1 - u) * 8);
-      mesh.scale.setScalar(Math.max(0.001, edge));
-    });
+    // Le scanner s'allume en vert quand une carte passe dessous.
+    const scan = on * (reduced ? 0.4 : stationLevel(u, STATIONS.scan));
+    scanMaterial.color.setRGB(0.11 + scan * 0.26, 0.16 + scan * 0.66, 0.13 + scan * 0.41);
 
-    // La fumée : seulement en marche.
-    if (smoke.current) smoke.current.visible = on > 0;
-    puffs.current.forEach((mesh, i) => {
-      const material = puffMaterials[i];
-      if (!mesh || !material) return;
-      const puff = reduced
-        ? { rise: 0.12, scale: 0.08, opacity: i === 0 ? 0.5 : 0 }
-        : puffAt(run, i, current);
-      mesh.position.y = puff.rise;
-      mesh.position.x = puff.rise * 0.25;
-      mesh.scale.setScalar(puff.scale);
-      material.opacity = puff.opacity;
+    // Le bras descend le tampon sur la carte qui arrive sous lui.
+    const press = on && !reduced ? stationLevel(u, STATIONS.stamp) : 0;
+    const stampY = STAMP.up - (STAMP.up - STAMP.down) * press;
+    const angles = armAngles(BELT.z - ARM.z, stampY - ARM.shoulder, ARM.upper, ARM.lower);
+    if (shoulder.current) shoulder.current.rotation.x = -angles.shoulder;
+    if (elbow.current) elbow.current.rotation.x = angles.shoulder - angles.elbow;
+    if (hand.current) hand.current.rotation.x = angles.elbow;
+
+    // L'écran : éteint avant la mise en marche, puis les barres battent avec l'activité.
+    screenMaterial.color.setRGB(0.05 + on * 0.04, 0.08 + on * 0.1, 0.07 + on * 0.06);
+    bars.current.forEach((bar, i) => {
+      if (!bar) return;
+      const height = on * (BARS[i] ?? 0.5) * (0.85 + beat * 0.15);
+      // Les barres poussent depuis le bas de l'écran.
+      bar.scale.y = Math.max(0.001, height);
+      bar.position.y = (BAR_FULL * height) / 2;
     });
 
     const p = held.current?.p ?? 0;
     if (glowLight.current) {
       glowLight.current.intensity = legacyPointIntensity(
-        on * (0.1 + beat * 0.5) * (1 - p * 0.6),
+        on * (0.1 + beat * 0.4) * (1 - p * 0.6),
         GLOW_DISTANCE,
       );
     }
   }, ITEMS_PRIORITY);
 
-  const roofY = BASE_H + HALL.h + ROOF_R / 2;
+  const barWidth = (SCREEN.w - 0.08) / BARS.length;
   return (
     <group ref={ref} {...handlers}>
       <group position={[0, 0, OFFSET_Z]}>
         <MergedBoxes pieces={STATIC_PIECES} />
-        {/* Les trois toits à deux pans de la halle. */}
-        {[-1, 0, 1].map((k) => (
+        {/* Les rouleaux aux deux bouts du tapis. */}
+        {[BELT.x0, BELT.x1].map((x) => (
           <Cyl
-            key={k}
-            radiusTop={ROOF_R}
-            radiusBottom={ROOF_R}
-            height={HALL.d + 0.04}
-            segments={3}
-            position={[HALL.x + (k * HALL.w) / 3, roofY, HALL.z]}
-            rotation={[-Math.PI / 2, 0, 0]}
-            material={standardMaterial(0x4e535b, { roughness: 0.7 })}
-          />
-        ))}
-        {/* La cheminée, cerclée de blanc en haut. */}
-        <Cyl
-          radiusTop={CHIMNEY.r * 0.85}
-          radiusBottom={CHIMNEY.r}
-          height={CHIMNEY.h}
-          segments={7}
-          position={[CHIMNEY.x, BASE_H + CHIMNEY.h / 2, CHIMNEY.z]}
-          material={standardMaterial(0x9a4632, { roughness: 0.8 })}
-        />
-        <Cyl
-          radiusTop={CHIMNEY.r * 0.9}
-          radiusBottom={CHIMNEY.r * 0.9}
-          height={0.06}
-          segments={7}
-          position={[CHIMNEY.x, BASE_H + CHIMNEY.h - 0.09, CHIMNEY.z]}
-          material={standardMaterial(0xe9dcbd, { roughness: 0.7 })}
-        />
-        <group ref={smoke} position={[CHIMNEY.x, BASE_H + CHIMNEY.h + 0.04, CHIMNEY.z]}>
-          {puffMaterials.map((material, i) => (
-            <mesh
-              key={i}
-              ref={(node) => {
-                puffs.current[i] = node;
-              }}
-              geometry={puffGeometry}
-              material={material}
-            />
-          ))}
-        </group>
-        {/* Les cassettes sur le tapis. */}
-        {CASSETTE_COLORS.slice(0, CASSETTES).map((color, i) => (
-          <Box
-            key={i}
-            ref={(node: Mesh | null) => {
-              cassettes.current[i] = node;
-            }}
-            size={[0.1, 0.05, 0.075]}
-            position={[BELT.x0, BELT.y + 0.037, BELT.z]}
-            material={standardMaterial(color, { roughness: 0.55 })}
-          />
-        ))}
-        {WINDOWS.map(([x, y]) => (
-          <mesh
             key={x}
-            geometry={windowGeometry}
-            material={windowMaterial}
-            position={[x, y, OFFICE.z + OFFICE.d / 2 + 0.004]}
+            radiusTop={0.035}
+            radiusBottom={0.035}
+            height={BELT.w + 0.06}
+            segments={8}
+            position={[x, BELT.top - 0.03, BELT.z]}
+            rotation={[Math.PI / 2, 0, 0]}
+            material={standardMaterial(0x8a8f96, { roughness: 0.4, metalness: 0.6 })}
           />
+        ))}
+        {/* La bande lumineuse du scanner, sous l'arche. */}
+        <Box
+          size={[0.05, 0.014, ARCH.half * 2 - 0.05]}
+          position={[SCAN_X, ARCH.y - 0.012, BELT.z]}
+          material={scanMaterial}
+        />
+        {/* Les cartes vidéo, chacune avec son triangle de lecture et son tampon. */}
+        {CARD_COLORS.slice(0, CARDS).map((color, i) => (
+          <group
+            key={i}
+            ref={(node) => {
+              cards.current[i] = node;
+            }}
+            position={[RUN.x0, CARD_Y, BELT.z]}
+          >
+            <Box
+              size={[CARD.w, CARD.h, CARD.d]}
+              material={standardMaterial(color, { roughness: 0.55 })}
+            />
+            <Cyl
+              radiusTop={0.035}
+              radiusBottom={0.035}
+              height={0.004}
+              segments={3}
+              position={[0, CARD.h / 2 + 0.002, 0.01]}
+              rotation={[0, Math.PI / 2, 0]}
+              material={standardMaterial(0xf4efe4, { roughness: 0.6 })}
+            />
+            <Box
+              ref={(node: Mesh | null) => {
+                marks.current[i] = node;
+              }}
+              size={[0.045, 0.006, 0.045]}
+              position={[0.035, CARD.h / 2 + 0.003, -0.05]}
+              material={barMaterial}
+            />
+          </group>
+        ))}
+        {/* Le bras robot : socle, tourelle, deux segments et le tampon. */}
+        <group position={[STAMP_X, 0, ARM.z]}>
+          <Cyl
+            radiusTop={0.1}
+            radiusBottom={0.12}
+            height={0.06}
+            segments={10}
+            position={[0, BASE_H + 0.03, 0]}
+            material={standardMaterial(0x2b2927, { roughness: 0.5, metalness: 0.3 })}
+          />
+          <Cyl
+            radiusTop={0.055}
+            radiusBottom={0.07}
+            height={ARM.shoulder - BASE_H - 0.06}
+            segments={8}
+            position={[0, (ARM.shoulder + BASE_H + 0.06) / 2, 0]}
+            material={standardMaterial(0xe08a2e, { roughness: 0.5 })}
+          />
+          <group ref={shoulder} position={[0, ARM.shoulder, 0]}>
+            <Box
+              size={[0.07, 0.07, ARM.upper]}
+              position={[0, 0, ARM.upper / 2]}
+              material={standardMaterial(0xe08a2e, { roughness: 0.5 })}
+            />
+            <group ref={elbow} position={[0, 0, ARM.upper]}>
+              <Cyl
+                radiusTop={0.045}
+                radiusBottom={0.045}
+                height={0.09}
+                segments={8}
+                rotation={[0, 0, Math.PI / 2]}
+                material={standardMaterial(0x2b2927, { roughness: 0.5, metalness: 0.3 })}
+              />
+              <Box
+                size={[0.055, 0.055, ARM.lower]}
+                position={[0, 0, ARM.lower / 2]}
+                material={standardMaterial(0xe08a2e, { roughness: 0.5 })}
+              />
+              <group ref={hand} position={[0, 0, ARM.lower]}>
+                <Box
+                  size={[STAMP.size, 0.05, STAMP.size]}
+                  material={standardMaterial(0x2b2927, { roughness: 0.6 })}
+                />
+                <Box
+                  size={[STAMP.size - 0.02, 0.012, STAMP.size - 0.02]}
+                  position={[0, -0.03, 0]}
+                  material={barMaterial}
+                />
+              </group>
+            </group>
+          </group>
+        </group>
+        {/* Le tube d'envoi, cerclé en haut. */}
+        <Cyl
+          radiusTop={TUBE.r}
+          radiusBottom={TUBE.r}
+          height={TUBE.h}
+          segments={10}
+          position={[TUBE.x, BASE_H + TUBE.h / 2, BELT.z]}
+          material={standardMaterial(0xb9c2c9, { roughness: 0.35, metalness: 0.5 })}
+        />
+        <Cyl
+          radiusTop={TUBE.r + 0.02}
+          radiusBottom={TUBE.r + 0.02}
+          height={0.05}
+          segments={10}
+          position={[TUBE.x, BASE_H + TUBE.h - 0.02, BELT.z]}
+          material={standardMaterial(0xe9dcbd, { roughness: 0.6 })}
+        />
+        <Box
+          size={[0.04, 0.09, CARD.d + 0.05]}
+          position={[TUBE.x - TUBE.r + 0.01, CARD_Y + 0.03, BELT.z]}
+          material={standardMaterial(0x1d1b19, { roughness: 0.9 })}
+        />
+        {/* L'écran des statistiques et ses barres. */}
+        <mesh
+          geometry={screenGeometry}
+          material={screenMaterial}
+          position={[SCREEN.x, SCREEN.y + SCREEN.h / 2 - 0.02, SCREEN.z + 0.021]}
+        />
+        {BARS.map((_, i) => (
+          <group
+            key={i}
+            position={[
+              SCREEN.x - SCREEN.w / 2 + 0.04 + barWidth * (i + 0.5),
+              SCREEN.y + 0.01,
+              SCREEN.z + 0.024,
+            ]}
+          >
+            <mesh
+              ref={(node) => {
+                bars.current[i] = node;
+              }}
+              material={barMaterial}
+            >
+              <planeGeometry args={[barWidth * 0.7, BAR_FULL]} />
+            </mesh>
+          </group>
         ))}
         <mesh
           geometry={plaqueGeometry}
           material={plaque}
-          position={[HALL.x + 0.2, BASE_H + 0.26, HALL.z + HALL.d / 2 + 0.006]}
+          position={[-0.36, BASE_H + 0.13, -0.42 + 0.021]}
         />
         <pointLight
           ref={glowLight}
-          color={0xffb860}
+          color={0x9fe8b8}
           intensity={0}
           distance={GLOW_DISTANCE}
           decay={POINT_DECAY}
-          position={[OFFICE.x, 0.3, OFFICE.z + OFFICE.d / 2 + 0.3]}
+          position={[SCREEN.x, 0.5, SCREEN.z + 0.4]}
         />
       </group>
       <TagAnchor id="chest" />

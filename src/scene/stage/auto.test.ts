@@ -103,7 +103,7 @@ describe('la visite automatique', () => {
   });
 
   it('reprend la boucle au début après une pause plus longue', () => {
-    const world = simulate({ to: 80 });
+    const world = simulate({ to: 90 });
     const items = presentedItems(world);
     expect(items.length).toBeGreaterThan(AUTO_SEQ.length);
     expect(items[AUTO_SEQ.length]).toBe(AUTO_SEQ[0]);

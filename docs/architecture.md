@@ -106,7 +106,7 @@ En portrait, le bureau tient en largeur : les objets se rangent sur une zone plu
 
 ## L'usine
 
-L'usine est l'objet des projets personnels : une petite halle en brique, une cheminée qui fume, un tapis roulant. Son rythme suit l'activité des 14 derniers jours. Son identifiant interne reste `chest` (`?prendre=chest`).
+L'usine est l'objet des projets personnels : un tapis roulant automatique qui suit le circuit de la fiche. Des cartes vidéo sortent de la machine de création, passent sous le scanner (relecture par agents), reçoivent le tampon du bras robot (validation humaine) et partent dans le tube d'envoi (publication) ; un petit écran montre les statistiques. Son rythme suit l'activité des 14 derniers jours (`items/factory.ts`, fonctions pures et testées, dont la cinématique du bras). Son identifiant interne reste `chest` (`?prendre=chest`).
 
 Sa fiche (`components/desk/sheet/FactoryPanel.tsx`, vue calculée par `factoryView.ts`) montre :
 

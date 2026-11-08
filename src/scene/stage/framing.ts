@@ -122,6 +122,7 @@ export const BODY_HEIGHTS = {
   chest: 0.96,
   netherbrain: 1.08,
   homelab: 0.98,
+  casd: 0.27,
   mug: 0.6,
   pad: 0.32,
 } as const satisfies Record<FootprintId, number>;

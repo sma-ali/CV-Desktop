@@ -152,7 +152,19 @@ export const sheetsEn = {
         { term: 'Tools', value: 'R / RStudio' },
         { term: 'Access', value: 'ODBC' },
       ],
-      body: 'Application deployment, access rights, remote database access and statistical environments, in a high-criticality environment. Sensitive data exchanges with INSEE and France Travail go through the CASD secure data enclaves.',
+      body: 'Application deployment, access rights, remote database access and statistical environments, in a high-criticality environment.',
+    },
+    casd: {
+      kicker: 'Jan 2024 - Jun 2026',
+      step: 'Step 2 of 3',
+      title: 'Sensitive data | CASD',
+      meta: [
+        { term: 'Data', value: 'sensitive data exchanges' },
+        { term: 'Access', value: 'SD-Box terminal' },
+        { term: 'Authentication', value: 'card, code and fingerprint' },
+        { term: 'Environment', value: 'no Internet access' },
+      ],
+      body: 'Sensitive data exchanges with INSEE and France Travail go through the CASD secure enclaves. Day-to-day support for their users: SD-Box terminal, strong authentication, no Internet access.',
     },
     netherbrain: {
       kicker: '2026',

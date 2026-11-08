@@ -107,6 +107,7 @@ export const sceneEn = {
   card: { contact: 'Contact' },
   laptop: { path: '~/projects' },
   chest: { kicker: 'SIDE PROJECTS', title: 'The factory' },
+  casd: { device: 'SD-Box' },
   netherbrain: {
     label: {
       name: 'Netherbrain',

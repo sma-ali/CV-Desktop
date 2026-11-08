@@ -15,6 +15,7 @@ export const DROP_ORDER = [
   'homelab',
   'chest',
   'netherbrain',
+  'casd',
   'card',
   'badge',
   'keyboard',

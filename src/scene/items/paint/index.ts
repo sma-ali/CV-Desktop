@@ -9,3 +9,4 @@ export * from './laptop';
 export * from './plaque';
 export * from './netherbrain';
 export * from './homelab';
+export * from './casd';

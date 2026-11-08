@@ -58,6 +58,7 @@ export const FOOTPRINT_IDS = [
   'chest',
   'netherbrain',
   'homelab',
+  'casd',
   'mug',
   'pad',
 ] as const satisfies readonly BodyId[];
@@ -78,6 +79,8 @@ export const BODY_FOOTPRINTS = {
   chest: { cx: 0, cz: -0.2, hw: 0.83, hd: 0.54 },
   netherbrain: { cx: 0, cz: 0, hw: 0.42, hd: 0.42 },
   homelab: { cx: 0, cz: 0, hw: 0.5, hd: 0.4 },
+  // Le boîtier SD-Box et la carte qui dépasse de sa fente, en façade.
+  casd: { cx: 0, cz: 0.05, hw: 0.43, hd: 0.35 },
   // La tasse et son anse (à droite), la manette et ses poignées (vers l'avant).
   mug: { cx: 0.08, cz: 0, hw: 0.4, hd: 0.31 },
   pad: { cx: 0, cz: 0.08, hw: 0.68, hd: 0.38 },

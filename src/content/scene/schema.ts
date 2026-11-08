@@ -128,6 +128,8 @@ export const sceneContentSchema = z.strictObject({
   card: z.strictObject({ contact: text }),
   laptop: z.strictObject({ path: text }),
   chest: z.strictObject({ kicker: text, title: text }),
+  // Le nom du boîtier d'accès au CASD, gravé sur son dessus (fait du CV).
+  casd: z.strictObject({ device: text }),
   // Faits du CV, comparés au contenu par scene.test.ts.
   netherbrain: z.strictObject({
     /** L'étiquette au dos du bocal, lue quand on le retourne. */

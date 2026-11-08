@@ -119,6 +119,7 @@ export const sheetsSchema = z.strictObject({
     badge: sheetSchema,
     postit: sheetSchema,
     headset: sheetSchema,
+    casd: sheetSchema,
     netherbrain: sheetSchema,
     homelab: sheetSchema,
     laptop: sheetSchema,

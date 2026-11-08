@@ -4,7 +4,7 @@
 // fume à côté, et la barre de chargement court sous l'ordinateur. Des
 // frappes tombent au hasard sur les côtés du clavier, chacune fait plonger
 // un peu sa tête. Vers 70 %, une goutte de sueur apparaît une fois et
-// reste. Quand tout est prêt, ses verres deviennent blancs, une étincelle
+// reste jusqu'au « ting ». Quand tout est prêt, ses verres deviennent blancs, une étincelle
 // brille et un « ting ! » s'affiche.
 //
 // Tout est du SVG en texte : le serveur rend la première image, puis
@@ -13,6 +13,9 @@
 
 /** Le cadre du dessin (viewBox du SVG). */
 export const INTRO_VIEWBOX = '-12 4 224 140';
+
+/** Le « ting » suit la fin du chargement de ce délai (ms). */
+const TING_DELAY = 120;
 
 /** La durée d'une boucle de frappes : un nouveau rythme tiré à chaque boucle. */
 const LOOP = 10_000;
@@ -273,7 +276,7 @@ export function createIntroScene({ still = false, random }: IntroSceneOptions = 
     }
     const since = u - lastHit;
     const bob = moving && since >= 0 && since < 220 ? 0.55 * (1 - since / 220) ** 2 : 0;
-    const tg = !still && d >= 120 ? d - 120 : -1;
+    const tg = !still && d >= TING_DELAY ? d - TING_DELAY : -1;
     const spark = tg < 0 ? 0 : tg < 160 ? tg / 160 : Math.max(0.35, 1 - (tg - 160) / 700);
     const gy = 56 + bob;
     const glow = moving ? 0.82 + 0.18 * hash(Math.floor(t / 90)) : 1;
@@ -320,9 +323,10 @@ export function createIntroScene({ still = false, random }: IntroSceneOptions = 
       }
     }
 
-    // La goutte de sueur : une seule fois vers 70 %, elle glisse un peu puis reste.
+    // La goutte de sueur : une seule fois vers 70 %, elle glisse un peu puis
+    // reste, et s'en va d'un coup au « ting » (soulagé).
     let sweat = '';
-    if (sweatAt !== null) {
+    if (sweatAt !== null && d < TING_DELAY) {
       const a = still ? 900 : t - sweatAt;
       const s = Math.min(1, a / 250);
       const y = 39 + 6 * (1 - (1 - Math.min(1, a / 900)) ** 3);

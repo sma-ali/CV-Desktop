@@ -26,7 +26,7 @@ describe("le dessin de l'écran de chargement", () => {
     }
   });
 
-  it('montre la goutte de sueur à 70 %, une seule fois, et la garde', () => {
+  it('montre la goutte de sueur à 70 %, une seule fois, et la garde pendant le chargement', () => {
     const render = createIntroScene({ random: seeded(3) });
     expect(render(0.5, 1000)).not.toContain('#9ec9ff" stroke="#dfe9ff');
     const first = render(0.72, 2000);
@@ -41,6 +41,15 @@ describe("le dessin de l'écran de chargement", () => {
     const frame = render(1, 2400);
     expect(frame).toContain('ting !');
     expect(frame).not.toContain('#161a24');
+  });
+
+  it('chasse la goutte de sueur dès le « ting »', () => {
+    const render = createIntroScene({ random: seeded(5) });
+    expect(render(0.8, 1000)).toContain('#9ec9ff" stroke="#dfe9ff');
+    expect(render(1, 2000)).toContain('#9ec9ff" stroke="#dfe9ff');
+    const ting = render(1, 2140);
+    expect(ting).toContain('ting !');
+    expect(ting).not.toContain('#9ec9ff" stroke="#dfe9ff');
   });
 
   it('en mouvement réduit : ni frappes, ni « ting »', () => {

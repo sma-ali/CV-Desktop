@@ -232,7 +232,6 @@ export const sheetsFr = {
       title: "L'usine",
       meta: [{ term: 'Circuit', value: 'de bout en bout' }],
       body: 'Des chaînes vidéo produites de bout en bout par des agents IA, sur mon propre serveur. Je conçois le circuit, les agents font le reste.',
-      note: 'Le détail de chaque circuit se raconte en entretien.',
     },
     card: {
       kicker: 'Carte de visite',

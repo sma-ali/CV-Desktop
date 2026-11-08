@@ -52,7 +52,7 @@ test.describe('le HUD', () => {
     await page.goto('/fr');
     const top = page.locator('#hud header');
     await expect(page.getByRole('heading', { level: 1 })).toHaveText('Ali Smaani');
-    await expect(top.getByText('Développeur Full-Stack & IA', { exact: true })).toBeVisible();
+    await expect(top.getByText('Dev FullStack | AI Engineer', { exact: true })).toBeVisible();
     await expect(top.getByText('Disponible immédiatement', { exact: true })).toBeVisible();
     await expect(top.getByText('Île-de-France · remote possible', { exact: true })).toBeVisible();
     // Une seule commande en haut : la langue, « EN » (nom complet pour les lecteurs d'écran).

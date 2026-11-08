@@ -11,7 +11,7 @@ import { contact } from './shared';
 export const fr = {
   profile: {
     name: 'Ali Smaani',
-    headline: 'Développeur Full-Stack & IA',
+    headline: 'Dev FullStack | AI Engineer',
     summary:
       "Développeur full-stack React / TypeScript et Python / FastAPI. Je conçois des applications qui intègrent l'IA générative de bout en bout : interface React, API FastAPI, PostgreSQL, et LLM multi-fournisseurs avec tool calling, sorties structurées, RAG et streaming. En parallèle, je fais tourner en production une plateforme d'automatisation multi-agents auto-hébergée. 3 ans de développement web puis 2 ans et demi d'ingénierie applicative.",
     location: 'Île-de-France · remote possible',

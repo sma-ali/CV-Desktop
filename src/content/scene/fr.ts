@@ -34,7 +34,7 @@ export const sceneFr = {
       "    'Ingénieur applicatif & gestion de données'),",
       '];',
       'export const ali = {',
-      "  titre: 'Développeur Full-Stack & IA',",
+      "  titre: 'Dev FullStack | AI Engineer',",
       "  pile: ['TypeScript', 'React', 'Python'],",
       "  zone: 'Île-de-France · remote possible',",
       '  disponible: true,',
@@ -45,7 +45,7 @@ export const sceneFr = {
   },
   facts: {
     name: 'Ali Smaani',
-    headline: 'Développeur Full-Stack & IA',
+    headline: 'Dev FullStack | AI Engineer',
     location: 'Île-de-France · remote possible',
     availability: 'Disponible immédiatement',
     email: 'smanali.pro@gmail.com',

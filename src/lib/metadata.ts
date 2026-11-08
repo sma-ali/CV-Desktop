@@ -6,7 +6,7 @@ import { absoluteUrl, deskPath, expressPath, legalPath, makingOfPath } from './s
 
 const openGraphLocales: Record<Locale, string> = { fr: 'fr_FR', en: 'en_US' };
 
-// Titre de la page et des partages : « Ali Smaani | Développeur Full-Stack ».
+// Titre de la page et des partages : « Ali Smaani | Dev FullStack | AI Engineer ».
 export function pageTitle(content: Content): string {
   return `${content.profile.name} | ${content.profile.headline}`;
 }

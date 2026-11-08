@@ -5,7 +5,7 @@ import { getContent, locales, type Locale } from '../../src/content';
 // Valeurs écrites en dur : ces tests ne comparent pas le contenu qu'à lui-même.
 const expected = {
   fr: {
-    title: 'Ali Smaani | Développeur Full-Stack & IA',
+    title: 'Ali Smaani | Dev FullStack | AI Engineer',
     other: { name: 'English', path: '/en/express' },
     experiences: [
       { role: 'Ingénieur applicatif & gestion de données', period: 'Janv. 2024 - Juin 2026' },
@@ -18,7 +18,7 @@ const expected = {
     availability: 'Disponible immédiatement',
   },
   en: {
-    title: 'Ali Smaani | Full-Stack & AI Developer',
+    title: 'Ali Smaani | Dev FullStack | AI Engineer',
     other: { name: 'Français', path: '/fr/express' },
     experiences: [
       { role: 'Application & Data Management Engineer', period: 'Jan 2024 - Jun 2026' },

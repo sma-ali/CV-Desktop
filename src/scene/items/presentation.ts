@@ -73,7 +73,12 @@ export interface PresentInput {
   t: number;
   pointerX: number;
   pointerY: number;
+  /** Zoom du visiteur sur l'objet tenu (1 : la taille prévue ; plus grand : plus près). */
+  zoom?: number;
 }
+
+/** Distance minimale de l'objet tenu à la caméra, au plus fort du zoom. */
+const HELD_MIN_DISTANCE = 0.9;
 
 const euler = new Euler();
 const QX90 = new Quaternion().setFromAxisAngle(new Vector3(1, 0, 0), Math.PI / 2);
@@ -158,6 +163,10 @@ export function heldPose(
   );
   const scale = distance > HELD_MAX_DISTANCE ? HELD_MAX_DISTANCE / distance : 1;
   distance = Math.min(distance, HELD_MAX_DISTANCE);
+  // Le zoom du visiteur rapproche ou éloigne l'objet, sans traverser la caméra.
+  if (input.zoom && input.zoom !== 1) {
+    distance = Math.max(HELD_MIN_DISTANCE, distance / input.zoom);
+  }
   direction.set(held.x, held.y, 0.5).unproject(camera).sub(camera.position).normalize();
   outPosition.copy(camera.position).addScaledVector(direction, distance);
   up.set(0, 1, 0).applyQuaternion(camera.quaternion);

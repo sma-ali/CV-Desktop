@@ -173,6 +173,7 @@ export function usePresentation({
         input.t = reduced ? 0 : frame.t;
         input.pointerX = reduced ? 0 : hub.pointer.x;
         input.pointerY = reduced ? 0 : hub.pointer.y;
+        input.zoom = scene.presented === id ? hub.zoom.held : 1;
         const scale = heldPose(
           three.camera as PerspectiveCamera,
           pose,

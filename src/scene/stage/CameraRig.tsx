@@ -3,6 +3,7 @@
 import { useFrame, useThree } from '@react-three/fiber';
 import { useEffect, useMemo, useRef, type RefObject } from 'react';
 import type { PerspectiveCamera } from 'three';
+import { gestureHub } from '../gestures/hub';
 import { damp, lerp } from '../core/math';
 import { useSceneStore, useSceneStoreApi } from '../core/store-context';
 import {
@@ -29,8 +30,15 @@ const FAR_PER_DISTANCE = 2.2;
 // La caméra : montée de l'arrivée (de START vers la vue de repos), cadrage
 // recalculé au redimensionnement (portrait sur téléphone), léger mouvement
 // qui suit le pointeur une fois posée, gros plan sur l'écran quand on le
-// présente. Lissée d'une image à l'autre, sauf en mouvement réduit et
-// horloge gelée (la pose est alors exacte tout de suite).
+// présente. Le zoom du visiteur (gestures/zoomLevels.ts) rapproche la caméra du
+// bureau, ou de l'écran en gros plan. Lissée d'une image à l'autre, sauf en
+// mouvement réduit et horloge gelée (la pose est alors exacte tout de suite).
+
+/** Rapproche une pose de sa cible : la distance est divisée par zoom. */
+function zoomToward(pose: CameraPose, zoom: number): void {
+  if (zoom === 1) return;
+  pose.position.sub(pose.target).divideScalar(zoom).add(pose.target);
+}
 export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) {
   const store = useSceneStoreApi();
   const width = useThree((state) => state.size.width);
@@ -42,6 +50,7 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
   // La vue de repos ne dépend que du format : calculée au redimensionnement.
   const rest = useMemo(() => fitRestView(aspect, { width, height }), [aspect, width, height]);
   const screen = useMemo(() => screenFocusPose(portrait), [portrait]);
+  const screenZoomed = useMemo(() => createPose(), []);
   // Poses de travail, réutilisées à chaque image ; ready à false : la
   // prochaine pose est prise telle quelle, sans lissage.
   const rigRef = useRef<{ wanted: CameraPose; smoothed: CameraPose; ready: boolean } | null>(null);
@@ -72,12 +81,28 @@ export function CameraRig({ sharedRef }: { sharedRef: RefObject<StageShared> }) 
       rig.wanted,
     );
 
-    // Gros plan sur l'écran.
+    // Le zoom du bureau : la cible glisse sur le plateau, la caméra s'en rapproche.
+    const zoom = gestureHub(store).zoom;
+    zoom.center.x = rest.target[0];
+    zoom.center.z = rest.target[2];
+    const desk = zoom.desk;
+    pose.target.x += desk.x;
+    pose.target.z += desk.z;
+    pose.position.x += desk.x;
+    pose.position.z += desk.z;
+    zoomToward(pose, desk.zoom);
+
+    // Gros plan sur l'écran, au zoom de l'objet tenu.
     const wantScreen = presented === 'monitor' ? 1 : 0;
     shared.screenFocus = exact
       ? wantScreen
       : lerp(shared.screenFocus, wantScreen, damp(SCREEN_SMOOTHING, frame.dt));
-    if (shared.screenFocus > 0.001) blendPose(pose, screen, shared.screenFocus);
+    if (shared.screenFocus > 0.001) {
+      screenZoomed.position.copy(screen.position);
+      screenZoomed.target.copy(screen.target);
+      if (presented === 'monitor') zoomToward(screenZoomed, zoom.held);
+      blendPose(pose, screenZoomed, shared.screenFocus);
+    }
 
     const { smoothed } = rig;
     if (exact) {

@@ -143,6 +143,36 @@ export function screenLayout(
   };
 }
 
+/** Où commence et finit l'appel qui renvoie au portable (« voirPortable() ») dans une ligne. */
+export function linkSpan(line: string, pointer: string): [number, number] | null {
+  const start = line.indexOf(`${pointer}()`);
+  return start < 0 ? null : [start, start + pointer.length + 2];
+}
+
+/**
+ * Le point (u, v) de la dalle (coordonnées de texture, v vers le haut)
+ * tombe-t-il sur le lien vers le portable ? Un caractère de marge autour,
+ * pour le doigt.
+ */
+export function linkAt(
+  screen: Pick<SceneContent['screen'], 'code' | 'closing' | 'words'>,
+  u: number,
+  v: number,
+  width = SCREEN_TEXTURE.width,
+  height = SCREEN_TEXTURE.height,
+): boolean {
+  const { code, closing, words } = screen;
+  const { fontSize, lineHeight, top, gutter } = screenLayout([...code, closing], width, height);
+  const x = u * width;
+  const y = (1 - v) * height;
+  const index = Math.floor((y - top) / lineHeight);
+  const span = linkSpan(code[index] ?? '', words.pointer);
+  if (!span) return false;
+  const charWidth = fontSize * 0.6;
+  const left = PADDING + gutter;
+  return x >= left + (span[0] - 1) * charWidth && x <= left + (span[1] + 1) * charWidth;
+}
+
 /** Bande horizontale de la texture, en pixels (top inclus, height de haut). */
 export interface ScreenBand {
   top: number;
@@ -257,6 +287,17 @@ export function drawScreen(
       c.fillText(visible, x, y);
       x += visible.length * charWidth;
       shown -= visible.length;
+    }
+    // Le renvoi au portable, une fois tapé, est souligné comme un lien.
+    const span = linkSpan(text, screen.words.pointer);
+    if (span && Math.min(remaining, text.length) >= span[1]) {
+      c.fillStyle = SYNTAX.call;
+      c.fillRect(
+        left + span[0] * charWidth,
+        y + fontSize * 0.14,
+        (span[1] - span[0] - 2) * charWidth,
+        Math.max(2, fontSize * 0.07),
+      );
     }
     if (remaining <= text.length) {
       cursorX = left + remaining * charWidth;

@@ -4,6 +4,7 @@ import { SceneCanvas } from './core/SceneCanvas';
 import type { SceneTexts } from './core/texts';
 import { Decor } from './decor/Decor';
 import { Gestures } from './gestures/Gestures';
+import { Zoom } from './gestures/Zoom';
 import { CvItems } from './items/CvItems';
 import { PhysicsGate } from './physics/PhysicsGate';
 import { HeldRotation } from './rotation/HeldRotation';
@@ -34,6 +35,7 @@ export default function Scene({ texts, className, onReady, onContextLost }: Scen
       <CvItems texts={texts} />
       <Stage />
       <Gestures />
+      <Zoom />
       <PhysicsGate />
       <HeldRotation />
       <Tidy />

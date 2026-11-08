@@ -1,6 +1,6 @@
 'use client';
 
-import { useFrame } from '@react-three/fiber';
+import { type ThreeEvent, useFrame } from '@react-three/fiber';
 import { useEffect, useMemo, useRef } from 'react';
 import { type Mesh, MeshBasicMaterial, PlaneGeometry, Quaternion, Vector3 } from 'three';
 import { extraLineChars } from '../core/arrival';
@@ -15,6 +15,7 @@ import {
   closingBand,
   codeLength,
   drawScreen,
+  linkAt,
   SCREEN_TEXTURE,
   tokenize,
   type ScreenFrame,
@@ -25,7 +26,8 @@ import { usePresentation } from './usePresentation';
 // petite caméra posée dessus, deux post-it décoratifs sur le bord gauche, et
 // le code du parcours qui se tape pendant l'arrivée. Un clic le présente : il
 // ne se soulève pas, la caméra de la mise en scène s'en approche
-// (SCREEN_FOCUS).
+// (SCREEN_FOCUS). Un clic sur « voirPortable() » présente le portable, où
+// sont toutes les compétences.
 //
 // Une fois le code tapé, la grande texture (2048x1152) ne change plus : la
 // ligne finale qui se tape en boucle et le curseur qui clignote vivent dans
@@ -150,6 +152,17 @@ export function Monitor({ texts }: { texts: SceneTexts }) {
     },
   });
 
+  // Le lien vers le portable : un clic dessus, une fois le code tapé, le présente.
+  const onScreenClick = (event: ThreeEvent<MouseEvent>) => {
+    const scene = store.getState();
+    const uv = event.uv;
+    if (!uv || scene.frame.typed < total) return;
+    if (!linkAt(screen, uv.x, uv.y)) return;
+    event.stopPropagation();
+    scene.markUser();
+    scene.present('laptop', 'click');
+  };
+
   useFrame(() => {
     const { frame, settings } = store.getState();
     const { t, dt } = frame;
@@ -209,7 +222,12 @@ export function Monitor({ texts }: { texts: SceneTexts }) {
           position={[0, 0, -0.16]}
           material={standardMaterial(0x23211f, { roughness: 0.6 })}
         />
-        <mesh geometry={screenGeometry} material={screenMaterial} position={[0, 0, 0.068]} />
+        <mesh
+          geometry={screenGeometry}
+          material={screenMaterial}
+          position={[0, 0, 0.068]}
+          onClick={onScreenClick}
+        />
         <mesh
           ref={bandMesh}
           geometry={bandPlane.geometry}

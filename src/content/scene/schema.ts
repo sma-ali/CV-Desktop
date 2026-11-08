@@ -39,9 +39,11 @@ const screenSchema = z.strictObject({
     object: identifier,
     title: identifier,
     stack: identifier,
+    /** La fonction qui renvoie au portable, où sont toutes les compétences. */
+    pointer: identifier,
     location: identifier,
     available: identifier,
-    /** Les compétences montrées, prises dans le CV. */
+    /** Les compétences des autocollants du portable, prises dans le CV. */
     stackItems: texts,
   }),
   /** Le code affiché, généré par buildScreenCode (un test vérifie qu'il est à jour). */

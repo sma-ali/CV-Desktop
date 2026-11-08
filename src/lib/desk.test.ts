@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest';
 import { getContent } from '@/content';
 import { SHEET_ORDER } from '@/scene/core/ids';
-import { laptopSkills } from '@/scene/items/paint';
+import { LAPTOP_SCREEN, laptopScreenHeight, laptopSkills } from '@/scene/items/paint';
 import { buildDeskSheets, buildDeskSteps, buildDeskTexts, buildSceneTexts } from './desk';
 
 describe('les étapes du bureau', () => {
@@ -90,6 +90,8 @@ describe('les textes du bureau', () => {
       expect(texts.skills).toEqual(
         getContent(locale).skills.map(({ label, items }) => ({ label, items })),
       );
+      // Toutes ne tiennent pas d'un coup : l'écran du portable défile.
+      expect(laptopScreenHeight(texts.skills)).toBeGreaterThan(LAPTOP_SCREEN.visible);
       const flat = texts.skills.flatMap((group) => group.items);
       for (const sticker of laptopSkills(texts.content)) {
         expect(

@@ -143,16 +143,50 @@ export function layoutLaptopChips(
   return { placed, bottom: y };
 }
 
+/** L'écran du portable, en pixels logiques : largeur et hauteur visible. */
+export const LAPTOP_SCREEN = { width: 800, visible: 560 } as const;
+/** Taille du texte des compétences sur l'écran du portable. */
+const CHIP_SIZE = 22;
+/** Haut de la première ligne de compétences, sous l'en-tête et « const … = { ». */
+const CHIPS_TOP = 150;
+const CHIPS_LEFT = 58;
+const CHIPS_RIGHT = LAPTOP_SCREEN.width - 26;
+
+/** Largeur d'un texte dans la police à chasse fixe (0.6 de la taille par caractère). */
+const monoWidth = (size: number) => (text: string) => text.length * size * 0.6;
+
+/** Les compétences rangées sur l'écran du portable (positions en pixels logiques). */
+function laptopScreenLayout(skills: readonly SkillGroup[]) {
+  return layoutLaptopChips(
+    skills,
+    monoWidth(CHIP_SIZE),
+    CHIP_SIZE,
+    CHIPS_LEFT,
+    CHIPS_RIGHT,
+    CHIPS_TOP,
+  );
+}
+
+/**
+ * Hauteur totale de l'écran du portable (pixels logiques) : toutes les
+ * compétences et l'accolade finale. Plus haute que la partie visible, elle
+ * défile (laptopScroll.ts).
+ */
+export function laptopScreenHeight(skills: readonly SkillGroup[]): number {
+  return Math.max(LAPTOP_SCREEN.visible, laptopScreenLayout(skills).bottom + 60);
+}
+
 /**
  * L'écran du portable, vu quand il s'ouvre devant la caméra : toutes les
  * compétences du CV en code (« const competences = { ... } »), en pastilles
- * rangées par groupe, à la plus grande taille qui tient.
+ * rangées par groupe. La toile est plus haute que l'écran : elle défile.
  */
 export function paintLaptopScreen(scene: SceneContent, skills: readonly SkillGroup[]): Painter {
   const { path } = scene.laptop;
   const { mark, text } = scene.labels.laptop;
   const { stack } = scene.screen.words;
-  return scaled(800, (c, w, h, F) => {
+  const layout = laptopScreenLayout(skills);
+  return scaled(LAPTOP_SCREEN.width, (c, w, h, F) => {
     c.fillStyle = '#1a1512';
     c.fillRect(0, 0, w, h);
     c.fillStyle = '#241d18';
@@ -176,17 +210,7 @@ export function paintLaptopScreen(scene: SceneContent, skills: readonly SkillGro
     c.fillStyle = '#f3e9d4';
     c.fillText(`${stack} = {`, 40 + constWidth, 134);
 
-    // La plus grande taille qui fait tout tenir au-dessus de l'accolade finale.
-    const left = 58;
-    const right = w - 26;
-    const top = 150;
-    let size = 20;
-    let layout = layoutLaptopChips(skills, () => 0, size, left, right, top);
-    for (; size >= 9; size--) {
-      c.font = `600 ${size}px ${F.mono}`;
-      layout = layoutLaptopChips(skills, (s) => c.measureText(s).width, size, left, right, top);
-      if (layout.bottom <= h - 44) break;
-    }
+    const size = CHIP_SIZE;
     const chipHeight = Math.round(size * 1.5);
     for (const item of layout.placed) {
       if (item.kind === 'label') {

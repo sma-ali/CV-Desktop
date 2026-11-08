@@ -19,10 +19,7 @@ describe('buildScreenCode', () => {
       '];',
       'export const ali = {',
       "  titre: 'Dev FullStack | AI Engineer',",
-      '  competences: [',
-      "    'TypeScript', 'React', 'Next.js', 'Python',",
-      "    'FastAPI', 'Agents IA', 'RAG', 'LLM-as-judge',",
-      '  ],',
+      '  competences: voirPortable(),',
       "  zone: 'Île-de-France · remote possible',",
       '  disponible: true,',
       '} as const;',
@@ -39,10 +36,7 @@ describe('buildScreenCode', () => {
       '];',
       'export const ali = {',
       "  title: 'Dev FullStack | AI Engineer',",
-      '  skills: [',
-      "    'TypeScript', 'React', 'Next.js', 'Python',",
-      "    'FastAPI', 'AI agents', 'RAG', 'LLM-as-judge',",
-      '  ],',
+      '  skills: seeLaptop(),',
       "  location: 'Paris, France · Open to remote',",
       '  available: true,',
       '} as const;',
@@ -54,7 +48,7 @@ describe('buildScreenCode', () => {
       buildScreenCode(fr, sceneFr.screen.words),
       buildScreenCode(en, sceneEn.screen.words),
     ]) {
-      expect(lines.length).toBeLessThanOrEqual(15);
+      expect(lines.length).toBeLessThanOrEqual(13);
       expect(Math.max(...lines.map((line) => line.length))).toBeLessThanOrEqual(SCREEN_CODE_WIDTH);
     }
   });
@@ -93,13 +87,14 @@ describe('buildScreenCode', () => {
     object: 'me',
     title: 'title',
     stack: 'stack',
+    pointer: 'seeLaptop',
     location: 'city',
     available: 'free',
     stackItems: ['Alpha', 'Beta', 'Gamma', 'Delta', 'Epsilon'],
   };
 
   it('range les postes du plus ancien au plus récent et protège les apostrophes', () => {
-    const lines = buildScreenCode(facts, words, 80);
+    const lines = buildScreenCode(facts, words);
     expect(lines.slice(0, 5)).toEqual([
       'export const jobs = [',
       "  job('2019-01', '2021-12', 'A',",
@@ -110,16 +105,8 @@ describe('buildScreenCode', () => {
     expect(lines).toContain("  title: 'Dev d\\'équipe',");
   });
 
-  it('passe à la ligne un tableau trop long', () => {
-    const lines = buildScreenCode(facts, words, 26);
-    const start = lines.indexOf('  stack: [');
-    expect(lines.slice(start, start + 5)).toEqual([
-      '  stack: [',
-      "    'Alpha', 'Beta',",
-      "    'Gamma', 'Delta',",
-      "    'Epsilon',",
-      '  ],',
-    ]);
+  it('renvoie au portable pour les compétences', () => {
+    expect(buildScreenCode(facts, words)).toContain('  stack: seeLaptop(),');
   });
 
   it('refuse une compétence absente du CV', () => {

@@ -321,17 +321,18 @@ test.describe('le son', () => {
   const contexts = (page: Page) =>
     page.evaluate(() => (window as unknown as { __audioContexts: number }).__audioContexts);
 
-  test('est ouvert par défaut et sonne au premier geste, sans erreur', async ({ page }) => {
+  test('est ouvert dès l’arrivée, avec un seul contexte audio, sans erreur', async ({ page }) => {
     const errors = collectErrors(page);
     await page.goto(at('fr'));
     await waitForScene(page);
     // Ouvert, sans bouton pour le couper.
     await expect(hud(page)).toHaveAttribute('data-sound', 'on');
     await expect(page.getByRole('button', { name: /^(Son|Sound)$/ })).toHaveCount(0);
-    // Le navigateur ne laisse pas sonner une page avant un geste : rien n'est créé.
-    expect(await contexts(page)).toBe(0);
+    // Le contexte audio se crée dès l'arrivée ; le navigateur le relance au
+    // premier geste s'il le tenait en pause.
+    expect(await contexts(page)).toBe(1);
 
-    // Le premier clic crée le contexte audio ; prendre, retourner, reposer.
+    // Prendre, retourner, reposer.
     await page.locator('[data-step="contact"]').click();
     await expect(sheet(page)).toHaveAttribute('data-sheet', 'card');
     expect(await contexts(page)).toBe(1);

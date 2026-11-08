@@ -2,14 +2,14 @@ import type { Content } from '../schema';
 
 // Le fichier TypeScript affiché sur l'écran du bureau, généré depuis le
 // contenu du CV : le parcours (périodes, organisations, intitulés exacts),
-// puis un objet `ali` (titre, pile tirée des compétences, localisation,
+// puis un objet `ali` (titre, renvoi au portable pour les compétences, localisation,
 // disponibilité). Fonction pure : le résultat est recopié dans fr.ts et en.ts
 // (screen.code), et scene.test.ts vérifie qu'il est à jour.
 //
 // Le code reste court pour être lisible de loin : 13 lignes, 50 caractères
 // au plus (le prototype en avait 16, de 50 caractères, et tombait à 8 px).
 
-/** Largeur visée des lignes ; un tableau trop long passe à la ligne. */
+/** Largeur visée des lignes. */
 export const SCREEN_CODE_WIDTH = 50;
 
 /** Ce que le générateur lit du contenu. */
@@ -25,9 +25,11 @@ export interface ScreenWords {
   object: string;
   title: string;
   stack: string;
+  /** La fonction qui renvoie au portable (« voirPortable »). */
+  pointer: string;
   location: string;
   available: string;
-  /** Les compétences montrées : chacune doit figurer dans le CV. */
+  /** Les compétences des autocollants du portable : chacune doit figurer dans le CV. */
   stackItems: readonly string[];
 }
 
@@ -36,34 +38,8 @@ export function quote(value: string): string {
   return `'${value.replace(/\\/g, '\\\\').replace(/'/g, "\\'")}'`;
 }
 
-/** Un tableau de chaînes, sur une ligne s'il tient, sinon un élément par ligne. */
-function arrayProperty(key: string, values: readonly string[], width: number): string[] {
-  const items = values.map(quote);
-  const inline = `  ${key}: [${items.join(', ')}],`;
-  if (inline.length <= width) return [inline];
-  // Les éléments sont rangés au plus serré, en retrait de quatre espaces.
-  const lines = [`  ${key}: [`];
-  let current = '';
-  for (const item of items) {
-    const next = current ? `${current} ${item},` : `    ${item},`;
-    if (current && next.length > width) {
-      lines.push(current);
-      current = `    ${item},`;
-    } else {
-      current = next;
-    }
-  }
-  if (current) lines.push(current);
-  lines.push('  ],');
-  return lines;
-}
-
 /** Les lignes du fichier affiché, sans la ligne finale. */
-export function buildScreenCode(
-  facts: ScreenFacts,
-  words: ScreenWords,
-  width = SCREEN_CODE_WIDTH,
-): string[] {
+export function buildScreenCode(facts: ScreenFacts, words: ScreenWords): string[] {
   const known = new Set(facts.skills.flatMap((group) => group.items));
   for (const skill of words.stackItems) {
     if (!known.has(skill)) throw new Error(`compétence absente du CV : ${skill}`);
@@ -84,7 +60,8 @@ export function buildScreenCode(
     '];',
     `export const ${words.object} = {`,
     `  ${words.title}: ${quote(profile.headline)},`,
-    ...arrayProperty(words.stack, words.stackItems, width),
+    // Les compétences sont toutes sur le portable : l'écran y renvoie.
+    `  ${words.stack}: ${words.pointer}(),`,
     `  ${words.location}: ${quote(profile.location)},`,
     // La disponibilité est un texte validé du CV : sa présence vaut true.
     `  ${words.available}: ${profile.availability ? 'true' : 'false'},`,

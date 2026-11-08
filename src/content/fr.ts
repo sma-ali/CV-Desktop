@@ -7,7 +7,8 @@ import { sheetsFr } from './sheets/fr';
 import { contact } from './shared';
 
 // Source : le CV d'Ali « Full Stack + IA » en français (05/11/2026). Ne rien reformuler ici
-// sans l'avoir changé dans le CV.
+// sans l'avoir changé dans le CV. Les compétences réunissent celles de ce CV et du CV
+// « IA appliquée » (08/11/2026) : le site est son portfolio, il les montre toutes.
 export const fr = {
   profile: {
     name: 'Ali Smaani',
@@ -132,12 +133,33 @@ export const fr = {
         'API Anthropic',
         'SDK OpenAI',
         'Ollama',
+        'Agents IA',
+        'Multi-agents',
         'Tool calling',
         'Sorties structurées',
-        'Agents IA',
         'RAG',
         'Prompt engineering',
+        'Cache de prompt',
+        'LLM-as-judge',
+        "Bancs d'essai",
+        'Vision (multimodal)',
+        'Claude Code',
       ],
+    },
+    {
+      id: 'audio',
+      label: 'Voix & audio',
+      items: [
+        'Whisper (speech-to-text)',
+        'Alignement forcé (MMS)',
+        'Synthèse vocale (ElevenLabs)',
+        'ffmpeg',
+      ],
+    },
+    {
+      id: 'ml',
+      label: 'Machine learning',
+      items: ['PyTorch', 'Réseaux de neurones', 'Hyperparamètres'],
     },
     {
       id: 'devops',
@@ -157,7 +179,7 @@ export const fr = {
     {
       id: 'other',
       label: 'Autres',
-      items: ['SQL', 'PHP / Drupal', 'Agile / Scrum'],
+      items: ['SQL', 'PHP / Drupal', 'Agile / Scrum', 'Jira'],
     },
   ],
   softSkills: [

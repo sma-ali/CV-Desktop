@@ -2,10 +2,11 @@ import type { SoundCue, SoundPlayer } from '@/scene/core/sound';
 
 // La synthèse des sons du bureau en WebAudio :
 // aucun fichier audio, tout part d'oscillateurs et d'un bruit calculé.
-// Le son est ouvert par défaut (DeskShell appelle setSound(true) du store).
-// Les navigateurs ne laissent sonner une page qu'après un geste du visiteur :
-// l'AudioContext ne se crée qu'à son premier clic, toucher ou touche du
-// clavier ; d'ici là, play ne fait rien.
+// Le son est ouvert par défaut (DeskShell appelle setSound(true) du store)
+// et part dès l'arrivée quand le navigateur le permet (site déjà visité,
+// lecture automatique autorisée). Sinon, le navigateur garde l'AudioContext
+// en pause jusqu'au premier clic, toucher ou touche du clavier, qui le
+// relance ; d'ici là, play ne fait rien.
 
 type WindowWithWebkit = Window & { webkitAudioContext?: typeof AudioContext };
 
@@ -184,9 +185,9 @@ const CUES: Record<SoundCue, (synth: Synth, strength: number) => void> = {
 const UNLOCK_EVENTS = ['pointerdown', 'keydown', 'touchend'] as const;
 
 /**
- * Le lecteur du bureau. Rien n'est créé avant que le son soit ouvert ET que
- * le visiteur ait agi sur la page : ni AudioContext, ni nœud, ni bruit.
- * Couper le son suspend le contexte.
+ * Le lecteur du bureau. Le contexte se crée dès que le son est ouvert ; tant
+ * que le navigateur le tient en pause, rien ne sonne et le premier geste du
+ * visiteur le relance. Couper le son suspend le contexte.
  */
 export function createWebAudioSound(): SoundPlayer {
   let synth: Synth | null = null;
@@ -203,6 +204,8 @@ export function createWebAudioSound(): SoundPlayer {
     disarm();
     if (enabled) start();
   };
+  /** Le contexte tourne : la page peut sonner. */
+  const running = () => synth?.ctx.state === 'running';
   const disarm = () => {
     if (!armed) return;
     armed = false;
@@ -228,14 +231,14 @@ export function createWebAudioSound(): SoundPlayer {
         return enabled;
       }
       enabled = true;
-      // Le navigateur refuserait de jouer avant un geste : le contexte
-      // n'est créé qu'au premier clic, toucher ou touche, puis reste.
-      if (synth) start();
-      else arm();
+      // On tente de sonner tout de suite ; si le navigateur attend un geste,
+      // le premier clic, toucher ou touche relance le contexte.
+      start();
+      if (!running()) arm();
       return enabled;
     },
     play(cue, strength) {
-      if (!enabled || !synth) return;
+      if (!enabled || !synth || !running()) return;
       try {
         // Sans force donnée, un petit clic reste grave et le reste plein.
         CUES[cue](synth, clamp01(strength ?? (cue === 'tick' ? 0 : 1)));

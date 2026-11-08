@@ -205,6 +205,6 @@ export function buildSceneTexts(content: Content, locale: Locale): SceneTexts {
     locale,
     canvasLabel: content.desk.canvasLabel,
     content: content.scene,
-    skills: content.skills.flatMap((group) => group.items),
+    skills: content.skills.map(({ label, items }) => ({ label, items })),
   };
 }

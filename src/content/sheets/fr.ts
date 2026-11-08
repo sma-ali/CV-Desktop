@@ -209,14 +209,20 @@ export const sheetsFr = {
         {
           term: 'IA & LLM',
           value:
-            'API Anthropic, SDK OpenAI, Ollama, Tool calling, Sorties structurées, Agents IA, RAG, Prompt engineering',
+            "API Anthropic, SDK OpenAI, Ollama, Agents IA, Multi-agents, Tool calling, Sorties structurées, RAG, Prompt engineering, Cache de prompt, LLM-as-judge, Bancs d'essai, Vision (multimodal), Claude Code",
         },
+        {
+          term: 'Voix & audio',
+          value:
+            'Whisper (speech-to-text), Alignement forcé (MMS), Synthèse vocale (ElevenLabs), ffmpeg',
+        },
+        { term: 'Machine learning', value: 'PyTorch, Réseaux de neurones, Hyperparamètres' },
         {
           term: 'DevOps & qualité',
           value:
             'Docker Compose, GitHub Actions, CI/CD, Git, pytest, Vitest, Linux, Nginx, Proxmox',
         },
-        { term: 'Autres', value: 'SQL, PHP / Drupal, Agile / Scrum' },
+        { term: 'Autres', value: 'SQL, PHP / Drupal, Agile / Scrum, Jira' },
       ],
       body: "Les compétences du CV, du front-end à l'IA et à l'infrastructure.",
     },

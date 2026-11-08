@@ -10,7 +10,7 @@ import { contact } from './shared';
 export const en = {
   profile: {
     name: 'Ali Smaani',
-    headline: 'Full-Stack & AI Developer',
+    headline: 'Dev FullStack | AI Engineer',
     summary:
       'Full-stack developer (React / TypeScript, Python / FastAPI). I build applications that integrate generative AI end to end: React front end, FastAPI back end, PostgreSQL, and multi-provider LLMs with tool calling, structured outputs, RAG and streaming. I also run a self-hosted multi-agent automation platform in production. 3 years of web development, then 2.5 years of application engineering.',
     location: 'Paris, France · Open to remote',

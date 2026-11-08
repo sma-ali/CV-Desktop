@@ -70,7 +70,7 @@ describe('les textes du bureau', () => {
     expect(texts).toMatchObject({
       name: 'Ali Smaani',
       firstName: 'Ali',
-      headline: 'Développeur Full-Stack & IA',
+      headline: 'Dev FullStack | AI Engineer',
       availability: 'Disponible immédiatement',
       location: 'Île-de-France · remote possible',
       expressHref: '/fr/express',

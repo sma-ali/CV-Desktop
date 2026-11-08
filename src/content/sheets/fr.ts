@@ -186,7 +186,7 @@ export const sheetsFr = {
     laptop: {
       kicker: 'Compétences',
       step: 'Les outils',
-      title: 'Développeur Full-Stack & IA',
+      title: 'Dev FullStack | AI Engineer',
       meta: [
         { term: 'Front-end', value: 'React, TypeScript, Next.js, Vite, Tailwind, Three.js' },
         {
@@ -221,7 +221,7 @@ export const sheetsFr = {
       step: 'Contact',
       title: 'Ali Smaani',
       meta: [
-        { term: 'Poste', value: 'Développeur Full-Stack & IA' },
+        { term: 'Poste', value: 'Dev FullStack | AI Engineer' },
         { term: 'Zone', value: 'Île-de-France · remote possible' },
         { term: 'Statut', value: 'Disponible immédiatement' },
         { term: 'E-mail', value: 'smanali.pro@gmail.com', href: 'mailto:smanali.pro@gmail.com' },
@@ -236,7 +236,7 @@ export const sheetsFr = {
     monitor: {
       kicker: 'Le parcours',
       step: 'Profil',
-      title: 'Développeur Full-Stack & IA',
+      title: 'Dev FullStack | AI Engineer',
       meta: [
         { term: 'DEFI-METIERS', value: 'Sept. 2020 - Août 2023' },
         { term: 'DARES', value: 'Janv. 2024 - Juin 2026' },

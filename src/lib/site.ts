@@ -21,6 +21,11 @@ export function legalPath(locale: Locale): string {
   return `/${locale}/legal`;
 }
 
+// Chemin de la page « Comment ce site est fait » dans une langue (« /fr/making-of »).
+export function makingOfPath(locale: Locale): string {
+  return `/${locale}/making-of`;
+}
+
 // Chemin du CV en PDF dans une langue (« /cv/ali-smaani-cv-fr.pdf »), fichier
 // statique de public/ produit par scripts/cv-pdf.mjs depuis la version express.
 export function cvPdfPath(locale: Locale): string {

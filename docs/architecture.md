@@ -18,20 +18,20 @@ src/app/api/contact          POST du formulaire  ─> lib/contact, lib/env
 src/app/api/signes-de-vie    GET du JSON public  ─> lib/life-signs
 ```
 
-Les pages `/fr`, `/en`, `/fr/express`, `/en/express` et les mentions légales sont rendues au build. La page du bureau se régénère toutes les 10 minutes (`revalidate = 600`) pour reprendre les chiffres de l'usine. `src/proxy.ts` choisit la langue à la racine (`Accept-Language`, français par défaut) en un seul saut.
+Les pages `/fr`, `/en`, `/fr/express`, `/en/express`, « Comment ce site est fait » (`/fr/making-of`) et les mentions légales sont rendues au build. La page du bureau se régénère toutes les 10 minutes (`revalidate = 600`) pour reprendre les chiffres de l'usine. `src/proxy.ts` choisit la langue à la racine (`Accept-Language`, français par défaut) en un seul saut.
 
 ## Arborescence
 
 | Dossier                      | Contenu                                                                                                                                                  |
 | ---------------------------- | -------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| `src/app/`                   | routes Next (App Router) : bureau, version express, mentions légales, API, `sitemap.ts`, `robots.ts`                                                     |
+| `src/app/`                   | routes Next (App Router) : bureau, version express, coulisses, mentions légales, API, `sitemap.ts`, `robots.ts`                                          |
 | `src/content/`               | le seul module de contenu, FR et EN : CV, textes d'interface, fiches (`sheets/`), textes peints (`scene/`), formulaire (`contact/`), mentions (`legal/`) |
 | `src/components/desk/`       | la page du bureau côté navigateur : `DeskShell`, repli, grain, synthèse des sons                                                                         |
 | `src/components/desk/hud/`   | le HUD : puces des étapes, indication, bouton de rangement, `HudProbe` (état exposé aux tests)                                                           |
 | `src/components/desk/sheet/` | la fiche de l'objet tenu, et celle de l'usine (`FactoryPanel`)                                                                                           |
 | `src/components/desk/intro/` | l'écran de chargement                                                                                                                                    |
 | `src/components/express/`    | le CV en HTML, composant serveur, aussi repli du bureau                                                                                                  |
-| `src/components/paper/`      | la page de papier commune à la version express et aux mentions légales                                                                                   |
+| `src/components/paper/`      | la page de papier commune à la version express et aux pages de texte (`TextPage`)                                                                        |
 | `src/components/contact/`    | le formulaire de contact, qui marche aussi sans JavaScript                                                                                               |
 | `src/lib/`                   | fonctions pures testées : langue, dates, JSON-LD, métadonnées, adresses, textes du bureau (`desk.ts`)                                                    |
 | `src/lib/contact/`           | traitement du formulaire : règles, schéma, limite de débit, envoi                                                                                        |

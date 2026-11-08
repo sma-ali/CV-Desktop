@@ -1,8 +1,10 @@
 # cv_desktop
 
+[![CI](https://github.com/sma-ali/CV-Desktop/actions/workflows/ci.yml/badge.svg)](https://github.com/sma-ali/CV-Desktop/actions/workflows/ci.yml)
+
 Le CV d'Ali Smaani sous la forme d'un bureau en 3D low poly : les objets posés sur le plateau portent le CV, on les prend en main, on les retourne, on les fait glisser.
 
-En ligne sur **[alismaani.fr](https://alismaani.fr)**, avec une [version express](https://alismaani.fr/fr/express) qui donne le même CV en une page HTML, pour le lecteur pressé et les moteurs de recherche.
+En ligne sur **[alismaani.fr](https://alismaani.fr)**, avec une [version express](https://alismaani.fr/fr/express) qui donne le même CV en une page HTML, pour le lecteur pressé et les moteurs de recherche. Les choix techniques sont résumés sur la page [Comment ce site est fait](https://alismaani.fr/fr/making-of).
 
 ![Le bureau en 3D, vu de haut, en plein après-midi](docs/bureau.png)
 

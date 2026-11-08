@@ -1,5 +1,6 @@
 import { contactFormFr } from './contact/fr';
 import { legalFr } from './legal/fr';
+import { makingOfFr } from './making-of/fr';
 import type { Content } from './schema';
 import { sceneFr } from './scene/fr';
 import { sheetsFr } from './sheets/fr';
@@ -190,6 +191,7 @@ export const fr = {
     backToTop: 'Haut de page',
     backToDesk: 'Revenir au bureau',
     legalLink: 'Mentions légales',
+    makingOfLink: 'Comment ce site est fait',
   },
   desk: {
     canvasLabel: "Le bureau d'Ali vu d'en haut. Chaque objet est une étape du CV.",
@@ -238,4 +240,5 @@ export const fr = {
   sheets: sheetsFr,
   contactForm: contactFormFr,
   legal: legalFr,
+  makingOf: makingOfFr,
 } satisfies Content;

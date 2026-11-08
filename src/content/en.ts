@@ -1,5 +1,6 @@
 import { contactFormEn } from './contact/en';
 import { legalEn } from './legal/en';
+import { makingOfEn } from './making-of/en';
 import type { Content } from './schema';
 import { sceneEn } from './scene/en';
 import { sheetsEn } from './sheets/en';
@@ -189,6 +190,7 @@ export const en = {
     backToTop: 'Back to top',
     backToDesk: 'Back to the desk',
     legalLink: 'Legal notice',
+    makingOfLink: 'How this site is built',
   },
   desk: {
     canvasLabel: "Ali's desk seen from above. Each object is a step of the CV.",
@@ -236,4 +238,5 @@ export const en = {
   sheets: sheetsEn,
   contactForm: contactFormEn,
   legal: legalEn,
+  makingOf: makingOfEn,
 } satisfies Content;

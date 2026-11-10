@@ -6,16 +6,16 @@ import { sceneFr } from './scene/fr';
 import { sheetsFr } from './sheets/fr';
 import { contact } from './shared';
 
-// Source : le CV d'Ali « Full Stack + IA » en français (05/11/2026). Ne rien reformuler ici
-// sans l'avoir changé dans le CV. Les compétences réunissent celles de ce CV et du CV
-// « IA appliquée » (08/11/2026) : le site est son portfolio, il les montre toutes.
+// Source : le CV d'Ali « Développeur Full-Stack IA » en français (09/11/2026). Ne rien
+// reformuler ici sans l'avoir changé dans le CV. Les compétences réunissent celles de ce CV
+// et du CV « AI Engineer » : le site est son portfolio, il les montre toutes.
 export const fr = {
   profile: {
     name: 'Ali Smaani',
-    headline: 'Dev FullStack | AI Engineer',
+    headline: 'AI Engineer | Dev FullStack',
     summary:
-      "Développeur full-stack React / TypeScript et Python / FastAPI. Je conçois des applications qui intègrent l'IA générative de bout en bout : interface React, API FastAPI, PostgreSQL, et LLM multi-fournisseurs avec tool calling, sorties structurées, RAG et streaming. En parallèle, je fais tourner en production une plateforme d'automatisation multi-agents auto-hébergée. 3 ans de développement web puis 2 ans et demi d'ingénierie applicative.",
-    location: 'Île-de-France · remote possible',
+      "Développeur full-stack React / TypeScript et Python / FastAPI. Je conçois des applications testées et déployées qui intègrent l'IA générative : LLM multi-fournisseurs, tool calling, structured outputs, RAG et streaming. En parallèle, je fais tourner en production une plateforme d'automatisation multi-agents. 3 ans de développement web, puis 2,5 ans d'ingénierie applicative.",
+    location: 'Île-de-France · télétravail possible',
     availability: 'Disponible immédiatement',
   },
   contact,
@@ -38,8 +38,8 @@ export const fr = {
       organizationDetail: 'Ministère du Travail',
       period: { start: '2024-01', end: '2026-06' },
       highlights: [
-        "Support applicatif N1/N2 d'un parc de ~300 utilisateurs en contexte à forte criticité : déploiement applicatif, habilitations, accès aux bases distantes (ODBC), environnements statistiques R / RStudio.",
-        "Sécurisation des échanges de données sensibles avec l'INSEE et France Travail via les bulles sécurisées du CASD (boîtier SD-Box, carte, code et empreinte, environnement coupé d'Internet), support quotidien de leurs utilisateurs ; ~100 tickets/mois, du recueil du besoin métier à la validation.",
+        'Support applicatif N1/N2 de ~300 utilisateurs en contexte critique : déploiement, habilitations, accès aux bases distantes (ODBC), environnements R / RStudio.',
+        "Sécurisation des échanges de données sensibles avec l'INSEE et France Travail via les environnements cloisonnés du CASD (SD-Box, carte, code et empreinte, hors Internet), support quotidien des utilisateurs ; ~100 tickets/mois, du besoin métier à la validation.",
       ],
     },
     {
@@ -49,7 +49,7 @@ export const fr = {
       organizationDetail: 'CARIF-OREF Île-de-France',
       period: { start: '2020-09', end: '2023-08' },
       highlights: [
-        "Développement et maintenance évolutive et corrective des plateformes web du CARIF-OREF francilien (Drupal / PHP), au service des organismes de formation et des conseillers d'orientation.",
+        "Développement et maintenance des plateformes web régionales (Drupal / PHP), au service des organismes de formation et des conseillers d'orientation.",
         'Migration du catalogue régional de formations de Dokelio vers Ofeli : refonte et optimisation des requêtes SQL sur une forte volumétrie.',
       ],
     },
@@ -60,12 +60,23 @@ export const fr = {
       name: 'Netherbrain',
       tagline: "plateforme d'orchestration de LLM",
       year: 2026,
-      repository: { url: 'https://github.com/sma-ali/Netherbrain', public: false },
+      repository: { url: 'https://github.com/sma-ali/Netherbrain', public: true },
       highlights: [
-        'Full-stack Python / React : backend FastAPI (Pydantic, SQLAlchemy, migrations Alembic), PostgreSQL + pgvector, front React / TypeScript, streaming temps réel en Server-Sent Events.',
-        'Intégration LLM multi-fournisseurs : SDK OpenAI et toute API compatible (Ollama en local sur GPU, OpenRouter, Groq), métriques par réponse (latence du 1er token, tokens/s).',
-        "Agent outillé : boucle de tool calling multi-tours (lecture, recherche, édition de fichiers, git), diff présenté et accord explicite de l'utilisateur avant chaque écriture.",
-        'RAG sur documents joints ; plus de 300 tests automatisés (pytest, Vitest), CI GitHub Actions sur PostgreSQL réel, Docker Compose multi-étapes non-root.',
+        'Full-stack : API FastAPI (Pydantic, Alembic), PostgreSQL + pgvector, front React / TypeScript, streaming SSE ; plus de 300 tests automatisés, CI GitHub Actions, Docker Compose.',
+        'Intégration LLM multi-fournisseurs : OpenAI API et API compatibles (Ollama en local sur GPU, OpenRouter, Groq), RAG sur documents joints.',
+        "Agent outillé : boucle de tool calling multi-tours (fichiers, git), diff présenté et accord de l'utilisateur avant chaque écriture.",
+      ],
+    },
+    {
+      id: 'cv-desktop',
+      name: 'alismaani.fr',
+      tagline: 'CV interactif en 3D',
+      year: 2026,
+      repository: { url: 'https://github.com/sma-ali/CV-Desktop', public: true },
+      highlights: [
+        'Next.js / TypeScript strict : bureau 3D manipulable (React Three Fiber, physique Rapier), version HTML pour le SEO, contenu FR / EN validé par zod.',
+        "Routes serveur TypeScript : formulaire de contact validé côté serveur, limite de débit, piège à robots, envoi d'e-mails ; en-têtes de sécurité, déployé sur Vercel.",
+        'Plus de 600 tests Vitest et 150 tests Playwright (mobile, accessibilité) en CI.',
       ],
     },
     {
@@ -76,7 +87,6 @@ export const fr = {
       repository: { url: 'https://github.com/sma-ali/Homelab-Demo', public: true },
       highlights: [
         'Serveur dédié sous Proxmox, pare-feu OPNsense, accès exclusif par VPN WireGuard, durcissement : pare-feu IPv4 + IPv6, 2FA, SSH par clé.',
-        'Sauvegardes automatiques des VM avec restauration testée ; architecture et procédures intégralement documentées et versionnées.',
       ],
     },
     {
@@ -85,8 +95,7 @@ export const fr = {
       tagline: 'projet personnel en production',
       year: 2026,
       highlights: [
-        'Pipelines LLM de bout en bout en Python : agents spécialisés, relecture automatique, validation humaine avant diffusion, planification.',
-        'Choix du modèle selon la tâche, suivi des coûts et repli automatique entre API et abonnement ; serveur auto-hébergé (Proxmox, OPNsense, WireGuard).',
+        'Pipelines LLM en Python sur une VM auto-hébergée (Proxmox, OPNsense, WireGuard) : agents spécialisés, relecture (LLM-as-judge), validation humaine puis publication automatique ; optimisation des coûts et des modèles.',
       ],
     },
   ],
@@ -110,7 +119,7 @@ export const fr = {
     {
       id: 'frontend',
       label: 'Front-end',
-      items: ['React', 'TypeScript', 'Next.js', 'Vite', 'Tailwind', 'Three.js'],
+      items: ['React', 'TypeScript', 'Next.js', 'Vite', 'Tailwind', 'Three.js (React Three Fiber)'],
     },
     {
       id: 'backend',
@@ -121,39 +130,43 @@ export const fr = {
         'Pydantic',
         'API REST',
         'SSE',
+        'SQL',
         'PostgreSQL / pgvector',
         'Alembic',
         'Node.js / Express',
+        'PHP / Drupal',
       ],
     },
     {
       id: 'ai',
-      label: 'IA & LLM',
+      label: 'IA générative & LLM',
       items: [
-        'API Anthropic',
-        'SDK OpenAI',
-        'Ollama',
+        'Claude API (Anthropic)',
+        'OpenAI API',
+        'Hugging Face',
+        'Ollama / GGUF',
         'Agents IA',
         'Multi-agents',
         'Tool calling',
-        'Sorties structurées',
+        'Structured outputs',
         'RAG',
+        'Base vectorielle (pgvector)',
         'Prompt engineering',
         'Cache de prompt',
         'LLM-as-judge',
         "Bancs d'essai",
-        'Vision (multimodal)',
+        'Multimodal (vision)',
         'Claude Code',
       ],
     },
     {
       id: 'audio',
-      label: 'Voix & audio',
+      label: 'Voix & vidéo',
       items: [
-        'Whisper (speech-to-text)',
+        'Speech-to-text (Whisper)',
         'Alignement forcé (MMS)',
-        'Synthèse vocale (ElevenLabs)',
-        'ffmpeg',
+        'Text-to-speech (ElevenLabs)',
+        'FFmpeg',
       ],
     },
     {
@@ -165,12 +178,14 @@ export const fr = {
       id: 'devops',
       label: 'DevOps & qualité',
       items: [
-        'Docker Compose',
+        'Docker / Docker Compose',
         'GitHub Actions',
         'CI/CD',
         'Git',
         'pytest',
         'Vitest',
+        'Playwright (E2E)',
+        'Vercel',
         'Linux',
         'Nginx',
         'Proxmox',
@@ -178,8 +193,8 @@ export const fr = {
     },
     {
       id: 'other',
-      label: 'Autres',
-      items: ['SQL', 'PHP / Drupal', 'Agile / Scrum', 'Jira'],
+      label: 'Méthodes',
+      items: ['Agile / Scrum', 'Jira'],
     },
   ],
   softSkills: [
@@ -195,7 +210,7 @@ export const fr = {
   interests: [
     "Théâtre (6 ans, spectacle à l'Odéon)",
     'Football / Grappling / Musculation',
-    'Esport compétitif (League of Legends, top 0.1%)',
+    'Esport compétitif (League of Legends, top 0,1 %)',
   ],
   ui: {
     kicker: 'Version express',

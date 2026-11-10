@@ -138,14 +138,15 @@ describe('faits du CV', () => {
     ]);
   });
 
-  it('présente Netherbrain, Homelab et la plateforme d’automatisation', () => {
+  it('présente Netherbrain, ce site, Homelab et la plateforme d’automatisation', () => {
     expect(fr.projects.map((project) => project.id)).toEqual([
       'netherbrain',
+      'cv-desktop',
       'homelab',
       'automation',
     ]);
     // Aucun dépôt public pour la plateforme : rien à lier.
-    expect(fr.projects[2]?.repository).toBeUndefined();
+    expect(fr.projects.find((project) => project.id === 'automation')?.repository).toBeUndefined();
   });
 });
 

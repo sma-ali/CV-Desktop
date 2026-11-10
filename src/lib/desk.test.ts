@@ -70,9 +70,9 @@ describe('les textes du bureau', () => {
     expect(texts).toMatchObject({
       name: 'Ali Smaani',
       firstName: 'Ali',
-      headline: 'Dev FullStack | AI Engineer',
+      headline: 'AI Engineer | Dev FullStack',
       availability: 'Disponible immédiatement',
-      location: 'Île-de-France · remote possible',
+      location: 'Île-de-France · télétravail possible',
       expressHref: '/fr/express',
       language: { label: 'EN', name: 'English', href: '/en', locale: 'en' },
     });
@@ -111,13 +111,17 @@ describe('les fiches du bureau', () => {
     expect(buildDeskSheets(getContent('en'), 'en').contactHref).toBe('/en/express#contact');
   });
 
-  it('ne lient que le dépôt public, la vitrine Homelab', () => {
-    // État au 05/11/2026 : la vitrine Homelab-Demo est publique, Netherbrain reste privé.
+  it('ne lient que les dépôts publics, Netherbrain et la vitrine Homelab', () => {
+    // État au 10/11/2026 : Netherbrain et la vitrine Homelab-Demo sont publics.
     const sheets = buildDeskSheets(getContent('fr'), 'fr');
     for (const id of SHEET_ORDER) {
-      if (id === 'homelab') continue;
+      if (id === 'homelab' || id === 'netherbrain') continue;
       expect(sheets.items[id].repository, id).toBeNull();
     }
+    expect(sheets.items.netherbrain.repository).toEqual({
+      label: 'Voir le dépôt',
+      href: 'https://github.com/sma-ali/Netherbrain',
+    });
     expect(sheets.items.homelab.repository).toEqual({
       label: 'Voir le dépôt',
       href: 'https://github.com/sma-ali/Homelab-Demo',

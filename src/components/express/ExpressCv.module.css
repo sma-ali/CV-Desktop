@@ -458,7 +458,7 @@
   }
 
   .entry {
-    padding: 1.6mm 0 1.8mm;
+    padding: 1.2mm 0 1.4mm;
     break-inside: avoid;
   }
 
@@ -474,8 +474,8 @@
   .highlights {
     max-width: none;
     margin-top: 1mm;
-    font-size: 8.5pt;
-    line-height: 1.22;
+    font-size: 8pt;
+    line-height: 1.17;
   }
 
   .highlights li + li {

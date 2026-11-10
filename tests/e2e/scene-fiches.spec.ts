@@ -173,17 +173,20 @@ test.describe('la fiche', () => {
     // Ctrl+R reste au navigateur (on ne l'envoie pas : il rechargerait la page).
   });
 
-  test('seule la fiche Homelab lie un dépôt, sa vitrine publique', async ({ page }) => {
+  test('seules les fiches Netherbrain et Homelab lient un dépôt public', async ({ page }) => {
     await page.goto(at('fr', 'prendre=book'));
     await waitForScene(page);
     const next = sheet(page).getByRole('button', { name: 'Objet suivant' });
     for (let i = 0; i < SHEET_ORDER.length; i++) {
       const id = await sheet(page).getAttribute('data-sheet');
-      if (id === 'homelab') {
+      const repositories: Record<string, string> = {
+        netherbrain: 'https://github.com/sma-ali/Netherbrain',
+        homelab: 'https://github.com/sma-ali/Homelab-Demo',
+      };
+      const repository = id ? repositories[id] : undefined;
+      if (repository) {
         await expect(sheet(page).locator('a[href*="github"]')).toHaveCount(1);
-        await expect(
-          sheet(page).locator('a[href="https://github.com/sma-ali/Homelab-Demo"]'),
-        ).toHaveCount(1);
+        await expect(sheet(page).locator(`a[href="${repository}"]`)).toHaveCount(1);
       } else {
         await expect(sheet(page).locator('a[href*="github"]'), id ?? '').toHaveCount(0);
         await expect(sheet(page).locator('[data-repository]'), id ?? '').toHaveCount(0);

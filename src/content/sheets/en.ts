@@ -148,7 +148,7 @@ export const sheetsEn = {
       title: 'L1/L2 support',
       meta: [
         { term: 'Users', value: '~300 users' },
-        { term: 'Context', value: 'high-criticality environment' },
+        { term: 'Context', value: 'critical environment' },
         { term: 'Tools', value: 'R / RStudio' },
         { term: 'Access', value: 'ODBC' },
       ],
@@ -173,7 +173,7 @@ export const sheetsEn = {
       meta: [
         { term: 'Project', value: 'LLM orchestration platform' },
         { term: 'Models', value: 'local Ollama on GPU, OpenRouter, Groq' },
-        { term: 'Server', value: 'FastAPI back end (Pydantic, SQLAlchemy, Alembic migrations)' },
+        { term: 'Server', value: 'FastAPI back end (Pydantic, Alembic)' },
         { term: 'Database', value: 'PostgreSQL + pgvector' },
         { term: 'Interface', value: 'React / TypeScript' },
         { term: 'Quality', value: '300+ automated tests' },
@@ -196,31 +196,34 @@ export const sheetsEn = {
     laptop: {
       kicker: 'Skills',
       step: 'The tools',
-      title: 'Dev FullStack | AI Engineer',
+      title: 'AI Engineer | Dev FullStack',
       meta: [
-        { term: 'Front-end', value: 'React, TypeScript, Next.js, Vite, Tailwind, Three.js' },
+        {
+          term: 'Front-end',
+          value: 'React, TypeScript, Next.js, Vite, Tailwind, Three.js (React Three Fiber)',
+        },
         {
           term: 'Back-end',
           value:
-            'Python, FastAPI, Pydantic, REST API, SSE, PostgreSQL / pgvector, Alembic, Node.js / Express',
+            'Python, FastAPI, Pydantic, REST API, SSE, SQL, PostgreSQL / pgvector, Alembic, Node.js / Express, PHP / Drupal',
         },
         {
-          term: 'AI & LLM',
+          term: 'Generative AI & LLMs',
           value:
-            'Anthropic API, OpenAI SDK, Ollama, AI agents, Multi-agent systems, Tool calling, Structured outputs, RAG, Prompt engineering, Prompt caching, LLM-as-judge, Benchmarking, Vision (multimodal), Claude Code',
+            'Claude API (Anthropic), OpenAI API, Hugging Face, Ollama / GGUF, AI agents, Multi-agent systems, Tool calling, Structured outputs, RAG, Vector database (pgvector), Prompt engineering, Prompt caching, LLM-as-judge, Benchmarking, Multimodal (vision), Claude Code',
         },
         {
-          term: 'Voice & audio',
+          term: 'Voice & video',
           value:
-            'Whisper (speech-to-text), Forced alignment (MMS), Text-to-speech (ElevenLabs), ffmpeg',
+            'Speech-to-text (Whisper), Forced alignment (MMS), Text-to-speech (ElevenLabs), FFmpeg',
         },
         { term: 'Machine learning', value: 'PyTorch, Neural networks, Hyperparameter tuning' },
         {
           term: 'DevOps & quality',
           value:
-            'Docker Compose, GitHub Actions, CI/CD, Git, pytest, Vitest, Linux, Nginx, Proxmox',
+            'Docker / Docker Compose, GitHub Actions, CI/CD, Git, pytest, Vitest, Playwright (E2E), Vercel, Linux, Nginx, Proxmox',
         },
-        { term: 'Other', value: 'SQL, PHP / Drupal, Agile / Scrum, Jira' },
+        { term: 'Methods', value: 'Agile / Scrum, Jira' },
       ],
       body: 'The skills from the CV, from frontend to infrastructure.',
     },
@@ -236,7 +239,7 @@ export const sheetsEn = {
       step: 'Contact',
       title: 'Ali Smaani',
       meta: [
-        { term: 'Role', value: 'Dev FullStack | AI Engineer' },
+        { term: 'Role', value: 'AI Engineer | Dev FullStack' },
         { term: 'Area', value: 'Paris, France · Open to remote' },
         { term: 'Status', value: 'Available immediately' },
         { term: 'Email', value: 'smanali.pro@gmail.com', href: 'mailto:smanali.pro@gmail.com' },
@@ -251,14 +254,14 @@ export const sheetsEn = {
     monitor: {
       kicker: 'The journey',
       step: 'Profile',
-      title: 'Dev FullStack | AI Engineer',
+      title: 'AI Engineer | Dev FullStack',
       meta: [
         { term: 'DEFI-METIERS', value: 'Sep 2020 - Aug 2023' },
         { term: 'DARES', value: 'Jan 2024 - Jun 2026' },
         { term: 'Projects', value: '2026' },
         { term: 'Status', value: 'Available immediately' },
       ],
-      body: 'Full-stack developer (React / TypeScript, Python / FastAPI). I build applications that integrate generative AI end to end: React front end, FastAPI back end, PostgreSQL, and multi-provider LLMs with tool calling, structured outputs, RAG and streaming. I also run a self-hosted multi-agent automation platform in production. 3 years of web development, then 2.5 years of application engineering.',
+      body: 'Full-stack developer (React / TypeScript, Python / FastAPI). I build tested, deployed applications that integrate generative AI: multi-provider LLMs, tool calling, structured outputs, RAG and streaming. I also run a multi-agent automation platform in production. 3 years of web development, then 2.5 years of application engineering.',
     },
   },
 } satisfies SheetsContent;

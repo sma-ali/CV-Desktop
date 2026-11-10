@@ -159,7 +159,10 @@ export const sheetsEn = {
       step: 'Step 2 of 3',
       title: 'Sensitive data | CASD',
       meta: [
-        { term: 'Data', value: 'sensitive data exchanges' },
+        {
+          term: 'With',
+          value: 'INSEE (national statistics) and France Travail (employment agency)',
+        },
         { term: 'Access', value: 'SD-Box terminal' },
         { term: 'Authentication', value: 'card, code and fingerprint' },
         { term: 'Environment', value: 'no Internet access' },

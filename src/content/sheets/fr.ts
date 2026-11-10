@@ -161,7 +161,7 @@ export const sheetsFr = {
       step: 'Étape 2 sur 3',
       title: 'Données sensibles | CASD',
       meta: [
-        { term: 'Données', value: 'échanges de données sensibles' },
+        { term: 'Avec', value: 'INSEE et France Travail' },
         { term: 'Accès', value: 'SD-Box' },
         { term: 'Authentification', value: 'carte, code et empreinte' },
         { term: 'Environnement', value: 'hors Internet' },

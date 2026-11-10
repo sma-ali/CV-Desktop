@@ -137,6 +137,17 @@
   color: var(--sheet-ink);
 }
 
+/* Le portable liste les compétences : chaque groupe passe sous son intitulé,
+   sur toute la largeur, sinon l'intitulé le plus long écrase les listes. */
+.sheet[data-sheet='laptop'] .meta {
+  grid-template-columns: 1fr;
+  gap: 3px;
+}
+
+.sheet[data-sheet='laptop'] .meta div + div dt {
+  margin-top: 10px;
+}
+
 .meta a {
   /* 44 px de haut au moins, comme les boutons de la fiche : l'e-mail et
      LinkedIn sont l'appel principal de la carte, souvent touchés au doigt. */

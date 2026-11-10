@@ -5,7 +5,7 @@ import { getContent, locales, type Locale } from '../../src/content';
 // Valeurs écrites en dur : ces tests ne comparent pas le contenu qu'à lui-même.
 const expected = {
   fr: {
-    title: 'Ali Smaani | Dev FullStack | AI Engineer',
+    title: 'Ali Smaani | AI Engineer | Dev FullStack',
     other: { name: 'English', path: '/en/express' },
     experiences: [
       { role: 'Ingénieur applicatif & gestion de données', period: 'Janv. 2024 - Juin 2026' },
@@ -18,7 +18,7 @@ const expected = {
     availability: 'Disponible immédiatement',
   },
   en: {
-    title: 'Ali Smaani | Dev FullStack | AI Engineer',
+    title: 'Ali Smaani | AI Engineer | Dev FullStack',
     other: { name: 'Français', path: '/fr/express' },
     experiences: [
       { role: 'Application & Data Management Engineer', period: 'Jan 2024 - Jun 2026' },
@@ -139,9 +139,9 @@ for (const locale of locales) {
           repository.public ? 1 : 0,
         );
       }
-      // État au 05/11/2026 : la vitrine Homelab-Demo est publique, Netherbrain reste privé
-      // et le dépôt privé Homelab n'est jamais lié.
-      await expect(page.locator('a[href*="Netherbrain"]')).toHaveCount(0);
+      // État au 10/11/2026 : Netherbrain et la vitrine Homelab-Demo sont publics ;
+      // le dépôt privé Homelab n'est jamais lié.
+      await expect(page.locator('a[href="https://github.com/sma-ali/Netherbrain"]')).toHaveCount(1);
       await expect(page.locator('a[href="https://github.com/sma-ali/Homelab"]')).toHaveCount(0);
       await expect(page.locator('a[href="https://github.com/sma-ali/Homelab-Demo"]')).toHaveCount(
         1,

@@ -1,6 +1,6 @@
 import type { SheetsContent } from './schema';
 
-// Les fiches en français. Source : le CV (septembre 2026) ; sheets.test.ts
+// Les fiches en français. Source : le CV (novembre 2026) ; sheets.test.ts
 // compare chaque fait au contenu. Vouvoiement, phrases courtes.
 export const sheetsFr = {
   ui: {
@@ -117,7 +117,7 @@ export const sheetsFr = {
         { term: 'Technos', value: 'Drupal / PHP' },
         { term: 'Contrat', value: 'Alternance' },
       ],
-      body: "Développement et maintenance évolutive et corrective des plateformes web du CARIF-OREF francilien, au service des organismes de formation et des conseillers d'orientation.",
+      body: "Développement et maintenance des plateformes web régionales, au service des organismes de formation et des conseillers d'orientation.",
       note: 'Ouvert, le livre montre une page de code Drupal / PHP.',
     },
     badge: {
@@ -140,7 +140,7 @@ export const sheetsFr = {
         { term: 'Chez', value: 'DARES' },
         { term: 'Rattachement', value: 'Ministère du Travail' },
         { term: 'Volume', value: '~100 tickets/mois' },
-        { term: 'Parcours', value: 'du recueil du besoin métier à la validation' },
+        { term: 'Parcours', value: 'du besoin métier à la validation' },
       ],
       body: "Chaque ticket est suivi de bout en bout, du besoin exprimé par le métier jusqu'à la validation.",
     },
@@ -150,11 +150,11 @@ export const sheetsFr = {
       title: 'Support applicatif N1/N2',
       meta: [
         { term: 'Parc', value: '~300 utilisateurs' },
-        { term: 'Contexte', value: 'forte criticité' },
+        { term: 'Contexte', value: 'contexte critique' },
         { term: 'Outils', value: 'R / RStudio' },
         { term: 'Accès', value: 'ODBC' },
       ],
-      body: 'Déploiement applicatif, habilitations, accès aux bases distantes et environnements statistiques, en contexte à forte criticité.',
+      body: 'Déploiement applicatif, habilitations, accès aux bases distantes et environnements R / RStudio, en contexte critique.',
     },
     casd: {
       kicker: 'Janv. 2024 - Juin 2026',
@@ -162,11 +162,11 @@ export const sheetsFr = {
       title: 'Données sensibles | CASD',
       meta: [
         { term: 'Données', value: 'échanges de données sensibles' },
-        { term: 'Accès', value: 'boîtier SD-Box' },
+        { term: 'Accès', value: 'SD-Box' },
         { term: 'Authentification', value: 'carte, code et empreinte' },
-        { term: 'Environnement', value: "environnement coupé d'Internet" },
+        { term: 'Environnement', value: 'hors Internet' },
       ],
-      body: "Les échanges de données sensibles avec l'INSEE et France Travail passent par les bulles sécurisées du CASD. Support au quotidien de leurs utilisateurs : boîtier SD-Box, authentification forte, environnement coupé d'Internet.",
+      body: "Les échanges de données sensibles avec l'INSEE et France Travail passent par les environnements cloisonnés du CASD. Support au quotidien des utilisateurs : boîtier SD-Box, authentification forte, hors Internet.",
     },
     netherbrain: {
       kicker: '2026',
@@ -175,7 +175,7 @@ export const sheetsFr = {
       meta: [
         { term: 'Projet', value: "plateforme d'orchestration de LLM" },
         { term: 'Modèles', value: 'Ollama en local sur GPU, OpenRouter, Groq' },
-        { term: 'Serveur', value: 'FastAPI (Pydantic, SQLAlchemy, migrations Alembic)' },
+        { term: 'Serveur', value: 'FastAPI (Pydantic, Alembic)' },
         { term: 'Base', value: 'PostgreSQL + pgvector' },
         { term: 'Interface', value: 'React / TypeScript' },
         { term: 'Qualité', value: 'plus de 300 tests automatisés' },
@@ -198,31 +198,34 @@ export const sheetsFr = {
     laptop: {
       kicker: 'Compétences',
       step: 'Les outils',
-      title: 'Dev FullStack | AI Engineer',
+      title: 'AI Engineer | Dev FullStack',
       meta: [
-        { term: 'Front-end', value: 'React, TypeScript, Next.js, Vite, Tailwind, Three.js' },
+        {
+          term: 'Front-end',
+          value: 'React, TypeScript, Next.js, Vite, Tailwind, Three.js (React Three Fiber)',
+        },
         {
           term: 'Back-end',
           value:
-            'Python, FastAPI, Pydantic, API REST, SSE, PostgreSQL / pgvector, Alembic, Node.js / Express',
+            'Python, FastAPI, Pydantic, API REST, SSE, SQL, PostgreSQL / pgvector, Alembic, Node.js / Express, PHP / Drupal',
         },
         {
-          term: 'IA & LLM',
+          term: 'IA générative & LLM',
           value:
-            "API Anthropic, SDK OpenAI, Ollama, Agents IA, Multi-agents, Tool calling, Sorties structurées, RAG, Prompt engineering, Cache de prompt, LLM-as-judge, Bancs d'essai, Vision (multimodal), Claude Code",
+            "Claude API (Anthropic), OpenAI API, Hugging Face, Ollama / GGUF, Agents IA, Multi-agents, Tool calling, Structured outputs, RAG, Base vectorielle (pgvector), Prompt engineering, Cache de prompt, LLM-as-judge, Bancs d'essai, Multimodal (vision), Claude Code",
         },
         {
-          term: 'Voix & audio',
+          term: 'Voix & vidéo',
           value:
-            'Whisper (speech-to-text), Alignement forcé (MMS), Synthèse vocale (ElevenLabs), ffmpeg',
+            'Speech-to-text (Whisper), Alignement forcé (MMS), Text-to-speech (ElevenLabs), FFmpeg',
         },
         { term: 'Machine learning', value: 'PyTorch, Réseaux de neurones, Hyperparamètres' },
         {
           term: 'DevOps & qualité',
           value:
-            'Docker Compose, GitHub Actions, CI/CD, Git, pytest, Vitest, Linux, Nginx, Proxmox',
+            'Docker / Docker Compose, GitHub Actions, CI/CD, Git, pytest, Vitest, Playwright (E2E), Vercel, Linux, Nginx, Proxmox',
         },
-        { term: 'Autres', value: 'SQL, PHP / Drupal, Agile / Scrum, Jira' },
+        { term: 'Méthodes', value: 'Agile / Scrum, Jira' },
       ],
       body: "Les compétences du CV, du front-end à l'IA et à l'infrastructure.",
     },
@@ -238,8 +241,8 @@ export const sheetsFr = {
       step: 'Contact',
       title: 'Ali Smaani',
       meta: [
-        { term: 'Poste', value: 'Dev FullStack | AI Engineer' },
-        { term: 'Zone', value: 'Île-de-France · remote possible' },
+        { term: 'Poste', value: 'AI Engineer | Dev FullStack' },
+        { term: 'Zone', value: 'Île-de-France · télétravail possible' },
         { term: 'Statut', value: 'Disponible immédiatement' },
         { term: 'E-mail', value: 'smanali.pro@gmail.com', href: 'mailto:smanali.pro@gmail.com' },
         {
@@ -253,14 +256,14 @@ export const sheetsFr = {
     monitor: {
       kicker: 'Le parcours',
       step: 'Profil',
-      title: 'Dev FullStack | AI Engineer',
+      title: 'AI Engineer | Dev FullStack',
       meta: [
         { term: 'DEFI-METIERS', value: 'Sept. 2020 - Août 2023' },
         { term: 'DARES', value: 'Janv. 2024 - Juin 2026' },
         { term: 'Projets', value: '2026' },
         { term: 'Statut', value: 'Disponible immédiatement' },
       ],
-      body: "Développeur full-stack React / TypeScript et Python / FastAPI. Je conçois des applications qui intègrent l'IA générative de bout en bout : interface React, API FastAPI, PostgreSQL, et LLM multi-fournisseurs avec tool calling, sorties structurées, RAG et streaming. En parallèle, je fais tourner en production une plateforme d'automatisation multi-agents auto-hébergée. 3 ans de développement web puis 2 ans et demi d'ingénierie applicative.",
+      body: "Développeur full-stack React / TypeScript et Python / FastAPI. Je conçois des applications testées et déployées qui intègrent l'IA générative : LLM multi-fournisseurs, tool calling, structured outputs, RAG et streaming. En parallèle, je fais tourner en production une plateforme d'automatisation multi-agents. 3 ans de développement web, puis 2,5 ans d'ingénierie applicative.",
     },
   },
 } satisfies SheetsContent;

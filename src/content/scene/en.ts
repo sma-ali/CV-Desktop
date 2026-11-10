@@ -43,7 +43,7 @@ export const sceneEn = {
       "    'Application & Data Management Engineer'),",
       '];',
       'export const ali = {',
-      "  title: 'Dev FullStack | AI Engineer',",
+      "  title: 'AI Engineer | Dev FullStack',",
       '  skills: seeLaptop(),',
       "  location: 'Paris, France · Open to remote',",
       '  available: true,',
@@ -54,7 +54,7 @@ export const sceneEn = {
   },
   facts: {
     name: 'Ali Smaani',
-    headline: 'Dev FullStack | AI Engineer',
+    headline: 'AI Engineer | Dev FullStack',
     location: 'Paris, France · Open to remote',
     availability: 'Available immediately',
     email: 'smanali.pro@gmail.com',

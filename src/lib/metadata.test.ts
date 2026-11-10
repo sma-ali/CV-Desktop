@@ -5,7 +5,7 @@ import { buildDeskMetadata, buildExpressMetadata } from './metadata';
 describe('métadonnées de la version express', () => {
   it('donnent titre, canonical, langues et Open Graph en français', () => {
     const metadata = buildExpressMetadata(getContent('fr'), 'fr');
-    expect(metadata.title).toBe('Ali Smaani | Dev FullStack | AI Engineer');
+    expect(metadata.title).toBe('Ali Smaani | AI Engineer | Dev FullStack');
     expect(metadata.alternates).toEqual({
       canonical: 'https://alismaani.fr/fr/express',
       languages: {
@@ -29,7 +29,7 @@ describe('métadonnées de la version express', () => {
 
   it('suivent la langue en anglais', () => {
     const metadata = buildExpressMetadata(getContent('en'), 'en');
-    expect(metadata.title).toBe('Ali Smaani | Dev FullStack | AI Engineer');
+    expect(metadata.title).toBe('Ali Smaani | AI Engineer | Dev FullStack');
     expect(metadata.alternates?.canonical).toBe('https://alismaani.fr/en/express');
     expect(metadata.openGraph).toMatchObject({ locale: 'en_US', alternateLocale: ['fr_FR'] });
   });
@@ -38,7 +38,7 @@ describe('métadonnées de la version express', () => {
 describe('métadonnées du bureau', () => {
   it('ont leur canonical, leurs langues et l’image de la version express', () => {
     const metadata = buildDeskMetadata(getContent('fr'), 'fr');
-    expect(metadata.title).toBe('Ali Smaani | Dev FullStack | AI Engineer');
+    expect(metadata.title).toBe('Ali Smaani | AI Engineer | Dev FullStack');
     expect(metadata.alternates).toEqual({
       canonical: 'https://alismaani.fr/fr',
       languages: {
